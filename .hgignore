@@ -1,0 +1,12 @@
+syntax: glob
+Blaze.Core/Blaze.Core.v11.suo
+Blaze.Core/bin/Debug/Blaze.Core.pdb
+Blaze.Core/bin/Debug/Blaze.Core.dll
+TestResults/*
+syntax: regexp
+Blaze.Core/obj/Debug/.*
+.*/bin/.*
+.*/obj/.*
+.*\.suo
+.*\.mdf
+.*\.ldf
