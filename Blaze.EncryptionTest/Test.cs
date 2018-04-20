@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using Encryption;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Linq;
 using Blaze.Core.Extensions;
 using System.Diagnostics;
 
-namespace EncryptionTest
+namespace Blaze.Encryption.Tests
 {
     [TestClass]
     public class Test
@@ -191,7 +190,6 @@ namespace EncryptionTest
         [TestMethod]
         public void AllCyphersForwardBackwards()
         {
-
             AllTest(TestType.Full);
         }
 

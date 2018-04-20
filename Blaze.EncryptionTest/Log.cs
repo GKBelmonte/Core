@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Blaze.Core.Extensions;
 
-namespace EncryptionTest
+namespace Blaze.Encryption.Tests
 {
     public static class Log
     {

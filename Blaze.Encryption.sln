@@ -1,11 +1,17 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio 15
+VisualStudioVersion = 15.0.27428.2005
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blaze.Core", "Blaze.Core\Blaze.Core.csproj", "{9DED0638-86EB-49E3-B3D6-D819F4BD194F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blaze.Encryption", "Blaze.Encryption\Blaze.Encryption.csproj", "{1245D0CA-3464-49FC-8117-8EAFEFDD3748}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blaze.EncryptionTest", "Blaze.EncryptionTest\Blaze.EncryptionTest.csproj", "{C6B8E6F9-CCB1-4E26-86C7-41E6BCFEABAC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blaze.Encryption.Tests", "Blaze.EncryptionTest\Blaze.Encryption.Tests.csproj", "{C6B8E6F9-CCB1-4E26-86C7-41E6BCFEABAC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blaze.Wpf", "Blaze.Wpf\Blaze.Wpf.csproj", "{8337BBB7-1165-4DD1-859A-718C735BCC2E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blaze.Encryption.Runner", "Blaze.Encryption.Runner\Blaze.Encryption.Runner.csproj", "{61B102A0-ADF5-4CFF-8994-178642B114A8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -25,8 +31,19 @@ Global
 		{C6B8E6F9-CCB1-4E26-86C7-41E6BCFEABAC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C6B8E6F9-CCB1-4E26-86C7-41E6BCFEABAC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C6B8E6F9-CCB1-4E26-86C7-41E6BCFEABAC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8337BBB7-1165-4DD1-859A-718C735BCC2E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8337BBB7-1165-4DD1-859A-718C735BCC2E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8337BBB7-1165-4DD1-859A-718C735BCC2E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8337BBB7-1165-4DD1-859A-718C735BCC2E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{61B102A0-ADF5-4CFF-8994-178642B114A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{61B102A0-ADF5-4CFF-8994-178642B114A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{61B102A0-ADF5-4CFF-8994-178642B114A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{61B102A0-ADF5-4CFF-8994-178642B114A8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {AB6DD4AB-8670-42AC-AFC7-9D9A898AA926}
 	EndGlobalSection
 EndGlobal

@@ -1,0 +1,12 @@
+*\.suo
+*\.csv
+*\.csvf
+*\.mdf
+**/bin/**
+**/obj/**
+Blaze.Encryption.Runner/test.out.txt
+Blaze.Encryption.Runner/test.in.txt
+Blaze.Encryption.Runner/test.bak.txt
+TestResults/**
+**project.lock**
+**.user

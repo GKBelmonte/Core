@@ -1,0 +1,2 @@
+﻿-SourceFilePath test.in.txt -TargetFilePath test.out.txt -EncryptionKey potato 
+-Action Decrypt -SourceFilePath test.out.txt -TargetFilePath test.bak.txt -EncryptionKey potato 

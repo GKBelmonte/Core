@@ -7,8 +7,8 @@
     <ProjectGuid>{1245D0CA-3464-49FC-8117-8EAFEFDD3748}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Encryption</RootNamespace>
-    <AssemblyName>Encryption</AssemblyName>
+    <RootNamespace>Blaze.Encryption</RootNamespace>
+    <AssemblyName>Blaze.Encryption</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -40,6 +40,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AlphabeticEncrypt.cs" />
+    <Compile Include="BaseCypher.cs" />
+    <Compile Include="ChainCypher.cs" />
     <Compile Include="EncryptionTesting.cs" />
     <Compile Include="FibonacciCypher.cs" />
     <Compile Include="IEncrypt.cs" />

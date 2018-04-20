@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Blaze.Core.Extensions;
 
-namespace Encryption
+namespace Blaze.Encryption
 {
     public class RandomBijection : AlphabeticEncrypt, IOperationEncrypt
     {
@@ -21,8 +21,9 @@ namespace Encryption
         // I assume that not knowing the function used to encrypt will make it signficiantly harder to crack,
         // specially if the function is derived from the key.
         // (note a bijection is function that maps one element to another, and hence is necessarily revertable
-        //  like a map. In this case, this should be a multi-variable bijection so that if f(a,b) is known and either
-        //  a or b is known, we can know b or a) 
+        //  like a map. 
+        //  In this case, this should be a multi-variable bijection 
+        //  so that if f(a,b) is known and either a or b is known, we can know b or a) 
         //  Note: After further thought I realize this:
         //  This is still vulnerable to chosen plain text attack, since
         //  that may reveal the bijection if they key is re-used, which 

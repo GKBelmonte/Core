@@ -4,13 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Encryption
+namespace Blaze.Encryption
 {
-    public class StreamCypher : AlphabeticEncrypt, IOperationEncrypt, ISeededEncrypt
+    public class StreamCypher : AlphabeticEncrypt, IOperationEncrypt
     {
         public StreamCypher() { }
-
-        public int BlockSize { get; set; }
 
         public StreamCypher(char[] alphabet)
         {
@@ -41,7 +39,5 @@ namespace Encryption
         {
             return Encrypt(cypher, key, op);
         }
-
-        public Random Rand { get; set; }
     }
 }

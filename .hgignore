@@ -10,3 +10,4 @@ Blaze.Core/obj/Debug/.*
 .*\.suo
 .*\.mdf
 .*\.ldf
+\.vs./*.

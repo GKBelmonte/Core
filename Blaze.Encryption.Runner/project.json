@@ -1,0 +1,17 @@
+﻿{
+"frameworks": {
+
+    "net450": { },
+
+  },
+  "runtimes": {
+    "win-x64": { },
+    "win-x86": { },
+    "win-anycpu": { },
+    "win": { }
+  },
+  "dependencies": {
+    "Plossum.CommandLine" : "0.3.0.14"
+  },
+
+}

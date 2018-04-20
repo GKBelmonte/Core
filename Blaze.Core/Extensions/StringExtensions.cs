@@ -26,7 +26,6 @@ namespace Blaze.Core.Extensions
             return string.Join(string.Empty, bytes.Select(c => (char)c));
         }
 
-
         public static byte[] Encode(this string self, Encoding enc = Encoding.ASCII)
         {
             switch (enc)

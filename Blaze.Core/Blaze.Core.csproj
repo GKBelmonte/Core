@@ -44,10 +44,9 @@
     <Compile Include="Extensions\IListExtensions.cs" />
     <Compile Include="Extensions\IntegerExtensions.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
+    <Compile Include="Log\ConsoleLogger.cs" />
+    <Compile Include="Log\ILogger.cs" />
     <Compile Include="Math\Stats.cs" />
-    <Compile Include="WPF\BindableBase.cs" />
-    <Compile Include="WPF\PropertySupport.cs" />
-    <Compile Include="WPF\ViewModelBase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Encryption
+namespace Blaze.Encryption
 {
     public class FibonacciCypher : AlphabeticEncrypt, IOperationEncrypt
     {
@@ -51,6 +51,7 @@ namespace Encryption
         // Fibonacci cypher is such that  c[i+1] = p[i+1] + c[i]  |     c[i] = p[i] + c[i-1]
         //                            and c[0] = p[0] + key;
         // so p[i] = c[i] - c[i-1]
+        // also means though that key = c[0] - p[0]
         protected virtual void ForwardPass(int seed, Func<int, int, int> f, int[] p, int[] c)
         {
             c[0] = f(p[0], seed);
@@ -85,8 +86,8 @@ namespace Encryption
         }
     }
 
-    //weaker in confusion, but the cypher text depends solely on the plain,
-    // so knowing the plain, requires to know the plain, so it cannot be cracked trivially like v1
+    // weaker in confusion, but the cypher text depends solely on the plain,
+    // so knowing the plain, requires to know the plain, so the key cannot be cracked trivially like v1
     public class FibonacciCypherV2 : FibonacciCypher
     {
         // Fibonacci cypher is such that  c[i+1] = p[i+1] + p[i]  |     c[i] = p[i] + p[i-1]

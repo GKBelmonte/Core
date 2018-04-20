@@ -5,9 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using Blaze.Core.Extensions;
 
-namespace Encryption
+namespace Blaze.Encryption
 {
-    public abstract class AlphabeticEncrypt 
+    public abstract class AlphabeticEncrypt : BaseCypher
     {
         protected AlphabeticEncrypt()
         {
@@ -65,8 +65,8 @@ namespace Encryption
             return bytes;
         }
 
-        public Func<int, int, int> CustomOp;
-        public Func<int, int, int> ReverseOp;
+        public Func<int, int, int> CustomOp { get; set; }
+        public Func<int, int, int> ReverseOp { get; set; }
 
         public Func<int, int, int> GetOpFunc(Operation op)
         {
@@ -122,51 +122,18 @@ namespace Encryption
             return powOf2Alphabet.ToArray();
         }
 
-        public Func<byte[], byte[]> ProcessKey{get; set;}
-
-        protected byte[] ProcessKeyInternal(byte[] key)
-        {
-            if (ProcessKey != null)
-                return ProcessKey(key);
-
-            byte[] keyHash;
-            using (var md5 = System.Security.Cryptography.MD5.Create())
-            {
-                //seems pointless to salt key in this contetx
-                //byte[] salt = key.ToTextString().GetHashCode().ToString().ToByteArray();
-                var saltedKey = new List<byte>(key);
-                //saltedKey.AddRange(salt);
-                keyHash = md5.ComputeHash(saltedKey.ToArray());
-            }
-            return keyHash;
-        }
-
         public abstract byte[] Encrypt(byte[] plain, byte[] key, Operation op);
 
         public abstract byte[] Decrypt(byte[] cypher, byte[] key, Operation op);
 
-        public virtual byte[] Encrypt(byte[] plain, byte[] key)
+        public override byte[] Encrypt(byte[] plain, byte[] key)
         {
             return Encrypt(plain, key, Operation.Add);
         }
 
-        public virtual byte[] Decrypt(byte[] cypher, byte[] key)
+        public override byte[] Decrypt(byte[] cypher, byte[] key)
         {
             return Decrypt(cypher, key, Operation.Sub);
-        }
-
-        public virtual string Encrypt(string plain, string key)
-        {
-            byte[] plainByte = plain.ToByteArray();
-            byte[] keyByte = key.ToByteArray();
-            return Encrypt(plainByte, keyByte).ToTextString();
-        }
-
-        public virtual string Decrypt(string cypher, string key)
-        {
-            byte[] cypherByte = cypher.ToByteArray();
-            byte[] keyByte = key.ToByteArray();
-            return Decrypt(cypherByte, keyByte).ToTextString();
         }
 
         //Encrypt XOR only works perfectly if the alphabet size is a power of 2

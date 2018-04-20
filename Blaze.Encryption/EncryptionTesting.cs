@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Blaze.Core.Math;
 using Blaze.Core.Extensions;
 
-namespace Encryption
+namespace Blaze.Encryption
 {
     public static class EncryptionTesting
     {
@@ -40,6 +40,7 @@ namespace Encryption
 
         /// <summary>
         /// Diffusion is a measure of how each bit of the plain text affects the bits of the cypher text.
+        /// Since we flip one bit of the plain text, the minimum is 1 / text-length (in bits)
         /// </summary>
         public static float TestForDifussion(IEncrypt encrypt, int testCount)
         {
@@ -66,7 +67,7 @@ namespace Encryption
         {
             _RNG = new Random(RSeed);
 
-            plain = RandomText(PlainSize, UseNatural);
+            plain = RandomText(PlainSize, Type);
             key = RandomText(KeySize);
             originalCypher = encrypt.Encrypt(plain, key);
         }
@@ -108,21 +109,6 @@ namespace Encryption
             return res;
         }
 
-        public static byte[] RandomText(int size, bool useNatural = false)
-        {
-            if (useNatural)
-            {
-                return LoremIpsum[_RNG.Next(LoremIpsum.Length)].ToByteArray();
-            }
-            else
-            {
-                var res = new byte[size];
-                _RNG.NextBytes(res);
-                return res;
-            }
-        }
-
-
         /// <summary>
         /// The distribution should be as spread as possible
         /// </summary>
@@ -133,26 +119,69 @@ namespace Encryption
             byte[] cypher;
             _RNG = new Random(RSeed);
             float[] scores = new float[TryCount];
+            float[] plainChis = new float[TryCount];
+            float[] cypherChis = new float[TryCount];
             for (int ii = 0; ii < TryCount; ++ii)
             {
-                plain = RandomText(PlainSize, UseNatural);
+                plain = RandomText(PlainSize, Type);
                 key = RandomText(KeySize);
                 cypher = enc.Encrypt(plain, key);
 
-                double plainChi = Math.Sqrt(Stats.ChiSquared(GetBlockCout(plain)));
-                double cypherChi = Math.Sqrt(Stats.ChiSquared(GetBlockCout(cypher)));
+                double plainChi = Math.Sqrt(Stats.ChiSquared(GetBlockCount(plain)));
+                double cypherChi = Math.Sqrt(Stats.ChiSquared(GetBlockCount(cypher)));
+                plainChis[ii] = (float)plainChi;
+                cypherChis[ii] = (float)cypherChi;
+
+                // Prevent division by zero when both plain and cypher have uniform distribution
+                if (plainChi == 0)
+                {
+                    plainChi = float.MinValue;
+                    if (cypherChi == 0)
+                        cypherChi = float.MinValue;
+                }
 
                 //if cypherChi == 0, score is 100% (uniform distribution, little statistical data)
                 //if cypherChi == plainChi, score is 0% (same distribution as plain-text, not good at all)
                 //if cypherChi > plainChi, score is negative (cypher has worse distribution than plain, probably inconclusive)
                 scores[ii] = (float)((plainChi - cypherChi) / plainChi);
             }
-
+            Console.WriteLine($"\tplain:{plainChis.Average()}");
+            Console.WriteLine($"\tcypher:{cypherChis.Average()}");
             return scores.Average();
         }
 
+        public enum TextType
+        {
+            Dummy,
+            Flush,
+            Natural,
+            Random
+        }
 
-        public static List<int> GetBlockCout(byte[] buff, int blockSize = 1, byte[] alphabet = null)
+        private static byte[] _dummyText = Enumerable.Range(0, 1024).Select(i => (byte)0).ToArray();
+        private static byte[] _flushText = Enumerable.Range(0, 1024).Select(i => (byte)i).ToArray();
+        public static byte[] RandomText(int size, TextType type = TextType.Random)
+        {
+            switch (type)
+            {
+                case TextType.Random:
+                    var res = new byte[size];
+                    _RNG.NextBytes(res);
+                    return res;
+                case TextType.Flush:
+                    return _flushText;
+                case TextType.Natural:
+                    return LoremIpsum[_RNG.Next(LoremIpsum.Length)].ToByteArray();
+                case TextType.Dummy:
+                    return _dummyText;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(type));
+            }
+        }
+
+
+
+        public static List<int> GetBlockCount(byte[] buff, byte[] alphabet = null)
         {
             if (alphabet == null)
                 alphabet = Enumerable.Range(0, 256).Select(i => (byte)i).ToArray();
@@ -171,7 +200,7 @@ namespace Encryption
         public static int PlainSize = 1024;
         public static int KeySize = 8;
         public static int TryCount = 10;
-        public static bool UseNatural = false;
+        public static TextType Type = EncryptionTesting.TextType.Random;
 
         public static string[] LoremIpsum = {
 @"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec in dolor felis. Duis tristique metus id nibh feugiat finibus. Vestibulum vitae viverra elit. Integer iaculis eleifend elementum. Curabitur faucibus commodo nisl imperdiet lobortis. Phasellus pretium mollis purus id pharetra. Integer aliquet nibh velit, et luctus diam malesuada nec. Donec fringilla sem id eros efficitur, non tincidunt risus gravida. Donec mattis sapien lorem, ac malesuada sapien ornare sed. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi aliquam vitae libero vitae elementum. Aenean tellus enim, pretium ac lacus nec, iaculis fringilla quam. In at tellus eu felis malesuada hendrerit. Maecenas efficitur hendrerit leo, eget vulputate odio interdum et. Aliquam in justo fermentum, sollicitudin tellus nec, sagittis lacus. Maecenas pulvinar vitae nibh in maximus. In suscipit tortor tortor, vel sagittis erat vulputate ac. Aenean consequat velit eget est faucibus, ac feugiat leo tristique. Sed non diam nulla. Nullam massa nunc. ",

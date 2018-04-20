@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Encryption
+namespace Blaze.Encryption
 {
     public interface IEncrypt
     {
@@ -23,12 +23,6 @@ namespace Encryption
         string Encrypt(string plain, string key, Operation op);
         string Decrypt(string cypher, string key, Operation op);
     }
-
-    public interface ISeededEncrypt : IEncrypt
-    {
-        Random Rand { get; set; }
-    }
-
 
     //Does the operation on the plain, ignoring the key (treating as 0)
     public class NullCypher : AlphabeticEncrypt, IOperationEncrypt
