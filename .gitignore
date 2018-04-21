@@ -10,3 +10,4 @@ Blaze.Encryption.Runner/test.bak.txt
 TestResults/**
 **project.lock**
 **.user
+.vs/
