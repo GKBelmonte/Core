@@ -13,7 +13,7 @@ namespace Blaze.Encryption.Tests
     {
         private static ListConstruct<TestCase> GetTestCases()
         {
-            var tested = new ListConstruct<TestCase>
+            var testedCyphers = new ListConstruct<TestCase>
             {
                 { new NullCypher(),"Null Cypher",  0f },
                 { new Vigenere(), "Vigenere",  null },
@@ -28,7 +28,7 @@ namespace Blaze.Encryption.Tests
                 { new RandomBijection(new FibonacciCypherV3()), "RandomBijectionDecorator(FibonacciCypherV3)", null },
                 { new RandomBijection(new StreamCypher()), "RandomBijectionDecorator(StreamCypher)", null }
             };
-            return tested;
+            return testedCyphers;
         }
 
         [TestMethod]

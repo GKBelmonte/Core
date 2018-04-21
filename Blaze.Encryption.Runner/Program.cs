@@ -39,7 +39,7 @@ namespace Blaze.Encryption.Runner
                 string plainText = File.ReadAllText(ops.SourceFilePath);
                 string cryptoText = enc.Encrypt(plainText, ops.EncryptionKey);
                 File.WriteAllText(ops.TargetFilePath, cryptoText);
-            }
+            } 
             else
             {
                 string cryptoText = File.ReadAllText(ops.SourceFilePath);

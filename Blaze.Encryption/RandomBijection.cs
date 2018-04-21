@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Blaze.Core.Extensions;
+using Blaze.Encryption.Rng;
 
 namespace Blaze.Encryption
 {
@@ -118,7 +119,7 @@ namespace Blaze.Encryption
                 throw new ArgumentException("Bijection Decorator defines its own operation, the only op allowed is custom.", "op");
 
             byte[] keyHash = ProcessKeyInternal(key);
-            var rand = keyHash.KeyToRand();
+            IRng rand = keyHash.KeyToRand();
 
             InitializeBijection(rand);
             _Encrypt.CustomOp = Forward;
@@ -126,10 +127,11 @@ namespace Blaze.Encryption
             return _Encrypt.Decrypt(cypher, key, op);
         }
 
-        public void InitializeBijection(Random rand)
+        public void InitializeBijection(IRng rand)
         {
             if (_Bijection != null)
                 return;
+
             int size = Alphabet.Length;
             _Bijection = new List<Map<int, int>>(size);
             for (var ii = 0; ii < size; ++ii)

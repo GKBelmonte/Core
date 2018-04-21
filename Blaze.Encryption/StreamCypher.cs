@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Blaze.Encryption.Rng;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Blaze.Encryption
 {
-    public class StreamCypher : AlphabeticEncrypt, IOperationEncrypt
+    public class StreamCypher : SeededEncryptBase, IOperationEncrypt, ISeededEncrypt
     {
         public StreamCypher() { }
 
@@ -18,8 +19,20 @@ namespace Blaze.Encryption
         public override byte[] Encrypt(byte[] plain, byte[] key, Operation op)
         {
             byte[] keyHash = ProcessKeyInternal(key);
-            var rand = keyHash.KeyToRand();
+            IRng rand = keyHash.KeyToRand();
 
+            byte[] cypher = Encrypt(plain, rand, op);
+
+            return cypher;
+        }
+
+        public override byte[] Decrypt(byte[] cypher, byte[] key, Operation op)
+        {
+            return Encrypt(cypher, key, op);
+        }
+
+        private byte[] Encrypt(byte[] plain, IRng rand, Operation op)
+        {
             var cypher = new byte[plain.Length];
             var f = GetOpFunc(op);
             var p = ByteToIndices(plain);
@@ -35,9 +48,14 @@ namespace Blaze.Encryption
             return cypher;
         }
 
-        public override byte[] Decrypt(byte[] cypher, byte[] key, Operation op)
+        public override byte[] Encrypt(byte[] plain, IRng key)
         {
-            return Encrypt(cypher, key, op);
+            throw new NotImplementedException();
+        }
+
+        public override byte[] Decrypt(byte[] cypher, IRng key)
+        {
+            throw new NotImplementedException();
         }
     }
 }

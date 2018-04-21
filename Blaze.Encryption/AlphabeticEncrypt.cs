@@ -7,6 +7,12 @@ using Blaze.Core.Extensions;
 
 namespace Blaze.Encryption
 {
+    /// <summary>
+    /// Base class for having a restricted alphabet
+    /// By default, we use all of 0-255 
+    /// (even though C# encodes in unicode, utf-16, but meh, once encrypted we generally don't care
+    /// if the string encoding is broken or we use just bytes)
+    /// </summary>
     public abstract class AlphabeticEncrypt : BaseCypher
     {
         protected AlphabeticEncrypt()

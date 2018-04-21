@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Blaze.Encryption.Rng;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -60,7 +61,7 @@ namespace Blaze.Encryption
         private List<byte[]> GetPepperedKeys(byte[] key)
         {
             byte[] hashedKey = ProcessKeyInternal(key);
-            Random random = hashedKey.KeyToRand();
+            IRng random = hashedKey.KeyToRand();
             byte[] discard = new byte[random.Next(100, 111)];
             random.NextBytes(discard);
 

@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 
 namespace Blaze.Encryption
 {
+    /// <summary>
+    /// Implements trivial string overloads of IEncrypt
+    /// </summary>
     public abstract class BaseCypher : IEncrypt
     {
         public virtual string Encrypt(string plain, string key)
@@ -26,14 +29,12 @@ namespace Blaze.Encryption
         public abstract byte[] Encrypt(byte[] plain, byte[] key);
         public abstract byte[] Decrypt(byte[] cypher, byte[] key);
 
-
-        public Func<byte[], byte[]> ProcessKey { get; set; }
-
-        protected byte[] ProcessKeyInternal(byte[] key)
+        /// <summary>
+        /// Optionally do stuff to the key before using it.
+        /// Right now, it hashes it
+        /// </summary>
+        protected virtual byte[] ProcessKeyInternal(byte[] key)
         {
-            if (ProcessKey != null)
-                return ProcessKey(key);
-
             byte[] keyHash;
             using (var md5 = System.Security.Cryptography.MD5.Create())
             {
