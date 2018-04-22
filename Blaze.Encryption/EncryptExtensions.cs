@@ -9,6 +9,23 @@ namespace Blaze.Encryption
 {
     public static class EncryptExtenstions
     {
+        /// <summary>
+        /// Optionally do stuff to the key before using it.
+        /// Right now, it hashes it
+        /// </summary>
+        public static byte[] GetMD5Hash(this byte[] key, byte[] salt = null)
+        {
+            byte[] keyHash;
+            using (var md5 = System.Security.Cryptography.MD5.Create())
+            {
+                var saltedKey = new List<byte>(key);
+                if(salt != null)
+                    saltedKey.AddRange(salt);
+                keyHash = md5.ComputeHash(saltedKey.ToArray());
+            }
+            return keyHash;
+        }
+
         public static int ToSeed(this byte[] self, bool littleEndian = true)
         {
             int res = 0;
@@ -48,19 +65,27 @@ namespace Blaze.Encryption
 
         }
 
+        public static IRng KeyToRand(this byte[] key)
+        {
+            int seed = key.ToSeed();
+            var rand = new SysRng(seed);
+            return rand;
+        }
+
+        public static byte[] Pepper(this byte[] key, byte[] pepper)
+        {
+            byte[] final = new byte[key.Length];
+            for (int i = 0; i < key.Length; ++i)
+                final[i] = (byte)(key[i] ^ pepper[i]);
+            return final;
+        }
+
         public static UInt64 LongRandom(this IRng rand)
         {
             byte[] buf = new byte[8];
             rand.NextBytes(buf);
             UInt64 longRand = BitConverter.ToUInt64(buf, 0);
             return longRand;
-        }
-
-        public static IRng KeyToRand(this byte[] key)
-        {
-            int seed = key.ToSeed();
-            var rand = new SysRng(seed);
-            return rand;
         }
 
         public static Operation GetReverse(this Operation op)

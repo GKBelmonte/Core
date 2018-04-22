@@ -18,7 +18,7 @@ namespace Blaze.Encryption
 
         public override byte[] Encrypt(byte[] plain, byte[] key, Operation op)
         {
-            byte[] keyHash = ProcessKeyInternal(key);
+            byte[] keyHash = key.GetMD5Hash();
             IRng rand = keyHash.KeyToRand();
 
             byte[] cypher = Encrypt(plain, rand, op);

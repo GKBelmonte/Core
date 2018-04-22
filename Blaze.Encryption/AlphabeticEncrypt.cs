@@ -13,7 +13,7 @@ namespace Blaze.Encryption
     /// (even though C# encodes in unicode, utf-16, but meh, once encrypted we generally don't care
     /// if the string encoding is broken or we use just bytes)
     /// </summary>
-    public abstract class AlphabeticEncrypt : BaseCypher
+    public abstract class AlphabeticEncrypt : IOperationEncrypt
     {
         protected AlphabeticEncrypt()
         {
@@ -160,37 +160,14 @@ namespace Blaze.Encryption
 
         public abstract byte[] Decrypt(byte[] cypher, byte[] key, Operation op);
 
-        public override byte[] Encrypt(byte[] plain, byte[] key)
+        public virtual byte[] Encrypt(byte[] plain, byte[] key)
         {
             return Encrypt(plain, key, Operation.Add);
         }
 
-        public override byte[] Decrypt(byte[] cypher, byte[] key)
+        public virtual byte[] Decrypt(byte[] cypher, byte[] key)
         {
             return Decrypt(cypher, key, Operation.Sub);
-        }
-
-        //Encrypt XOR only works perfectly if the alphabet size is a power of 2
-        // a ^ k will never be bigger than the largest number with as many bits.
-        // if a ^ k > |Alpha| then a ^ k % |Alpha|  =/= a ^ k and so we break bijection and we can't get 'a' back.
-        // for example suppose Alpha = {00,01,10} hence |Alpha| = 3, 
-        // If we observe the table given by (a ^ k) % |A| we notice there are duplicates, so bijection does not hold
-        // for example 01 ^ 01 = 00 and 01 ^ 10 = 11 == 00 MOD 11
-        // so (1 ^ 1) % 3 == (1 ^ 2) % 5 and there's no way to destinguish which plain text is correct
-        public virtual string Encrypt(string plain, string key, Operation op)
-        {
-            byte[] plainByte = plain.ToByteArray();
-            byte[] keyByte = key.ToByteArray();
-            return Encrypt(plainByte, keyByte, op)
-                .ToTextString();
-        }
-
-        public virtual string Decrypt(string cypher, string key, Operation op)
-        {
-            byte[] cypherByte = cypher.ToByteArray();
-            byte[] keyByte = key.ToByteArray();
-            return Decrypt(cypherByte, keyByte, op)
-                .ToTextString();
         }
     }
 }

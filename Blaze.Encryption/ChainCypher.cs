@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Blaze.Encryption
 {
-    public class ChainCypher : BaseCypher
+    public class ChainCypher : IEncrypt
     {
         private readonly IReadOnlyList<IEncrypt> _encrypts;
         public ChainCypher(params Type[] types)
@@ -26,7 +26,7 @@ namespace Blaze.Encryption
             _encrypts = encrypts.ToList();
         }
 
-        public override byte[] Decrypt(byte[] cypher, byte[] key)
+        public virtual byte[] Decrypt(byte[] cypher, byte[] key)
         {
             List<byte[]> pepperedKeys = GetPepperedKeys(key);
 
@@ -42,7 +42,7 @@ namespace Blaze.Encryption
             return currentPass;
         }
 
-        public override byte[] Encrypt(byte[] plain, byte[] key)
+        public virtual byte[] Encrypt(byte[] plain, byte[] key)
         {
             List<byte[]> pepperedKeys = GetPepperedKeys(key);
 
@@ -60,7 +60,7 @@ namespace Blaze.Encryption
 
         private List<byte[]> GetPepperedKeys(byte[] key)
         {
-            byte[] hashedKey = ProcessKeyInternal(key);
+            byte[] hashedKey = key.GetMD5Hash();
             IRng random = hashedKey.KeyToRand();
             byte[] discard = new byte[random.Next(100, 111)];
             random.NextBytes(discard);
@@ -70,18 +70,10 @@ namespace Blaze.Encryption
                 {
                     byte[] pepper = new byte[hashedKey.Length];
                     random.NextBytes(pepper);
-                    return Pepper(hashedKey, pepper);
+                    return hashedKey.Pepper(pepper);
                 })
                 .ToList();
             return pepperedKeys;
-        }
-
-        public byte[] Pepper(byte[] orig, byte[] pepper)
-        {
-            byte[] final = new byte[orig.Length];
-            for (int i = 0; i < orig.Length; ++i)
-                final[i] = (byte)(orig[i] ^ pepper[i]);
-            return final;
         }
     }
 }

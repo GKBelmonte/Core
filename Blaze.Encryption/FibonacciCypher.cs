@@ -17,7 +17,7 @@ namespace Blaze.Encryption
 
         public override byte[] Encrypt(byte[] plain, byte[] key, Operation op)
         {
-            byte[] keyHash = ProcessKeyInternal(key);
+            byte[] keyHash = key.GetMD5Hash();
             int seed = keyHash.ToSeed();
 
             var f = GetOpFunc(op);
@@ -35,7 +35,7 @@ namespace Blaze.Encryption
         
         public override byte[] Decrypt(byte[] cypher, byte[] key, Operation op)
         {
-            byte[] keyHash = ProcessKeyInternal(key);
+            byte[] keyHash = key.GetMD5Hash();
             int seed = keyHash.ToSeed();
             var f = GetOpFunc(op);
 

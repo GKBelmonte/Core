@@ -11,18 +11,12 @@ namespace Blaze.Encryption
     {
         byte[] Encrypt(byte[] plain, byte[] key);
         byte[] Decrypt(byte[] cypher, byte[] key);
-
-        string Encrypt(string plain, string key);
-        string Decrypt(string cypher, string key);
     }
 
     public interface IOperationEncrypt : IEncrypt
     {
         byte[] Encrypt(byte[] plain, byte[] key, Operation op);
         byte[] Decrypt(byte[] cypher, byte[] key, Operation op);
-
-        string Encrypt(string plain, string key, Operation op);
-        string Decrypt(string cypher, string key, Operation op);
     }
 
     public interface ISeededEncrypt : IEncrypt

@@ -86,24 +86,14 @@ namespace Blaze.Encryption
             }
         }
 
-        public override string Encrypt(string plain, string key)
-        {
-            return base.Encrypt(plain, key, Operation.Custom);
-        }
-
         public override byte[] Encrypt(byte[] plain, byte[] key)
         {
             return Encrypt(plain, key, Operation.Custom);
         }
 
-        public override string Decrypt(string cypher, string key)
-        {
-            return base.Decrypt(cypher, key, Operation.ReverseCustom);
-        }
-
         public override byte[] Decrypt(byte[] cypher, byte[] key)
         {
-            return Decrypt(cypher, key, Operation.Custom);
+            return Decrypt(cypher, key, Operation.ReverseCustom);
         }
 
         public override byte[] Encrypt(byte[] plain, byte[] key, Operation op)
@@ -111,7 +101,7 @@ namespace Blaze.Encryption
             if (op != Operation.Custom && op!= Operation.ReverseCustom)
                 throw new ArgumentException("Bijection Decorator defines its own operation, the only op allowed is custom.", "op");
 
-            byte[] keyHash = ProcessKeyInternal(key);
+            byte[] keyHash = key.GetMD5Hash();
             var rand = keyHash.KeyToRand();
 
             InitializeBijection(rand);
@@ -125,7 +115,7 @@ namespace Blaze.Encryption
             if (op != Operation.Custom && op != Operation.ReverseCustom)
                 throw new ArgumentException("Bijection Decorator defines its own operation, the only op allowed is custom.", "op");
 
-            byte[] keyHash = ProcessKeyInternal(key);
+            byte[] keyHash = key.GetMD5Hash();
             IRng rand = keyHash.KeyToRand();
 
             InitializeBijection(rand);
@@ -171,7 +161,7 @@ namespace Blaze.Encryption
 
         public string GetBijectionString(string key)
         {
-            byte[] keyHash = ProcessKeyInternal(key.ToByteArray());
+            byte[] keyHash = key.ToByteArray().GetMD5Hash();
             IRng rand = keyHash.KeyToRand();
             InitializeBijection(rand);
             var res = new StringBuilder();

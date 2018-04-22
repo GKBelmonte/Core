@@ -40,7 +40,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AlphabeticEncrypt.cs" />
-    <Compile Include="BaseCypher.cs" />
+    <Compile Include="StringCypherExtensions.cs" />
     <Compile Include="ChainCypher.cs" />
     <Compile Include="EncryptExtensions.cs" />
     <Compile Include="EncryptionTesting.cs" />
