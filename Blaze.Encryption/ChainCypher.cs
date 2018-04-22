@@ -36,7 +36,7 @@ namespace Blaze.Encryption
             for (int i = 0; i < _encrypts.Count; ++i)
             {
                 byte[] pepperedKey = pepperedKeys[i];
-                currentPass = _encrypts[i].Encrypt(currentPass, pepperedKey);
+                currentPass = _encrypts[i].Encrypt(currentPass, pepperedKey, op);
             }
 
             return currentPass;
@@ -52,7 +52,7 @@ namespace Blaze.Encryption
             for (int i = _encrypts.Count - 1; i >= 0; --i)
             {
                 byte[] pepperedKey = pepperedKeys[i];
-                currentPass = _encrypts[i].Decrypt(currentPass, pepperedKey);
+                currentPass = _encrypts[i].Decrypt(currentPass, pepperedKey, op);
             }
 
             return currentPass;

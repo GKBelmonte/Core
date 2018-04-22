@@ -29,8 +29,16 @@ namespace Blaze.Encryption.Tests
                 { new RandomBijection(new Vigenere()) , "RBIJ on Vigenere", TestType.NotXor},
                 { new RandomBijection(new FibonacciCypher()) , "RBIJ on Fibonacci", TestType.NotXor},
                 { new RandomBijection(new FibonacciCypherV3()), "RBIJ on FibonaccyV3" , TestType.NotXor },
-                { new RandomBijection(new StreamCypher()), "RBIJ on Stream", TestType.NotXor}
-                
+                { new RandomBijection(new StreamCypher()), "RBIJ on Stream", TestType.NotXor},
+                {
+                    new ChainCypher(
+                    typeof(FibonacciCypher),
+                    typeof(StreamCypher),
+                    typeof(FibonacciCypherV3)),
+                    "Chain1",
+                    TestType.Full
+                }
+
             };
             return res;
         }
@@ -77,7 +85,7 @@ namespace Blaze.Encryption.Tests
             Alpha = 4,
             AlphaXor = 8,
             Custom = 16,
-            All = 0x11111b,
+            All = 0b11111,
             Xors = Xor | AlphaXor,
             NotXor = Full | Alpha
         };
@@ -248,6 +256,14 @@ namespace Blaze.Encryption.Tests
                 summary.Add($"Test for {test.Name} has been SKIPPED");
                 return true;//continue;
             }
+
+            if (!test.AllowedTypes.HasFlag(type))
+            {
+                Log.Warn($"{test.Name} does not allow test of type {type}. Skipping.");
+                summary.Add($"Test for {test.Name} has been SKIPPED");
+                return true;
+            }
+
             if (test.Alpha != null)
             {
                 Log.Info($"{test.Name} has restricted alphabet, testing with it.\n\n\n");
@@ -379,35 +395,51 @@ namespace Blaze.Encryption.Tests
             if (tester == null)
                 return true; //cannot be tested in the current setting
 
-            do
+
+            foreach (string k in keys)
             {
-                if (Debugger.IsAttached && !passInternal)
-                    Debugger.Break();
-                try
+                Log.Info($"Testing with key '{k}'");
+                foreach (var t in texts)
                 {
-                    foreach (string k in keys)
+                    passInternal &= WrappendTest(() =>
                     {
-                        Log.Info($"Testing with key '{k}'");
-                        foreach (var t in texts)
-                        {
-                            using (Log.StartIndentScope())
-                            passInternal &= tester(enc, t, k);
-                        }
-                    }
-
+                        using (Log.StartIndentScope())
+                            return tester(enc, t, k);
+                    });
                 }
-                catch (Exception e)
-                {
-                    Log.Error($"Internal exception: {e}");
-                    passInternal = false;
-                }
-
-            } while (Debugger.IsAttached && !passInternal);
+            }
 
             if (!passInternal)
                 failedTests.Add(test.Name);
             
             return passInternal;
+        }
+
+
+        /// <summary>
+        /// Will break as soon as a test fails and will
+        /// repeat the test until you fix it in EnC
+        /// (only in debugger)
+        /// </summary>
+        private bool WrappendTest(Func<bool> test)
+        {
+            bool passed = true;
+            do
+            {
+                if (Debugger.IsAttached && !passed)
+                    Debugger.Break();
+                try
+                {
+                    passed = test();
+                }
+                catch (Exception e)
+                {
+                    Log.Error($"Internal exception: {e}");
+                    passed = false;
+                }
+
+            } while (Debugger.IsAttached && !passed);
+            return passed;
         }
 
         private Func<IEncrypt, string, string, bool> GetTester(EncryptTest test, TestType type)
@@ -454,7 +486,7 @@ namespace Blaze.Encryption.Tests
             if (alpha != null)
                 test.Alpha = alpha;
             bool pass = TestEnc(test, testType);
-            Assert.IsTrue(pass);
+            Assert.IsTrue(pass, $"Testing {test.Name} failed for test '{testType}'");
         }
 
         private bool TestBackwardsForwardXor(IEncrypt enc, string text, string key)

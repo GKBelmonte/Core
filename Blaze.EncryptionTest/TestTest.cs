@@ -38,9 +38,9 @@ namespace Blaze.Encryption.Tests
             Console.WriteLine("Confusion: Measure of variance due to key");
             var tested = GetTestCases();
             
-            for (int b = 0; b < 4; b++)
+            foreach (EncryptionTesting.TextType val in Enum.GetValues(typeof(EncryptionTesting.TextType)))
             {
-                EncryptionTesting.Type = (EncryptionTesting.TextType)b;
+                EncryptionTesting.Type = val;
                 Console.WriteLine("Text Type: {0}", EncryptionTesting.Type);
                 foreach (var test in tested)
                 {
