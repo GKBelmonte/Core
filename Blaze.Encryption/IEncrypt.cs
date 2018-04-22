@@ -9,14 +9,8 @@ namespace Blaze.Encryption
 {
     public interface IEncrypt
     {
-        byte[] Encrypt(byte[] plain, byte[] key);
-        byte[] Decrypt(byte[] cypher, byte[] key);
-    }
-
-    public interface IOperationEncrypt : IEncrypt
-    {
-        byte[] Encrypt(byte[] plain, byte[] key, Operation op);
-        byte[] Decrypt(byte[] cypher, byte[] key, Operation op);
+        byte[] Encrypt(byte[] plain, byte[] key, Func<int,int,int> op);
+        byte[] Decrypt(byte[] cypher, byte[] key, Func<int, int, int> reverseOp);
     }
 
     public interface ISeededEncrypt : IEncrypt

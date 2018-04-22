@@ -7,11 +7,10 @@ using System.Threading.Tasks;
 namespace Blaze.Encryption
 {
     //Does the operation on the plain, ignoring the key (treating as 0)
-    public class NullCypher : AlphabeticEncrypt, IOperationEncrypt
+    public class NullCypher : AlphabeticEncrypt, IEncrypt
     {
-        public override byte[] Encrypt(byte[] plain, byte[] key, Operation op)
+        public override byte[] Encrypt(byte[] plain, byte[] key, Func<int,int,int> f)
         {
-            var f = GetOpFunc(op);
             var pIx = ByteToIndices(plain);
             var cx = pIx
                 .Select(px => f(px, 0))
@@ -19,9 +18,9 @@ namespace Blaze.Encryption
             return IndicesToBytes(cx);
         }
 
-        public override byte[] Decrypt(byte[] cypher, byte[] key, Operation op)
+        public override byte[] Decrypt(byte[] cypher, byte[] key, Func<int, int, int> f)
         {
-            return Encrypt(cypher, key, op);
+            return Encrypt(cypher, key, f);
         }
     }
 }

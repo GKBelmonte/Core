@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Blaze.Encryption
 {
-    public class FibonacciCypher : AlphabeticEncrypt, IOperationEncrypt
+    public class FibonacciCypher : AlphabeticEncrypt, IEncrypt
     {
         public FibonacciCypher() { }
 
@@ -15,29 +15,24 @@ namespace Blaze.Encryption
             Alphabet = alphabet;
         }
 
-        public override byte[] Encrypt(byte[] plain, byte[] key, Operation op)
+        public override byte[] Encrypt(byte[] plain, byte[] key, Func<int, int, int> f)
         {
             byte[] keyHash = key.GetMD5Hash();
             int seed = keyHash.ToSeed();
 
-            var f = GetOpFunc(op);
             var p = ByteToIndices(plain);
             var c = new int[plain.Length];
 
             ForwardPass(seed, f, p, c);
 
             byte[] cypher = IndicesToBytes(c);
-
             return cypher;
         }
 
-
-        
-        public override byte[] Decrypt(byte[] cypher, byte[] key, Operation op)
+        public override byte[] Decrypt(byte[] cypher, byte[] key, Func<int, int, int> f)
         {
             byte[] keyHash = key.GetMD5Hash();
             int seed = keyHash.ToSeed();
-            var f = GetOpFunc(op);
 
             var c = ByteToIndices(cypher);
             var p = new int[cypher.Length];
@@ -73,16 +68,6 @@ namespace Blaze.Encryption
                 int nextInx = f(c[ii], c[ii - 1]);
                 p[ii] = nextInx;
             }
-        }
-        
-        //public virtual byte[] Decrypt(byte[] cypher, byte[] key, Operation op)
-        //{
-        //    return Decrypt(cypher, key, op.GetReverse());
-        //}
-
-        public override byte[] Decrypt(byte[] cypher, byte[] key)
-        {
-            return Decrypt(cypher, key, Operation.Sub);
         }
     }
 

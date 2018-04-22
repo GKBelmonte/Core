@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Blaze.Encryption
 {
-    public class StreamCypher : SeededEncryptBase, IOperationEncrypt, ISeededEncrypt
+    public class StreamCypher : SeededEncryptBase, IEncrypt, ISeededEncrypt
     {
         public StreamCypher() { }
 
@@ -16,7 +16,7 @@ namespace Blaze.Encryption
             Alphabet = alphabet;
         }
 
-        public override byte[] Encrypt(byte[] plain, byte[] key, Operation op)
+        public override byte[] Encrypt(byte[] plain, byte[] key, Func<int, int, int> op)
         {
             byte[] keyHash = key.GetMD5Hash();
             IRng rand = keyHash.KeyToRand();
@@ -26,15 +26,15 @@ namespace Blaze.Encryption
             return cypher;
         }
 
-        public override byte[] Decrypt(byte[] cypher, byte[] key, Operation op)
+        public override byte[] Decrypt(byte[] cypher, byte[] key, Func<int, int, int> reverseOp)
         {
-            return Encrypt(cypher, key, op);
+            return Encrypt(cypher, key, reverseOp);
         }
 
-        private byte[] Encrypt(byte[] plain, IRng rand, Operation op)
+        private byte[] Encrypt(byte[] plain, IRng rand, Func<int, int, int> op)
         {
             var cypher = new byte[plain.Length];
-            var f = GetOpFunc(op);
+
             var p = ByteToIndices(plain);
 
             for (var ii = 0; ii < plain.Length; ++ii)
@@ -42,7 +42,7 @@ namespace Blaze.Encryption
                 //support more block sizes?
                 int plainInx = p[ii];
                 int nextInx = rand.Next();
-                cypher[ii] = IndexToByte(f(plainInx, nextInx));
+                cypher[ii] = IndexToByte(op(plainInx, nextInx));
             }
 
             return cypher;
@@ -50,12 +50,12 @@ namespace Blaze.Encryption
 
         public override byte[] Encrypt(byte[] plain, IRng key)
         {
-            return Encrypt(plain, key, Operation.Xor);
+            return Encrypt(plain, key);
         }
 
         public override byte[] Decrypt(byte[] cypher, IRng key)
         {
-            return Encrypt(cypher, key, Operation.Xor);
+            return Encrypt(cypher, key);
         }
     }
 }

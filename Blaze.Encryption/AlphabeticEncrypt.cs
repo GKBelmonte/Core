@@ -13,11 +13,20 @@ namespace Blaze.Encryption
     /// (even though C# encodes in unicode, utf-16, but meh, once encrypted we generally don't care
     /// if the string encoding is broken or we use just bytes)
     /// </summary>
-    public abstract class AlphabeticEncrypt : IOperationEncrypt
+    public abstract class AlphabeticEncrypt : IEncrypt
     {
         protected AlphabeticEncrypt()
         {
             InitializeDefaultAlphabet();
+        }
+
+        public abstract byte[] Encrypt(byte[] plain, byte[] key, Func<int, int, int> op);
+
+        public virtual byte[] Decrypt(byte[] cypher, byte[] key, Func<int, int, int> reverseOp)
+        {
+            //Good enough for symmetrical cyphers where op^(-1) is all you need
+            //Fibonnacci and Chain will need to override
+            return Encrypt(cypher, key, reverseOp);
         }
 
         /// <summary>
@@ -83,35 +92,6 @@ namespace Blaze.Encryption
             return bytes;
         }
 
-        public Func<int, int, int> CustomOp { get; set; }
-        public Func<int, int, int> ReverseOp { get; set; }
-
-        public Func<int, int, int> GetOpFunc(Operation op)
-        {
-            Func<int, int, int> d = null;
-            switch (op)
-            {
-                case Operation.Add:
-                    d = (a, b) => a + b;
-                    break;
-                case Operation.Sub:
-                    d = (a, b) => a - b;
-                    break;
-                case Operation.Xor:
-                    d = (a, b) => a ^ b;
-                    break;
-                case Operation.Custom:
-                    if (CustomOp == null)
-                        throw new InvalidOperationException("The Custom Operation has not been assigned!");
-                    return CustomOp;
-                case Operation.ReverseCustom:
-                    if (ReverseOp == null)
-                        throw new InvalidOperationException("The Reverse Custom Operation has not been assigned!");
-                    return ReverseOp;
-            }
-            return d;
-        }
-
         public static char[] GetSimpleAlphabet(bool caps = true, bool lower = true, bool space = true, bool nullChar = false)
         {
             List<char> alphabet = new List<char>();
@@ -154,20 +134,6 @@ namespace Blaze.Encryption
                     break;
             }
             return plainTextChars.ToArray();
-        }
-
-        public abstract byte[] Encrypt(byte[] plain, byte[] key, Operation op);
-
-        public abstract byte[] Decrypt(byte[] cypher, byte[] key, Operation op);
-
-        public virtual byte[] Encrypt(byte[] plain, byte[] key)
-        {
-            return Encrypt(plain, key, Operation.Add);
-        }
-
-        public virtual byte[] Decrypt(byte[] cypher, byte[] key)
-        {
-            return Decrypt(cypher, key, Operation.Sub);
         }
     }
 }

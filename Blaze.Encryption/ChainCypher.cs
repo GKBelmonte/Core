@@ -26,23 +26,7 @@ namespace Blaze.Encryption
             _encrypts = encrypts.ToList();
         }
 
-        public virtual byte[] Decrypt(byte[] cypher, byte[] key)
-        {
-            List<byte[]> pepperedKeys = GetPepperedKeys(key);
-
-            byte[] currentPass = new byte[cypher.Length];
-            cypher.CopyTo(currentPass, 0);
-
-            for (int i = _encrypts.Count -1; i >= 0; --i)
-            {
-                byte[] pepperedKey = pepperedKeys[i];
-                currentPass = _encrypts[i].Decrypt(currentPass, pepperedKey);
-            }
-
-            return currentPass;
-        }
-
-        public virtual byte[] Encrypt(byte[] plain, byte[] key)
+        public byte[] Encrypt(byte[] plain, byte[] key, Func<int, int, int> op)
         {
             List<byte[]> pepperedKeys = GetPepperedKeys(key);
 
@@ -53,6 +37,22 @@ namespace Blaze.Encryption
             {
                 byte[] pepperedKey = pepperedKeys[i];
                 currentPass = _encrypts[i].Encrypt(currentPass, pepperedKey);
+            }
+
+            return currentPass;
+        }
+
+        public byte[] Decrypt(byte[] cypher, byte[] key, Func<int, int, int> op)
+        {
+            List<byte[]> pepperedKeys = GetPepperedKeys(key);
+
+            byte[] currentPass = new byte[cypher.Length];
+            cypher.CopyTo(currentPass, 0);
+
+            for (int i = _encrypts.Count - 1; i >= 0; --i)
+            {
+                byte[] pepperedKey = pepperedKeys[i];
+                currentPass = _encrypts[i].Decrypt(currentPass, pepperedKey);
             }
 
             return currentPass;

@@ -9,10 +9,8 @@ namespace Blaze.Encryption
 {
     public static class EncryptExtenstions
     {
-        /// <summary>
-        /// Optionally do stuff to the key before using it.
-        /// Right now, it hashes it
-        /// </summary>
+
+        #region KeyStuff
         public static byte[] GetMD5Hash(this byte[] key, byte[] salt = null)
         {
             byte[] keyHash;
@@ -79,6 +77,7 @@ namespace Blaze.Encryption
                 final[i] = (byte)(key[i] ^ pepper[i]);
             return final;
         }
+        #endregion
 
         public static UInt64 LongRandom(this IRng rand)
         {

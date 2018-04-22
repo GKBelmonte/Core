@@ -6,9 +6,8 @@ using System.Threading.Tasks;
 
 namespace Blaze.Encryption
 {
-    public class Vigenere : AlphabeticEncrypt, IOperationEncrypt
+    public class Vigenere : AlphabeticEncrypt, IEncrypt
     {
-
         public Vigenere()
         {
             InitializeDefaultAlphabet();
@@ -31,17 +30,10 @@ namespace Blaze.Encryption
             return cypher;
         }
 
-        public override byte[] Encrypt(byte[] plain, byte[] key)
-        {
-            return Encrypt(plain, key, Operation.Add);
-        }
-
-        public override byte[] Encrypt(byte[] plain, byte[] key, Operation op)
+        public override byte[] Encrypt(byte[] plain, byte[] key, Func<int, int, int> d)
         {
             byte[] cypher = new byte[plain.Length];
             int inx = -1;
-
-            Func<int, int, int> d = GetOpFunc(op);
 
             int[] keyIndices = ByteToIndices(key);
             int[] textIndices = ByteToIndices(plain);
@@ -50,23 +42,23 @@ namespace Blaze.Encryption
             {
                 int keyInx = keyIndices[inx % key.Length];
                 int plainInx = textIndices[inx];
-                cypher[inx] = IndexToByte(d(plainInx,keyInx));
+                cypher[inx] = IndexToByte(d(plainInx, keyInx));
             }
             return cypher;
-        }
-
-        public override byte[] Decrypt(byte[] cypher, byte[] key, Operation op)
-        {
-            return Encrypt(cypher, key, op);
         }
     }
 
     public class CaesarCypher : Vigenere
     {
-        public override byte[] Encrypt(byte[] plain, byte[] key, Operation op)
+        public override byte[] Encrypt(byte[] plain, byte[] key, Func<int, int, int> op)
         {
-            byte k = (byte)(key.ToSeed() % 256);
+            byte k = key.Length > 1 ? (byte)(key.ToSeed() % 256) : key[0];
             return base.Encrypt(plain, new[] {k}, op);
+        }
+
+        public byte[] Encrypt(byte[] plain, byte key, Func<int, int, int> op)
+        {
+            return base.Encrypt(plain, new[] { key }, op);
         }
     }
 
@@ -77,9 +69,9 @@ namespace Blaze.Encryption
             Alphabet = Enumerable.Range('A', 'Z' - 'A' + 1).Select(i => (char) i).ToArray();
         }
 
-        public override byte[] Encrypt(byte[] plain, byte[] key, Operation op)
+        public override byte[] Encrypt(byte[] plain, byte[] key, Func<int, int, int> op)
         {   
-            return base.Encrypt(plain, new[] { (byte)('A' + 13) }, op);
+            return Encrypt(plain, (byte)('A' + 13), op);
         }
     }
 }

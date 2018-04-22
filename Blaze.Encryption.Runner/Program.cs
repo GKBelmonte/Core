@@ -36,6 +36,9 @@ namespace Blaze.Encryption.Runner
                 }
             }
 
+            IEncrypt enc2 = new RandomBijection(new FibonacciCypher());
+            string what = enc2.Encrypt("Is this real life?", "Yes");
+
             IEncrypt enc = new ChainCypher(typeof(FibonacciCypher), typeof(StreamCypher), typeof(FibonacciCypherV3));
             if (ops.Action == Action.Encrypt)
             {

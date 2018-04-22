@@ -37,14 +37,14 @@ namespace Blaze.Encryption.Tests
 
         public struct EncryptTest
         {
-            public IOperationEncrypt Enc;
+            public IEncrypt Enc;
             public string Name;
             public char[] Alpha;
             public TestType AllowedTypes;
             public string[] Keys;
             public string[] Texts;
 
-            public EncryptTest(IOperationEncrypt e, string name, char[] allowedAlpha, TestType types)
+            public EncryptTest(IEncrypt e, string name, char[] allowedAlpha, TestType types)
             {
                 Enc = e;
                 Name = name;
@@ -54,13 +54,13 @@ namespace Blaze.Encryption.Tests
                 Texts = null;
             }
 
-            public EncryptTest(IOperationEncrypt e, string name) : this(e, name, null) { }
+            public EncryptTest(IEncrypt e, string name) : this(e, name, null) { }
 
-            public EncryptTest(IOperationEncrypt e, string name, char[] allowedAlpha) : this(e, name, allowedAlpha, TestType.All) { }
+            public EncryptTest(IEncrypt e, string name, char[] allowedAlpha) : this(e, name, allowedAlpha, TestType.All) { }
 
-            public EncryptTest(IOperationEncrypt e, string name, TestType types) : this(e, name, null, types) { }
+            public EncryptTest(IEncrypt e, string name, TestType types) : this(e, name, null, types) { }
 
-            public EncryptTest(IOperationEncrypt e, string name, char[] allowedAlpha, string[] texts)
+            public EncryptTest(IEncrypt e, string name, char[] allowedAlpha, string[] texts)
                 : this(e, name, allowedAlpha)
             {
                 Texts = texts;
@@ -375,7 +375,7 @@ namespace Blaze.Encryption.Tests
         {
             var enc = test.Enc;
             bool passInternal = true;
-            Func<IOperationEncrypt, string, string, bool> tester = GetTester(test, type);
+            Func<IEncrypt, string, string, bool> tester = GetTester(test, type);
             if (tester == null)
                 return true; //cannot be tested in the current setting
 
@@ -410,9 +410,9 @@ namespace Blaze.Encryption.Tests
             return passInternal;
         }
 
-        private Func<IOperationEncrypt, string, string, bool> GetTester(EncryptTest test, TestType type)
+        private Func<IEncrypt, string, string, bool> GetTester(EncryptTest test, TestType type)
         {
-            Func<IOperationEncrypt, string, string, bool> tester = null;
+            Func<IEncrypt, string, string, bool> tester = null;
             if (type == TestType.Full || type == TestType.Alpha)
             {
                 tester = TestBackwardsForward;
@@ -457,7 +457,7 @@ namespace Blaze.Encryption.Tests
             Assert.IsTrue(pass);
         }
 
-        private bool TestBackwardsForwardXor(IOperationEncrypt enc, string text, string key)
+        private bool TestBackwardsForwardXor(IEncrypt enc, string text, string key)
         {
             string cypher = enc.Encrypt(text, key, Operation.Xor);
             string plain = enc.Decrypt(cypher, key, Operation.Xor);
