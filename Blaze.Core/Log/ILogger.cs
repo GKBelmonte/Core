@@ -20,6 +20,8 @@ namespace Blaze.Core.Log
 
         void Trace(object message);
 
+        void NewLine();
+
         IDisposable StartIndentScope();
     }
 }

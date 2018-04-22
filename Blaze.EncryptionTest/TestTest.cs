@@ -15,18 +15,18 @@ namespace Blaze.Encryption.Tests
         {
             var testedCyphers = new ListConstruct<TestCase>
             {
-                { new NullCypher(),"Null Cypher",  0f },
-                { new Vigenere(), "Vigenere",  null },
-                { new StreamCypher(), "Stream Cypher", null },
-                { new FibonacciCypher(), "Fibonacci Cypher", null },
-                { new FibonacciCypherV2(), "Fibonacci Cypher V2", null },
-                { new FibonacciCypherV3(), "Fibonaccy Cypher V3",  null },
-                { new CaesarCypher(), "Caesar Cypher", null},
-                { new RandomBijection(new NullCypher()), "RandomBijectionDecorator(null)", 0f },
-                { new RandomBijection(new CaesarCypher()), "RandomBijectionDecorator(CaesarCypher)", null },
-                { new RandomBijection(new Vigenere()), "RandomBijectionDecorator(Vigenere)", null },
+                { new NullCypher(),         "Null Cypher",  0f },
+                { new Vigenere(),           "Vigenere",  null },
+                { new StreamCypher(),       "Stream Cypher", null },
+                { new FibonacciCypher(),    "Fibonacci Cypher", null },
+                { new FibonacciCypherV2(),  "Fibonacci Cypher V2", null },
+                { new FibonacciCypherV3(),  "Fibonaccy Cypher V3",  null },
+                { new CaesarCypher(),       "Caesar Cypher", null},
+                { new RandomBijection(new NullCypher()),        "RandomBijectionDecorator(null)", null },
+                { new RandomBijection(new CaesarCypher()),      "RandomBijectionDecorator(CaesarCypher)", null },
+                { new RandomBijection(new Vigenere()),          "RandomBijectionDecorator(Vigenere)", null },
                 { new RandomBijection(new FibonacciCypherV3()), "RandomBijectionDecorator(FibonacciCypherV3)", null },
-                { new RandomBijection(new StreamCypher()), "RandomBijectionDecorator(StreamCypher)", null }
+                { new RandomBijection(new StreamCypher()),      "RandomBijectionDecorator(StreamCypher)", null }
             };
             return testedCyphers;
         }

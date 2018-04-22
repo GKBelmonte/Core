@@ -13,13 +13,15 @@ namespace Blaze.Encryption
         {
             var f = GetOpFunc(op);
             var pIx = ByteToIndices(plain);
-            var cx = pIx.Select(px => f(0, px)).ToArray();
-            return IndicesToBytes(pIx);
+            var cx = pIx
+                .Select(px => f(px, 0))
+                .ToArray();
+            return IndicesToBytes(cx);
         }
 
         public override byte[] Decrypt(byte[] cypher, byte[] key, Operation op)
         {
-            return Encrypt(cypher, key, op.GetReverse());
+            return Encrypt(cypher, key, op);
         }
     }
 }

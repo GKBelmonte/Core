@@ -20,6 +20,14 @@ namespace Blaze.Encryption
             InitializeDefaultAlphabet();
         }
 
+        /// <summary>
+        /// An alphabet is a set of characters whose representation
+        /// (be it ASCII or UTF-8) might have gaps and holes in between.
+        /// Indices are the position of that character in their alphabet
+        /// regardless of encoding.
+        /// So the first letter of the alphabet is index 0, regardless
+        /// if it is 'A'
+        /// </summary>
         protected Map<int, byte> _Map;
 
         protected char[] _Alphabet;
@@ -47,11 +55,16 @@ namespace Blaze.Encryption
             Alphabet = _Alphabet;
         }
 
+        protected int ByteToIndex(byte nomnom)
+        {
+            return _Map.Reverse[nomnom];
+        }
+
         protected int[] ByteToIndices(byte[] buff)
         {
             var keyIndices = new int[buff.Length];
             for (var ii = 0; ii < buff.Length; ++ii)
-                keyIndices[ii] = _Map.Reverse[buff[ii]];
+                keyIndices[ii] = ByteToIndex(buff[ii]);
 
             return keyIndices;
         }
@@ -61,12 +74,11 @@ namespace Blaze.Encryption
             return _Map.Forward[inx.UMod(_Map.Count)];
         }
 
-
         protected byte[] IndicesToBytes(int[] indices)
         {
             var bytes = new byte[indices.Length];
             for (var ii = 0; ii < indices.Length; ++ii)
-                bytes[ii] = _Map.Forward[indices[ii].UMod(_Map.Count)];
+                bytes[ii] = IndexToByte(indices[ii]);
 
             return bytes;
         }
@@ -128,6 +140,22 @@ namespace Blaze.Encryption
             return powOf2Alphabet.ToArray();
         }
 
+        public static char[] GetPlainTextAlphabet()
+        {
+            List<char> plainTextChars = new List<char>(128);
+            plainTextChars.Add('\n');
+
+            for (int a = 0; a < 256; ++a)
+            {
+                char c = (char)a;
+                if (!char.IsControl(c))
+                    plainTextChars.Add(c);
+                if (plainTextChars.Count == 128)
+                    break;
+            }
+            return plainTextChars.ToArray();
+        }
+
         public abstract byte[] Encrypt(byte[] plain, byte[] key, Operation op);
 
         public abstract byte[] Decrypt(byte[] cypher, byte[] key, Operation op);
@@ -153,12 +181,16 @@ namespace Blaze.Encryption
         {
             byte[] plainByte = plain.ToByteArray();
             byte[] keyByte = key.ToByteArray();
-            return Encrypt(plainByte, keyByte, op).ToTextString();
+            return Encrypt(plainByte, keyByte, op)
+                .ToTextString();
         }
 
         public virtual string Decrypt(string cypher, string key, Operation op)
         {
-            return Decrypt(cypher.ToByteArray(), key.ToByteArray(), op).ToTextString();
+            byte[] cypherByte = cypher.ToByteArray();
+            byte[] keyByte = key.ToByteArray();
+            return Decrypt(cypherByte, keyByte, op)
+                .ToTextString();
         }
     }
 }

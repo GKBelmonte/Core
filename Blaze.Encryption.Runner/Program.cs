@@ -4,6 +4,7 @@ using System.Linq;
 using System.IO;
 using System.Threading.Tasks;
 using Plossum.CommandLine;
+using Blaze.Core.Log;
 
 namespace Blaze.Encryption.Runner
 {
@@ -15,6 +16,8 @@ namespace Blaze.Encryption.Runner
             Decrypt
         }
 
+        static ILogger Log = new ConsoleLogger();
+
         static void Main(string[] args)
         {
             var ops = new Options();
@@ -23,7 +26,7 @@ namespace Blaze.Encryption.Runner
                 parser.Parse();
                 if (ops.Help)
                 {
-                    Console.WriteLine(parser.UsageInfo.GetHeaderAsString(Console.WindowWidth));
+                    Log.Info(parser.UsageInfo.GetHeaderAsString(Console.WindowWidth));
                     return;
                 }
                 else if (parser.HasErrors)

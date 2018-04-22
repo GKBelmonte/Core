@@ -1,46 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Blaze.Core.Extensions;
+using Blaze.Core.Log;
 
 namespace Blaze.Encryption.Tests
 {
-    public static class Log
+    public class TestLogger : ConsoleLogger
     {
-        public static int TabSize { get; set; }
-        public static int Indent { get; set; }
-
-        public static void Info(string str, params object[] pars)
+        public TestLogger()
         {
-            //we can now re-route it wherever we want
-            if (Indent > 0)
-                str = Enumerable.Range(0, TabSize * Indent).Select(i => " ").Join() + str;
-            Console.WriteLine(str, pars);
+            IndentSize = 2;
         }
 
-        public static void Info()
+        protected override void Log(object message)
         {
-            Console.WriteLine();
-        }
-
-        static Log()
-        {
-            TabSize = 2;
-        }
-
-        public class IndentScope : IDisposable
-        {
-            public IndentScope()
-            {
-                Indent += 1;
-            }
-
-            public void Dispose()
-            {
-                Indent -= 1;
-            }
+            base.Log(message);
+            Debug.WriteLine(GetStringMessage(message));
         }
     }
 }

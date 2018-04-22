@@ -4,12 +4,14 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Linq;
 using Blaze.Core.Extensions;
 using System.Diagnostics;
+using Blaze.Core.Log;
 
 namespace Blaze.Encryption.Tests
 {
     [TestClass]
     public class Test
     {
+        ILogger Log = new TestLogger();
 
         private List<EncryptTest> GetEncryptions()
         {
@@ -162,7 +164,7 @@ namespace Blaze.Encryption.Tests
         public void FibonacciCypher()
         {
             Log.Info("Fibonacci Tests");
-            using(new Log.IndentScope())
+            using(Log.StartIndentScope())
             {
                 SimpleTest(typeof(FibonacciCypher), TestType.Full);
                 SimpleTest(typeof(FibonacciCypher), TestType.Alpha);
@@ -170,7 +172,7 @@ namespace Blaze.Encryption.Tests
                 SimpleTest(typeof(FibonacciCypher), TestType.AlphaXor);
             }
 
-            using (new Log.IndentScope())
+            using (Log.StartIndentScope())
             {
                 SimpleTest(typeof(FibonacciCypherV2), TestType.Full);
                 SimpleTest(typeof(FibonacciCypherV2), TestType.Alpha);
@@ -178,7 +180,7 @@ namespace Blaze.Encryption.Tests
                 SimpleTest(typeof(FibonacciCypherV2), TestType.AlphaXor);
             }
 
-            using (new Log.IndentScope())
+            using (Log.StartIndentScope())
             {
                 SimpleTest(typeof(FibonacciCypherV3), TestType.Full);
                 SimpleTest(typeof(FibonacciCypherV3), TestType.Alpha);
@@ -219,7 +221,7 @@ namespace Blaze.Encryption.Tests
             var failedTests = new List<string>();
             foreach (EncryptTest test in encs)
             {
-                using (new Log.IndentScope())
+                using (Log.StartIndentScope())
                     pass &= TestEnc(test, type, summary, failedTests);
             }
 
@@ -238,17 +240,17 @@ namespace Blaze.Encryption.Tests
         // description of the failed tests
         private bool TestEnc(EncryptTest test, TestType type, List<string> summary, List<string> failedTests)
         {
-            Log.Info("{0} Test of type {1}", test.Name, type);
+            Log.Info($"{test.Name} Test of type {type}");
             var texts = new List<string>();
             if (test.Alpha != null && type != TestType.Alpha)
             {
-                Log.Info("{0} has restricted alphabet, skipping general test\n\n\n", test.Name);
-                summary.Add(string.Format("Test for {0} has been SKIPPED", test.Name));
+                Log.Warn($"{test.Name} has restricted alphabet, skipping general test\n\n\n");
+                summary.Add($"Test for {test.Name} has been SKIPPED");
                 return true;//continue;
             }
             if (test.Alpha != null)
             {
-                Log.Info("{0} has restricted alphabet, testing with it.\n\n\n", test.Name);
+                Log.Info($"{test.Name} has restricted alphabet, testing with it.\n\n\n");
                 Assert.IsTrue(type == TestType.Alpha);
             }
 
@@ -260,7 +262,7 @@ namespace Blaze.Encryption.Tests
 
 
             bool passInternal;
-            using(new Log.IndentScope())
+            using(Log.StartIndentScope())
                  passInternal = TestEncTexts(test, type, keys, texts, failedTests);
 
             string res = string.Format("Test for {0} has {1}", test.Name, passInternal ? "PASSED" : "!!!FAILED!!!");
@@ -325,6 +327,7 @@ namespace Blaze.Encryption.Tests
             var texts = new List<string>();
             if (type == TestType.Full || type == TestType.Xor)
             {
+                //Anything goes
                 texts.AddRange( new[] { "\0\0\0\0\0\0\0\0\0\0\0\0\0",
                                      "AAAAAA", 
                                      "ABCDEFH" ,
@@ -334,6 +337,7 @@ namespace Blaze.Encryption.Tests
             }
             else if (type == TestType.Alpha && alpha == null)
             {
+                //Only pow of 2 alphabets
                 texts.AddRange( new[] {"AAAAAA", 
                                      "ABCDEFH" ,
                                      "Hello World", 
@@ -383,10 +387,10 @@ namespace Blaze.Encryption.Tests
                 {
                     foreach (string k in keys)
                     {
-                        Log.Info("Testing with key '{0}'", k);
+                        Log.Info($"Testing with key '{k}'");
                         foreach (var t in texts)
                         {
-                            using (new Log.IndentScope())
+                            using (Log.StartIndentScope())
                             passInternal &= tester(enc, t, k);
                         }
                     }
@@ -394,7 +398,7 @@ namespace Blaze.Encryption.Tests
                 }
                 catch (Exception e)
                 {
-                    Log.Info("Internal exception: {0}", e.ToString());
+                    Log.Error($"Internal exception: {e}");
                     passInternal = false;
                 }
 
@@ -417,7 +421,7 @@ namespace Blaze.Encryption.Tests
             {
                 if ((test.AllowedTypes & TestType.Xors) == TestType.None)
                 {
-                    Log.Info("Skipping '{0}'. Does not support XOR test.", test.Name);
+                    Log.Warn($"Skipping '{test.Name}'. Does not support XOR test.");
                     return null;
                 }
                 tester = TestBackwardsForwardXor;
@@ -457,10 +461,8 @@ namespace Blaze.Encryption.Tests
         {
             string cypher = enc.Encrypt(text, key, Operation.Xor);
             string plain = enc.Decrypt(cypher, key, Operation.Xor);
-            Log.Info("Plain text: {0}", text);
-            Log.Info("Cypher text: {0}", cypher);
-            Log.Info("Decypher text: {0}", plain);
-            Log.Info();
+
+            Log.NewLine();
             return text == plain;
         }
 
@@ -468,10 +470,10 @@ namespace Blaze.Encryption.Tests
         {
             string cypher = enc.Encrypt(text, key);
             string plain = enc.Decrypt(cypher, key);
-            Log.Info("Plain text: {0}", text);
-            Log.Info("Cypher text: {0}", cypher);
-            Log.Info("Decypher text: {0}", plain);
-            Log.Info();
+            Log.Info($"Plain text: {text}");
+            Log.Info($"Cypher text: {cypher}");
+            Log.Info($"Decypher text: {plain}");
+            Log.NewLine();
             return text == plain;
         }
     

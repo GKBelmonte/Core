@@ -62,5 +62,10 @@ namespace Blaze.Core.Extensions
             UTF8,
             UTF16
         }
+
+        public static string ToHexString(this byte[] self, int length = 16)
+        {
+            return BitConverter.ToString(self, 0, length);
+        }
     }
 }

@@ -57,6 +57,11 @@ namespace Blaze.Core.Log
                 Log(message);
         }
 
+        public void NewLine()
+        {
+            Log(string.Empty);
+        }
+
         public IDisposable StartIndentScope() { return new Scope(this); }
 
         private int _IndentSize;
@@ -64,10 +69,14 @@ namespace Blaze.Core.Log
         private string _IndentStr;
         private Type _Type;
 
-        private void Log(object message)
+        protected virtual void Log(object message)
         {
-            Console.Write(_IndentStr);
-            Console.WriteLine(message);
+            Console.WriteLine(GetStringMessage(message));
+        }
+
+        protected virtual string GetStringMessage(object message)
+        {
+            return _IndentStr + message;
         }
 
         private void UpdateIndentStr()
@@ -78,7 +87,7 @@ namespace Blaze.Core.Log
                 .Select(i => " "));
         }
 
-        private class Scope : IDisposable
+        protected class Scope : IDisposable
         {
             private ConsoleLogger _logger;
             public Scope(ConsoleLogger logger)
@@ -95,7 +104,7 @@ namespace Blaze.Core.Log
             }
         }
 
-        private class ColorScope : IDisposable
+        protected class ColorScope : IDisposable
         {
             ConsoleColor _originalColor;
             ConsoleColor _originalBackground;

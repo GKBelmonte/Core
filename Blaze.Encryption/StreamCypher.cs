@@ -50,12 +50,12 @@ namespace Blaze.Encryption
 
         public override byte[] Encrypt(byte[] plain, IRng key)
         {
-            throw new NotImplementedException();
+            return Encrypt(plain, key, Operation.Xor);
         }
 
         public override byte[] Decrypt(byte[] cypher, IRng key)
         {
-            throw new NotImplementedException();
+            return Encrypt(cypher, key, Operation.Xor);
         }
     }
 }
