@@ -61,13 +61,10 @@
       <Project>{9ded0638-86eb-49e3-b3d6-d819f4bd194f}</Project>
       <Name>Blaze.Core</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Blaze.Encryption\Blaze.Encryption.csproj">
+    <ProjectReference Include="..\Blaze.Encryption\Blaze.Crytography.csproj">
       <Project>{1245d0ca-3464-49fc-8117-8eafefdd3748}</Project>
-      <Name>Blaze.Encryption</Name>
+      <Name>Blaze.Crytography</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="GenericTest1.GenericTest" />
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">

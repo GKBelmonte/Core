@@ -6,7 +6,7 @@ using System.Linq;
 using System.Reflection;
 using Blaze.Core.Extensions;
 
-namespace Blaze.Encryption.Tests
+namespace Blaze.Cryptography.Tests
 {
     [TestClass]
     public class TestEnryptionTest
@@ -114,14 +114,14 @@ namespace Blaze.Encryption.Tests
 
     public class TestCase
     {
-        public TestCase(IEncrypt b, string a, float? c)
+        public TestCase(ICypher b, string a, float? c)
         {
             Name = a;
             Enc = b;
             ExpectedVal = c;
         }
         public string Name { get; set; }
-        public IEncrypt Enc { get; set; }
+        public ICypher Enc { get; set; }
         public float? ExpectedVal { get; set; }
     }
 

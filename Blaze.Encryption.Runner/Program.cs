@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Plossum.CommandLine;
 using Blaze.Core.Log;
 
-namespace Blaze.Encryption.Runner
+namespace Blaze.Cryptography.Runner
 {
     class Program
     {
@@ -36,10 +36,10 @@ namespace Blaze.Encryption.Runner
                 }
             }
 
-            IEncrypt enc2 = new RandomBijection(new FibonacciCypher());
+            ICypher enc2 = new RandomBijection(new FibonacciCypher());
             string what = enc2.Encrypt("Is this real life?", "Yes");
 
-            IEncrypt enc = new ChainCypher(typeof(FibonacciCypher), typeof(StreamCypher), typeof(FibonacciCypherV3));
+            ICypher enc = new ChainCypher(typeof(FibonacciCypher), typeof(StreamCypher), typeof(FibonacciCypherV3));
             if (ops.Action == Action.Encrypt)
             {
                 string plainText = File.ReadAllText(ops.SourceFilePath);
@@ -68,6 +68,9 @@ namespace Blaze.Encryption.Runner
 
             [CommandLineOption]
             public Action Action { get; set; } = Action.Encrypt;
+
+            [CommandLineOption]
+            public bool PlainText { get; set; }
 
             [CommandLineOption]
             public bool Help { get; set; }

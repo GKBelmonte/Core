@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Blaze.Core.Math;
 using Blaze.Core.Extensions;
 
-namespace Blaze.Encryption
+namespace Blaze.Cryptography
 {
     public static class EncryptionTesting
     {
@@ -17,7 +17,7 @@ namespace Blaze.Encryption
         /// Measure of how much 1 bit in the key changes the cypher text.
         /// </summary>
         /// <returns> A score from 0 to 1</returns>
-        public static float TestForConfusion(IEncrypt encrypt, int testCount)
+        public static float TestForConfusion(ICypher encrypt, int testCount)
         {
             byte[] plain;
             byte[] key;
@@ -42,7 +42,7 @@ namespace Blaze.Encryption
         /// Diffusion is a measure of how each bit of the plain text affects the bits of the cypher text.
         /// Since we flip one bit of the plain text, the minimum is 1 / text-length (in bits)
         /// </summary>
-        public static float TestForDifussion(IEncrypt encrypt, int testCount)
+        public static float TestForDifussion(ICypher encrypt, int testCount)
         {
             byte[] plain;
             byte[] key;
@@ -63,7 +63,7 @@ namespace Blaze.Encryption
             return (0.5f - Math.Abs(0.5f - ave)) / 0.5f;
         }
 
-        private static void InitTest(IEncrypt encrypt, out byte[] plain, out byte[] key, out byte[] originalCypher)
+        private static void InitTest(ICypher encrypt, out byte[] plain, out byte[] key, out byte[] originalCypher)
         {
             _RNG = new Random(RSeed);
 
@@ -112,7 +112,7 @@ namespace Blaze.Encryption
         /// <summary>
         /// The distribution should be as spread as possible
         /// </summary>
-        public static float TestForDistribution(IEncrypt enc)
+        public static float TestForDistribution(ICypher enc)
         {
             byte[] plain;
             byte[] key;

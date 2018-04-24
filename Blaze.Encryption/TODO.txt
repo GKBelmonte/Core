@@ -1,0 +1,12 @@
+﻿Rngs:
+* Set seed for Rngs
+* Tests
+
+Files:
+* File save and load
+* Stream instead of byte[]
+* FormatCypher that has salt + text
+
+Cyphers:
+* Transposition Cypher
+

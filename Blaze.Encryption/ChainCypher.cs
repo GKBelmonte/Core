@@ -1,15 +1,15 @@
-﻿using Blaze.Encryption.Rng;
+﻿using Blaze.Cryptography.Rng;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Blaze.Encryption
+namespace Blaze.Cryptography
 {
-    public class ChainCypher : IEncrypt
+    public class ChainCypher : ICypher
     {
-        private readonly IReadOnlyList<IEncrypt> _encrypts;
+        private readonly IReadOnlyList<ICypher> _encrypts;
         public ChainCypher(params Type[] types)
         {
             Type uninitializeableType = types.FirstOrDefault(t => t.GetConstructor(Type.EmptyTypes) == null);
@@ -17,11 +17,11 @@ namespace Blaze.Encryption
                 throw new ArgumentException($"Type {uninitializeableType.FullName} does not have a default constructor");
 
             _encrypts = types
-                .Select(t => (IEncrypt)Activator.CreateInstance(t))
+                .Select(t => (ICypher)Activator.CreateInstance(t))
                 .ToList();
         }
 
-        public ChainCypher(params IEncrypt[] encrypts)
+        public ChainCypher(params ICypher[] encrypts)
         {
             _encrypts = encrypts.ToList();
         }

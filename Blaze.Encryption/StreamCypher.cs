@@ -1,13 +1,13 @@
-﻿using Blaze.Encryption.Rng;
+﻿using Blaze.Cryptography.Rng;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Blaze.Encryption
+namespace Blaze.Cryptography
 {
-    public class StreamCypher : AlphabeticEncrypt
+    public class StreamCypher : AlphabeticCypher
     {
         public StreamCypher() { }
 

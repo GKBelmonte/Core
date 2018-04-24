@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Blaze.Encryption
+namespace Blaze.Cryptography
 {
-    public class Vigenere : AlphabeticEncrypt, IEncrypt
+    public class Vigenere : AlphabeticCypher, ICypher
     {
         public Vigenere()
         {

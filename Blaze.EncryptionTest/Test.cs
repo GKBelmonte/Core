@@ -6,7 +6,7 @@ using Blaze.Core.Extensions;
 using System.Diagnostics;
 using Blaze.Core.Log;
 
-namespace Blaze.Encryption.Tests
+namespace Blaze.Cryptography.Tests
 {
     [TestClass]
     public class Test
@@ -18,7 +18,7 @@ namespace Blaze.Encryption.Tests
             var res = new ListConstruct<EncryptTest>
             {
                 { new NullCypher(), "Null Cypher" },
-                { new Rot13(), "Rot 13", AlphabeticEncrypt.GetSimpleAlphabet(true, false, false), ROT13_TEXTS },
+                { new Rot13(), "Rot 13", AlphabeticCypher.GetSimpleAlphabet(true, false, false), ROT13_TEXTS },
                 { new CaesarCypher(), "Caesar Cypher"},
                 { new Vigenere(), "Vigenere Cypher"},
                 { new StreamCypher(), "Stream Cypher" },
@@ -45,14 +45,14 @@ namespace Blaze.Encryption.Tests
 
         public struct EncryptTest
         {
-            public IEncrypt Enc;
+            public ICypher Enc;
             public string Name;
             public char[] Alpha;
             public TestType AllowedTypes;
             public string[] Keys;
             public string[] Texts;
 
-            public EncryptTest(IEncrypt e, string name, char[] allowedAlpha, TestType types)
+            public EncryptTest(ICypher e, string name, char[] allowedAlpha, TestType types)
             {
                 Enc = e;
                 Name = name;
@@ -62,13 +62,13 @@ namespace Blaze.Encryption.Tests
                 Texts = null;
             }
 
-            public EncryptTest(IEncrypt e, string name) : this(e, name, null) { }
+            public EncryptTest(ICypher e, string name) : this(e, name, null) { }
 
-            public EncryptTest(IEncrypt e, string name, char[] allowedAlpha) : this(e, name, allowedAlpha, TestType.All) { }
+            public EncryptTest(ICypher e, string name, char[] allowedAlpha) : this(e, name, allowedAlpha, TestType.All) { }
 
-            public EncryptTest(IEncrypt e, string name, TestType types) : this(e, name, null, types) { }
+            public EncryptTest(ICypher e, string name, TestType types) : this(e, name, null, types) { }
 
-            public EncryptTest(IEncrypt e, string name, char[] allowedAlpha, string[] texts)
+            public EncryptTest(ICypher e, string name, char[] allowedAlpha, string[] texts)
                 : this(e, name, allowedAlpha)
             {
                 Texts = texts;
@@ -325,16 +325,16 @@ namespace Blaze.Encryption.Tests
 
         private static void GetAlphabet(EncryptTest test, TestType type)
         {
-            var enc = test.Enc as AlphabeticEncrypt;
+            var enc = test.Enc as AlphabeticCypher;
             if (type == TestType.Alpha)
             {
                 if(test.Alpha == null)
-                    enc.Alphabet = AlphabeticEncrypt.GetSimpleAlphabet();
+                    enc.Alphabet = AlphabeticCypher.GetSimpleAlphabet();
                 else //test with the actual alphabet of the encryption
                     enc.Alphabet = test.Alpha;
             }
             else if (type == TestType.AlphaXor)
-                enc.Alphabet = AlphabeticEncrypt.GetPowerOf2Alphabet();
+                enc.Alphabet = AlphabeticCypher.GetPowerOf2Alphabet();
         }
 
         private static List<string> GetTexts(EncryptTest test, TestType type)
@@ -391,7 +391,7 @@ namespace Blaze.Encryption.Tests
         {
             var enc = test.Enc;
             bool passInternal = true;
-            Func<IEncrypt, string, string, bool> tester = GetTester(test, type);
+            Func<ICypher, string, string, bool> tester = GetTester(test, type);
             if (tester == null)
                 return true; //cannot be tested in the current setting
 
@@ -442,9 +442,9 @@ namespace Blaze.Encryption.Tests
             return passed;
         }
 
-        private Func<IEncrypt, string, string, bool> GetTester(EncryptTest test, TestType type)
+        private Func<ICypher, string, string, bool> GetTester(EncryptTest test, TestType type)
         {
-            Func<IEncrypt, string, string, bool> tester = null;
+            Func<ICypher, string, string, bool> tester = null;
             if (type == TestType.Full || type == TestType.Alpha)
             {
                 tester = TestBackwardsForward;
@@ -489,7 +489,7 @@ namespace Blaze.Encryption.Tests
             Assert.IsTrue(pass, $"Testing {test.Name} failed for test '{testType}'");
         }
 
-        private bool TestBackwardsForwardXor(IEncrypt enc, string text, string key)
+        private bool TestBackwardsForwardXor(ICypher enc, string text, string key)
         {
             string cypher = enc.Encrypt(text, key, Operation.Xor);
             string plain = enc.Decrypt(cypher, key, Operation.Xor);
@@ -498,7 +498,7 @@ namespace Blaze.Encryption.Tests
             return text == plain;
         }
 
-        private bool TestBackwardsForward(IEncrypt enc, string text, string key)
+        private bool TestBackwardsForward(ICypher enc, string text, string key)
         {
             string cypher = enc.Encrypt(text, key);
             string plain = enc.Decrypt(cypher, key);

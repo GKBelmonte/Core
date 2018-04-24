@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Blaze.Encryption.Rng
+namespace Blaze.Cryptography.Rng
 {
     /// <summary>
     /// Got them from Marsagliia Rngs http://www.cse.yorku.ca/~oz/marsaglia-rng.html

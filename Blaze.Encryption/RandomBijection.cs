@@ -3,14 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Blaze.Core.Collections;
 using Blaze.Core.Extensions;
-using Blaze.Encryption.Rng;
+using Blaze.Cryptography.Rng;
 
-namespace Blaze.Encryption
+namespace Blaze.Cryptography
 {
-    public class RandomBijection : AlphabeticEncrypt
+    public class RandomBijection : AlphabeticCypher
     {
-        private AlphabeticEncrypt _Encrypt;
+        private AlphabeticCypher _Encrypt;
         /*
         The bijections are normally of form p + k = c or p ^ k = c or p - k = c
          which are reversible by -,^ and + respectively.This causes weaknesses in cyphers like
@@ -45,7 +46,7 @@ namespace Blaze.Encryption
         /// This will generate a random bijection so the attacker wont know whether xor or + is being used.
         /// </summary>
         /// <param name="enc"></param>
-        public RandomBijection(AlphabeticEncrypt enc)
+        public RandomBijection(AlphabeticCypher enc)
         {
             _Encrypt = enc;
             Alphabet = enc.Alphabet;

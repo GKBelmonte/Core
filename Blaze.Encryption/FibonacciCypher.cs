@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Blaze.Encryption
+namespace Blaze.Cryptography
 {
-    public class FibonacciCypher : AlphabeticEncrypt, IEncrypt
+    public class FibonacciCypher : AlphabeticCypher, ICypher
     {
         public FibonacciCypher() { }
 

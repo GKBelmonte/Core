@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Blaze.Encryption
+namespace Blaze.Cryptography
 {
     //Does the operation on the plain, ignoring the key (treating as 0)
-    public class NullCypher : AlphabeticEncrypt, IEncrypt
+    public class NullCypher : AlphabeticCypher, ICypher
     {
         public override byte[] Encrypt(byte[] plain, byte[] key, Func<int,int,int> f)
         {

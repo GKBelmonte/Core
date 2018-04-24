@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Blaze.Encryption.Rng
+namespace Blaze.Cryptography.Rng
 {
     public class SysRng : Random, IRng
     {

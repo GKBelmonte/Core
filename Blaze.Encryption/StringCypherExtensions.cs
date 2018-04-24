@@ -1,26 +1,26 @@
 ﻿using Blaze.Core.Extensions;
-using Blaze.Encryption.Rng;
+using Blaze.Cryptography.Rng;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Blaze.Encryption
+namespace Blaze.Cryptography
 {
     /// <summary>
     /// Implements trivial string overloads of IEncrypt
     /// </summary>
     public static class StringCypherExtensions
     {
-        public static string Encrypt(this IEncrypt self, string plain, string key)
+        public static string Encrypt(this ICypher self, string plain, string key)
         {
             byte[] plainByte = plain.ToByteArray();
             byte[] keyByte = key.ToByteArray();
             return self.Encrypt(plainByte, keyByte).ToTextString();
         }
 
-        public static string Decrypt(this IEncrypt self, string cypher, string key)
+        public static string Decrypt(this ICypher self, string cypher, string key)
         {
             byte[] cypherByte = cypher.ToByteArray();
             byte[] keyByte = key.ToByteArray();
@@ -35,7 +35,7 @@ namespace Blaze.Encryption
         // for example 01 ^ 01 = 00 and 01 ^ 10 = 11 == 00 MOD 11
         // so (1 ^ 1) % 3 == (1 ^ 2) % 5 and there's no way to destinguish which plain text is correct
 
-        public static string Encrypt(this IEncrypt self, string plain, string key, Operation op)
+        public static string Encrypt(this ICypher self, string plain, string key, Operation op)
         {
             byte[] plainByte = plain.ToByteArray();
             byte[] keyByte = key.ToByteArray();
@@ -43,7 +43,7 @@ namespace Blaze.Encryption
                 .ToTextString();
         }
 
-        public static string Decrypt(this IEncrypt self, string cypher, string key, Operation op)
+        public static string Decrypt(this ICypher self, string cypher, string key, Operation op)
         {
             byte[] cypherByte = cypher.ToByteArray();
             byte[] keyByte = key.ToByteArray();
@@ -51,13 +51,13 @@ namespace Blaze.Encryption
                 .ToTextString();
         }
 
-        public static string Encrypt(this IEncrypt self, string plain, IRng key, Operation op)
+        public static string Encrypt(this ICypher self, string plain, IRng key, Operation op)
         {
             byte[] plainByte = plain.ToByteArray();
             return self.Encrypt(plainByte, key, op).ToTextString();
         }
 
-        public static string Decrypt(this IEncrypt self, string cypher, IRng key, Operation op)
+        public static string Decrypt(this ICypher self, string cypher, IRng key, Operation op)
         {
             byte[] cypherByte = cypher.ToByteArray();
             return self.Encrypt(cypherByte, key, op).ToTextString();

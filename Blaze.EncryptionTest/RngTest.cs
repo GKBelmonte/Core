@@ -3,7 +3,7 @@ using System.Text;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Blaze.Encryption.Tests
+namespace Blaze.Cryptography.Tests
 {
     /// <summary>
     /// Summary description for RngTest

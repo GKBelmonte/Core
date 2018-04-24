@@ -1,43 +1,43 @@
-﻿using Blaze.Encryption.Rng;
+﻿using Blaze.Cryptography.Rng;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Blaze.Encryption
+namespace Blaze.Cryptography
 {
     public static class OperationExtension
     {
-        public static byte[] Encrypt(this IEncrypt self, byte[] plain, byte[] key)
+        public static byte[] Encrypt(this ICypher self, byte[] plain, byte[] key)
         {
             var f = GetOpFunc(Operation.Add);
             return self.Encrypt(plain, key, f);
         }
 
-        public static byte[] Decrypt(this IEncrypt self, byte[] cypher, byte[] key)
+        public static byte[] Decrypt(this ICypher self, byte[] cypher, byte[] key)
         {
             var refF = GetOpFunc(Operation.Sub);
             return self.Decrypt(cypher, key, refF);
         }
 
-        public static byte[] Encrypt(this IEncrypt self, byte[] plain, byte[] key, Operation op)
+        public static byte[] Encrypt(this ICypher self, byte[] plain, byte[] key, Operation op)
         {
             return self.Encrypt(plain, key, GetOpFunc(op));
         }
 
-        public static byte[] Decrypt(this IEncrypt self, byte[] cypher, byte[] key, Operation op)
+        public static byte[] Decrypt(this ICypher self, byte[] cypher, byte[] key, Operation op)
         {
             return self.Decrypt(cypher, key, GetOpFunc(op));
         }
 
-        public static byte[] Encrypt(this IEncrypt self, byte[] plain, IRng key, Operation op)
+        public static byte[] Encrypt(this ICypher self, byte[] plain, IRng key, Operation op)
         {
             var f = GetOpFunc(Operation.Xor);
             return self.Encrypt(plain, key, f);
         }
 
-        public static byte[] Decrypt(this IEncrypt self, byte[] cypher, IRng key, Operation op)
+        public static byte[] Decrypt(this ICypher self, byte[] cypher, IRng key, Operation op)
         {
             var f = GetOpFunc(Operation.Xor);
             return self.Encrypt(cypher, key, f);

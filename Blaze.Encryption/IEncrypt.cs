@@ -1,13 +1,13 @@
-﻿using Blaze.Encryption.Rng;
+﻿using Blaze.Cryptography.Rng;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Blaze.Encryption
+namespace Blaze.Cryptography
 {
-    public interface IEncrypt
+    public interface ICypher
     {
         byte[] Encrypt(byte[] plain, byte[] key, Func<int,int,int> op);
         byte[] Decrypt(byte[] cypher, byte[] key, Func<int, int, int> reverseOp);

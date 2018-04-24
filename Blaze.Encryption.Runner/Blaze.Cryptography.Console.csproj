@@ -6,8 +6,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{61B102A0-ADF5-4CFF-8994-178642B114A8}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>Blaze.Encryption.Runner</RootNamespace>
-    <AssemblyName>Blaze.Encryption.Runner</AssemblyName>
+    <RootNamespace>Blaze.Cryptography.Console</RootNamespace>
+    <AssemblyName>Blaze.Cryptography.Console</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -55,9 +55,9 @@
       <Project>{9ded0638-86eb-49e3-b3d6-d819f4bd194f}</Project>
       <Name>Blaze.Core</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Blaze.Encryption\Blaze.Encryption.csproj">
+    <ProjectReference Include="..\Blaze.Encryption\Blaze.Crytography.csproj">
       <Project>{1245d0ca-3464-49fc-8117-8eafefdd3748}</Project>
-      <Name>Blaze.Encryption</Name>
+      <Name>Blaze.Crytography</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

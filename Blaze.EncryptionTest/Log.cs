@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Blaze.Core.Extensions;
 using Blaze.Core.Log;
 
-namespace Blaze.Encryption.Tests
+namespace Blaze.Cryptography.Tests
 {
     public class TestLogger : ConsoleLogger
     {
