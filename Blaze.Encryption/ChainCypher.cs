@@ -58,6 +58,16 @@ namespace Blaze.Encryption
             return currentPass;
         }
 
+        public byte[] Encrypt(byte[] plain, IRng key, Func<int, int, int> op)
+        {
+            throw new NotImplementedException();
+        }
+
+        public byte[] Decrypt(byte[] cypher, IRng key, Func<int, int, int> reverseOp)
+        {
+            throw new NotImplementedException();
+        }
+
         private List<byte[]> GetPepperedKeys(byte[] key)
         {
             byte[] hashedKey = key.GetMD5Hash();

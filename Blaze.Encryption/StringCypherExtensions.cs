@@ -1,4 +1,5 @@
 ﻿using Blaze.Core.Extensions;
+using Blaze.Encryption.Rng;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -48,6 +49,18 @@ namespace Blaze.Encryption
             byte[] keyByte = key.ToByteArray();
             return self.Decrypt(cypherByte, keyByte, op)
                 .ToTextString();
+        }
+
+        public static string Encrypt(this IEncrypt self, string plain, IRng key, Operation op)
+        {
+            byte[] plainByte = plain.ToByteArray();
+            return self.Encrypt(plainByte, key, op).ToTextString();
+        }
+
+        public static string Decrypt(this IEncrypt self, string cypher, IRng key, Operation op)
+        {
+            byte[] cypherByte = cypher.ToByteArray();
+            return self.Encrypt(cypherByte, key, op).ToTextString();
         }
     }
 }

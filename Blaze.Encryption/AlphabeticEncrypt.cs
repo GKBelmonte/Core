@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Blaze.Core.Extensions;
+using Blaze.Encryption.Rng;
 
 namespace Blaze.Encryption
 {
@@ -27,6 +28,17 @@ namespace Blaze.Encryption
             //Good enough for symmetrical cyphers where op^(-1) is all you need
             //Fibonnacci and Chain will need to override
             return Encrypt(cypher, key, reverseOp);
+        }
+
+
+        public virtual byte[] Encrypt(byte[] plain, IRng key, Func<int, int, int> op)
+        {
+            throw new NotSupportedException($"The type {GetType().Name} does not support Rng based keys");
+        }
+
+        public virtual byte[] Decrypt(byte[] cypher, IRng key, Func<int, int, int> reverseOp)
+        {
+            throw new NotSupportedException($"The type {GetType().Name} does not support Rng based keys");
         }
 
         /// <summary>

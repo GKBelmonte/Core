@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Blaze.Encryption
 {
-    public class StreamCypher : SeededEncryptBase, IEncrypt, ISeededEncrypt
+    public class StreamCypher : AlphabeticEncrypt
     {
         public StreamCypher() { }
 
@@ -31,7 +31,7 @@ namespace Blaze.Encryption
             return Encrypt(cypher, key, reverseOp);
         }
 
-        private byte[] Encrypt(byte[] plain, IRng rand, Func<int, int, int> op)
+        public override byte[] Encrypt(byte[] plain, IRng rand, Func<int, int, int> op)
         {
             var cypher = new byte[plain.Length];
 
@@ -46,16 +46,6 @@ namespace Blaze.Encryption
             }
 
             return cypher;
-        }
-
-        public override byte[] Encrypt(byte[] plain, IRng key)
-        {
-            return Encrypt(plain, key);
-        }
-
-        public override byte[] Decrypt(byte[] cypher, IRng key)
-        {
-            return Encrypt(cypher, key);
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Blaze.Encryption.Rng;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -28,6 +29,18 @@ namespace Blaze.Encryption
         public static byte[] Decrypt(this IEncrypt self, byte[] cypher, byte[] key, Operation op)
         {
             return self.Decrypt(cypher, key, GetOpFunc(op));
+        }
+
+        public static byte[] Encrypt(this IEncrypt self, byte[] plain, IRng key, Operation op)
+        {
+            var f = GetOpFunc(Operation.Xor);
+            return self.Encrypt(plain, key, f);
+        }
+
+        public static byte[] Decrypt(this IEncrypt self, byte[] cypher, IRng key, Operation op)
+        {
+            var f = GetOpFunc(Operation.Xor);
+            return self.Encrypt(cypher, key, f);
         }
 
         public static Func<int, int, int> GetOpFunc(this Operation op)

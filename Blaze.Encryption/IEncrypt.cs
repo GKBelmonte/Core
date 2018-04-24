@@ -11,19 +11,16 @@ namespace Blaze.Encryption
     {
         byte[] Encrypt(byte[] plain, byte[] key, Func<int,int,int> op);
         byte[] Decrypt(byte[] cypher, byte[] key, Func<int, int, int> reverseOp);
-    }
-
-    public interface ISeededEncrypt : IEncrypt
-    {
-        byte[] Encrypt(byte[] plain, IRng key);
-        byte[] Decrypt(byte[] cypher, IRng key);
-
-        string Encrypt(string plain, IRng key);
-        string Decrypt(string cypher, IRng key);
+        byte[] Encrypt(byte[] plain, IRng key, Func<int, int, int> op);
+        byte[] Decrypt(byte[] cypher, IRng key, Func<int, int, int> reverseOp);
     }
 
     public enum Operation
     {
-        Add, Sub, Xor, Custom, ReverseCustom
+        Add,
+        Sub,
+        Xor,
+        Custom,
+        ReverseCustom
     }
 }
