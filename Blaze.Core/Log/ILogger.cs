@@ -10,6 +10,8 @@ namespace Blaze.Core.Log
     {
         int IndentSize { get; set; }
 
+        int CurrentIndent { get; }
+
         void Fatal(object message);
 
         void Error(object message);

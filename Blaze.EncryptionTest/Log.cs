@@ -11,13 +11,17 @@ namespace Blaze.Cryptography.Tests
 {
     public class TestLogger : ConsoleLogger
     {
-        public TestLogger()
+        private int _depth;
+        public TestLogger(int depth = 100)
         {
             IndentSize = 2;
+            _depth = depth;
         }
 
         protected override void Log(object message)
         {
+            if (CurrentIndent > _depth)
+                return;
             base.Log(message);
             Debug.WriteLine(GetStringMessage(message));
         }

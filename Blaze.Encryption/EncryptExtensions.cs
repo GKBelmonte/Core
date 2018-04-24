@@ -1,4 +1,5 @@
-﻿using Blaze.Cryptography.Rng;
+﻿using Blaze.Cryptography.Extensions.Operations;
+using Blaze.Cryptography.Rng;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +10,17 @@ namespace Blaze.Cryptography
 {
     public static class EncryptExtenstions
     {
+        public static byte[] Encrypt(this ICypher self, byte[] plain, byte[] key)
+        {
+            var f = OperationExtensions.GetOpFunc(Operation.Add);
+            return self.Encrypt(plain, key, f);
+        }
+
+        public static byte[] Decrypt(this ICypher self, byte[] cypher, byte[] key)
+        {
+            var refF = OperationExtensions.GetOpFunc(Operation.Sub);
+            return self.Decrypt(cypher, key, refF);
+        }
 
         #region KeyStuff
         public static byte[] GetMD5Hash(this byte[] key, byte[] salt = null)
@@ -85,25 +97,6 @@ namespace Blaze.Cryptography
             rand.NextBytes(buf);
             UInt64 longRand = BitConverter.ToUInt64(buf, 0);
             return longRand;
-        }
-
-        public static Operation GetReverse(this Operation op)
-        {
-            switch (op)
-            {
-                case Operation.Add:
-                    return Operation.Sub;
-                case Operation.Sub:
-                    return Operation.Add;
-                case Operation.Xor:
-                    return Operation.Xor;
-                case Operation.Custom:
-                    return Operation.ReverseCustom;
-                case Operation.ReverseCustom:
-                    return Operation.Custom;
-                default:
-                    throw new InvalidOperationException(string.Format("Cannot reverse unknown op '{0}'", op));
-            }
         }
 
         public static void Shuffle<T>(this IList<T> list, IRng rng)

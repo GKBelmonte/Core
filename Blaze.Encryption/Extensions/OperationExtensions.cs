@@ -5,22 +5,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Blaze.Cryptography
+namespace Blaze.Cryptography.Extensions.Operations
 {
-    public static class OperationExtension
+    public static class OperationExtensions
     {
-        public static byte[] Encrypt(this ICypher self, byte[] plain, byte[] key)
-        {
-            var f = GetOpFunc(Operation.Add);
-            return self.Encrypt(plain, key, f);
-        }
-
-        public static byte[] Decrypt(this ICypher self, byte[] cypher, byte[] key)
-        {
-            var refF = GetOpFunc(Operation.Sub);
-            return self.Decrypt(cypher, key, refF);
-        }
-
         public static byte[] Encrypt(this ICypher self, byte[] plain, byte[] key, Operation op)
         {
             return self.Encrypt(plain, key, GetOpFunc(op));
@@ -62,5 +50,25 @@ namespace Blaze.Cryptography
             }
             return d;
         }
+
+        public static Operation GetReverse(this Operation op)
+        {
+            switch (op)
+            {
+                case Operation.Add:
+                    return Operation.Sub;
+                case Operation.Sub:
+                    return Operation.Add;
+                case Operation.Xor:
+                    return Operation.Xor;
+                case Operation.Custom:
+                    return Operation.ReverseCustom;
+                case Operation.ReverseCustom:
+                    return Operation.Custom;
+                default:
+                    throw new InvalidOperationException(string.Format("Cannot reverse unknown op '{0}'", op));
+            }
+        }
+
     }
 }

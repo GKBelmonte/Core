@@ -11,7 +11,7 @@ namespace Blaze.Cryptography.Tests
     [TestClass]
     public class TestEnryptionTest
     {
-        private static ListConstruct<TestCase> GetTestCases()
+        public static ListConstruct<TestCase> GetTestCases()
         {
             var testedCyphers = new ListConstruct<TestCase>
             {
@@ -26,7 +26,15 @@ namespace Blaze.Cryptography.Tests
                 { new RandomBijection(new CaesarCypher()),      "RandomBijectionDecorator(CaesarCypher)", null },
                 { new RandomBijection(new Vigenere()),          "RandomBijectionDecorator(Vigenere)", null },
                 { new RandomBijection(new FibonacciCypherV3()), "RandomBijectionDecorator(FibonacciCypherV3)", null },
-                { new RandomBijection(new StreamCypher()),      "RandomBijectionDecorator(StreamCypher)", null }
+                { new RandomBijection(new StreamCypher()),      "RandomBijectionDecorator(StreamCypher)", null },
+                {
+                    new ChainCypher(
+                    typeof(FibonacciCypher),
+                    typeof(StreamCypher),
+                    typeof(FibonacciCypherV3)),
+                    "Chain1",
+                    null
+                }
             };
             return testedCyphers;
         }
@@ -44,7 +52,7 @@ namespace Blaze.Cryptography.Tests
                 Console.WriteLine("Text Type: {0}", EncryptionTesting.Type);
                 foreach (var test in tested)
                 {
-                    float res = EncryptionTesting.TestForConfusion(test.Enc, 10);
+                    float res = EncryptionTesting.TestForConfusion(test.Cypher, 10);
                     Console.WriteLine("{0} score for Confusion {1}", test.Name, res);
                     if (test.ExpectedVal != null)
                         Assert.IsTrue(Math.Abs(res - test.ExpectedVal.Value) < float.Epsilon, test.Name + " should score zero for confusion");
@@ -80,7 +88,7 @@ namespace Blaze.Cryptography.Tests
                 Console.WriteLine("Text Type: {0}", EncryptionTesting.Type);
                 foreach (var test in tested)
                 {
-                    float res = EncryptionTesting.TestForDifussion(test.Enc, 10);
+                    float res = EncryptionTesting.TestForDifussion(test.Cypher, 10);
                     Console.WriteLine("{0} score for Diffusion {1}", test.Name, res);
                     if (test.ExpectedVal != null)
                         Assert.IsTrue(Math.Abs(res - test.ExpectedVal.Value) < 0.000001, test.Name + " should score zero for Diffusion");
@@ -102,7 +110,7 @@ namespace Blaze.Cryptography.Tests
                 Console.WriteLine("Text Type: {0}", EncryptionTesting.Type);
                 foreach (var test in tested)
                 {
-                    float res = EncryptionTesting.TestForDistribution(test.Enc);
+                    float res = EncryptionTesting.TestForDistribution(test.Cypher);
                     Console.WriteLine("{0} score for distribution {1}", test.Name, res);
                     if (test.ExpectedVal != null)
                         Assert.IsTrue(Math.Abs(res - test.ExpectedVal.Value) < float.Epsilon, test.Name + " should score zero for distribution");
@@ -112,18 +120,5 @@ namespace Blaze.Cryptography.Tests
         }
     }
 
-    public class TestCase
-    {
-        public TestCase(ICypher b, string a, float? c)
-        {
-            Name = a;
-            Enc = b;
-            ExpectedVal = c;
-        }
-        public string Name { get; set; }
-        public ICypher Enc { get; set; }
-        public float? ExpectedVal { get; set; }
-    }
 
-    
 }

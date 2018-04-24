@@ -12,20 +12,22 @@ namespace Blaze.Core.Log
 
         public ConsoleLogger(Type t)
         {
-            _IndentSize = 4;
-            _IndentStr = string.Empty;
-            _Type = t;
+            _indentSize = 4;
+            _indentStr = string.Empty;
+            _type = t;
         }
 
         public int IndentSize
         {
-            get { return _IndentSize; }
+            get { return _indentSize; }
             set
             {
-                _IndentSize = value;
+                _indentSize = value;
                 UpdateIndentStr();
             }
         }
+
+        public int CurrentIndent { get; private set; }
 
         public void Fatal(object message)
         {
@@ -64,10 +66,9 @@ namespace Blaze.Core.Log
 
         public IDisposable StartIndentScope() { return new Scope(this); }
 
-        private int _IndentSize;
-        private int _Indent;
-        private string _IndentStr;
-        private Type _Type;
+        private int _indentSize;
+        private string _indentStr;
+        private Type _type;
 
         protected virtual void Log(object message)
         {
@@ -76,14 +77,14 @@ namespace Blaze.Core.Log
 
         protected virtual string GetStringMessage(object message)
         {
-            return _IndentStr + message;
+            return _indentStr + message;
         }
 
         private void UpdateIndentStr()
         {
-            _IndentStr = string.Join(string.Empty,
+            _indentStr = string.Join(string.Empty,
                 Enumerable
-                .Range(0, _Indent * IndentSize)
+                .Range(0, CurrentIndent * IndentSize)
                 .Select(i => " "));
         }
 
@@ -93,13 +94,13 @@ namespace Blaze.Core.Log
             public Scope(ConsoleLogger logger)
             {
                 _logger = logger;
-                _logger._Indent += 1;
+                _logger.CurrentIndent += 1;
                 _logger.UpdateIndentStr();
             }
 
             public void Dispose()
             {
-                _logger._Indent -= 1;
+                _logger.CurrentIndent -= 1;
                 _logger.UpdateIndentStr();
             }
         }
