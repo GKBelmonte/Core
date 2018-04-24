@@ -54,7 +54,7 @@
     <Compile Include="RandomBijection.cs" />
     <Compile Include="StreamCypher.cs" />
     <Compile Include="Rng\SysRng.cs" />
-    <Compile Include="Vigenere.cs" />
+    <Compile Include="ClassicSubstitution\SubstitutionCyphers.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Blaze.Core\Blaze.Core.csproj">
