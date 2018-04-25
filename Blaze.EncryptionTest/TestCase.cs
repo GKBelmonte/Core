@@ -17,5 +17,10 @@ namespace Blaze.Cryptography.Tests
         public string Name { get; set; }
         public ICypher Cypher { get; set; }
         public float? ExpectedVal { get; set; }
+
+        public override string ToString()
+        {
+            return Name;
+        }
     }
 }

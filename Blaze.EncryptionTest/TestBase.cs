@@ -1,5 +1,6 @@
 ﻿using Blaze.Core.Extensions;
 using Blaze.Core.Log;
+using Blaze.Cryptography.Classics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
@@ -37,7 +38,8 @@ namespace Blaze.Cryptography.Tests
                     typeof(FibonacciCypherV3)),
                     "Chain1",
                     TestType.Full
-                }
+                },
+                { new TranspositionCypher(), "Transposition Cypher" , TestType.All }
 
             };
             return res;
@@ -79,9 +81,13 @@ namespace Blaze.Cryptography.Tests
         public enum TestType
         {
             None = 0,
+            // Full 256 alphabet
             Full = 1,
+            // Xor is not revertible in modular arithmetic if its not a power of 2
             Xor = 2,
+            //Used for restricted alphabet
             Alpha = 4,
+            // we only use [a-z\sAHBWN] (26 + space + 5 caps chars)
             AlphaXor = 8,
             Custom = 16,
             All = 0b11111,
@@ -208,7 +214,9 @@ namespace Blaze.Cryptography.Tests
         {
             string cypher = enc.Encrypt(text, key, Operation.Xor);
             string plain = enc.Decrypt(cypher, key, Operation.Xor);
-
+            Log.Info($"Plain text: {text}");
+            Log.Info($"Cypher text: {cypher}");
+            Log.Info($"Decypher text: {plain}");
             Log.NewLine();
             return text == plain;
         }
@@ -225,12 +233,31 @@ namespace Blaze.Cryptography.Tests
                                      "ABCDEFH" ,
                                      "Hello World!",
                                      "A Brave New World",
-                                     "Potatoes are coool" });
+                                     "Potatoes are coool",
+// Involution
+@"An involution is a function {\displaystyle f:X\to X} f:X\to X that, when applied twice, brings one back to the starting point.
+In mathematics, an involution, or an involutory function, is a function f that is its own inverse,
+f(f(x)) = x
+for all x in the domain of f.
+",
+// Common involutions
+@"Any involution is a bijection.
+
+The identity map is a trivial example of an involution. 
+
+Common examples in mathematics of nontrivial involutions include multiplication by -1 in arithmetic, 
+the taking of reciprocals, 
+complementation in set theory and complex conjugation. 
+Other examples include circle inversion, 
+rotation by a half-turn, 
+and reciprocal ciphers such as the ROT13 transformation and 
+the Beaufort polyalphabetic cipher."
+                });
             }
             else if (type == TestType.Alpha && alpha == null)
             {
-                //Only pow of 2 alphabets
-                texts.AddRange(new[] {"AAAAAA",
+                //No control characters
+                texts.AddRange(new[] { "AAAAAA",
                                      "ABCDEFH" ,
                                      "Hello World",
                                      "A Brave New World",
@@ -238,7 +265,8 @@ namespace Blaze.Cryptography.Tests
             }
             else if (type == TestType.AlphaXor)
             {
-                texts.AddRange(new[] {      "AAAAAA",
+                //Only pow of 2 alphabets
+                texts.AddRange(new[] { "AAAAAA",
                                      "abcdegh" ,
                                      "Hello World",
                                      "A Brave New World",
@@ -247,10 +275,14 @@ namespace Blaze.Cryptography.Tests
             else if (type == TestType.Alpha && alpha != null)
             {
                 texts.AddRange(new string[5]);
+                //All first character
                 texts[0] = Enumerable.Range(0, 10).Select(i => alpha[0]).Join();
+                //All second character
                 texts[1] = Enumerable.Range(0, 10).Select(i => alpha[1]).Join();
+                //Flush
                 texts[2] = Enumerable.Range(0, Math.Min(alpha.Length, 10)).Select(i => alpha[i]).Join();
                 var r = new Random(0);
+                //Random 10 character texts
                 texts[3] = Enumerable.Range(0, 10).Select(i => alpha[r.Next(alpha.Length)]).Join();
                 texts[4] = Enumerable.Range(0, 10).Select(i => alpha[r.Next(alpha.Length)]).Join();
             }

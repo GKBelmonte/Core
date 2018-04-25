@@ -40,6 +40,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AlphabeticCypher.cs" />
+    <Compile Include="Classics\TranspositionCyphers.cs" />
     <Compile Include="Extensions\OperationExtensions.cs" />
     <Compile Include="Extensions\StreamExtensions.cs" />
     <Compile Include="StringCypherExtensions.cs" />
@@ -55,7 +56,7 @@
     <Compile Include="RandomBijection.cs" />
     <Compile Include="StreamCypher.cs" />
     <Compile Include="Rng\SysRng.cs" />
-    <Compile Include="ClassicSubstitution\SubstitutionCyphers.cs" />
+    <Compile Include="Classics\SubstitutionCyphers.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Blaze.Core\Blaze.Core.csproj">

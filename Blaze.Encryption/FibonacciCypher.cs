@@ -20,8 +20,8 @@ namespace Blaze.Cryptography
             byte[] keyHash = key.GetMD5Hash();
             int seed = keyHash.ToSeed();
 
-            var p = ByteToIndices(plain);
-            var c = new int[plain.Length];
+            int[] p = ByteToIndices(plain);
+            int[] c = new int[plain.Length];
 
             ForwardPass(seed, f, p, c);
 

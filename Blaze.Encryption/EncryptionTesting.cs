@@ -145,8 +145,7 @@ namespace Blaze.Cryptography
                 //if cypherChi > plainChi, score is negative (cypher has worse distribution than plain, probably inconclusive)
                 scores[ii] = (float)((plainChi - cypherChi) / plainChi);
             }
-            Console.WriteLine($"\tplain:{plainChis.Average()}");
-            Console.WriteLine($"\tcypher:{cypherChis.Average()}");
+
             return scores.Average();
         }
 

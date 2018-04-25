@@ -5,12 +5,15 @@ using Blaze.Core;
 using System.Linq;
 using System.Reflection;
 using Blaze.Core.Extensions;
+using Blaze.Cryptography.Classics;
+using Blaze.Core.Log;
 
 namespace Blaze.Cryptography.Tests
 {
     [TestClass]
     public class TestEnryptionTest
     {
+        ILogger Log = new TestLogger();
         public static ListConstruct<TestCase> GetTestCases()
         {
             var testedCyphers = new ListConstruct<TestCase>
@@ -34,7 +37,8 @@ namespace Blaze.Cryptography.Tests
                     typeof(FibonacciCypherV3)),
                     "Chain1",
                     null
-                }
+                },
+                { new TranspositionCypher(), "Transposition Cypher", null }
             };
             return testedCyphers;
         }
@@ -43,17 +47,20 @@ namespace Blaze.Cryptography.Tests
         [TestCategory("Cypherness")]
         public void TestConfusionTest()
         {
-            Console.WriteLine("Confusion: Measure of variance due to key");
+            Log.Info("Confusion: Measure of variance due to key");
             var tested = GetTestCases();
-            
+
+            using (Log.StartIndentScope())
             foreach (EncryptionTesting.TextType val in Enum.GetValues(typeof(EncryptionTesting.TextType)))
             {
                 EncryptionTesting.Type = val;
-                Console.WriteLine("Text Type: {0}", EncryptionTesting.Type);
+                Log.Info($"Text Type: {EncryptionTesting.Type}");
+
+                using (Log.StartIndentScope())
                 foreach (var test in tested)
                 {
                     float res = EncryptionTesting.TestForConfusion(test.Cypher, 10);
-                    Console.WriteLine("{0} score for Confusion {1}", test.Name, res);
+                    Log.Info($"{test.Name} score for Confusion {res}");
                     if (test.ExpectedVal != null)
                         Assert.IsTrue(Math.Abs(res - test.ExpectedVal.Value) < float.Epsilon, test.Name + " should score zero for confusion");
                 }
@@ -71,7 +78,7 @@ namespace Blaze.Cryptography.Tests
             // and 100% cypher == !plain, so the best result is closest to random 50% 
             // Hence: (50% - |50% - flips%|) / 50%
             //const float EXPECTED_MIN = 0.000244140625f;
-            Console.WriteLine("Diffusion: Measure of variance due to a change in the plain text");
+            Log.Info("Diffusion: Measure of variance due to a change in the plain text");
             float calc_min = 1f / (1024f * 8f);
             calc_min = (0.5f - Math.Abs(0.5f - calc_min)) / 0.5f;
 
@@ -82,14 +89,17 @@ namespace Blaze.Cryptography.Tests
                     t.ExpectedVal = calc_min;
             }
 
+            using (Log.StartIndentScope())
             for (int b = 0; b < 4; b++)
             {
                 EncryptionTesting.Type = (EncryptionTesting.TextType)b;
-                Console.WriteLine("Text Type: {0}", EncryptionTesting.Type);
+                Log.Info($"Text Type: {EncryptionTesting.Type}");
+
+                using (Log.StartIndentScope())
                 foreach (var test in tested)
                 {
                     float res = EncryptionTesting.TestForDifussion(test.Cypher, 10);
-                    Console.WriteLine("{0} score for Diffusion {1}", test.Name, res);
+                    Log.Info($"{test.Name} score for Diffusion {res}");
                     if (test.ExpectedVal != null)
                         Assert.IsTrue(Math.Abs(res - test.ExpectedVal.Value) < 0.000001, test.Name + " should score zero for Diffusion");
                 }
@@ -101,17 +111,20 @@ namespace Blaze.Cryptography.Tests
         [TestCategory("Cypherness")]
         public void TestDistributionTest()
         {
-            Console.WriteLine("Distribution: Measure of uniform distribution");
+            Log.Info("Distribution: Measure of uniform distribution");
             var tested = GetTestCases();
 
+            using (Log.StartIndentScope())
             for (int b = 0; b < 4; b++)
             {
                 EncryptionTesting.Type = (EncryptionTesting.TextType)b;
-                Console.WriteLine("Text Type: {0}", EncryptionTesting.Type);
+                Log.Info($"Text Type: {EncryptionTesting.Type}");
+
+                using (Log.StartIndentScope())
                 foreach (var test in tested)
                 {
                     float res = EncryptionTesting.TestForDistribution(test.Cypher);
-                    Console.WriteLine("{0} score for distribution {1}", test.Name, res);
+                    Log.Info($"{test.Name} score for distribution {res}");
                     if (test.ExpectedVal != null)
                         Assert.IsTrue(Math.Abs(res - test.ExpectedVal.Value) < float.Epsilon, test.Name + " should score zero for distribution");
                 }

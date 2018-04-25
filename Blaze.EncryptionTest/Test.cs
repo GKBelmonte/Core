@@ -5,6 +5,7 @@ using System.Linq;
 using Blaze.Core.Extensions;
 using System.Diagnostics;
 using Blaze.Core.Log;
+using Blaze.Cryptography.Classics;
 
 namespace Blaze.Cryptography.Tests
 {
@@ -58,6 +59,12 @@ namespace Blaze.Cryptography.Tests
         }
 
         [TestMethod]
+        public void Transposition()
+        {
+            SimpleTest(typeof(TranspositionCypher), TestType.Full);
+        }
+
+        [TestMethod]
         public void RanBijectionCypherOnNullCypher()
         {
             SimpleTest("RBIJ on Null", TestType.Full);
@@ -68,7 +75,6 @@ namespace Blaze.Cryptography.Tests
         {
             SimpleTest("RBIJ on Vigenere", TestType.Full);
         }
-
 
         [TestMethod]
         public void RanBijectionCypherOnNullKeyAlpha()
@@ -174,6 +180,5 @@ namespace Blaze.Cryptography.Tests
             bool pass = TestEnc(test, testType);
             Assert.IsTrue(pass, $"Testing {test.Name} failed for test '{testType}'");
         }
-
     }
 }

@@ -11,12 +11,14 @@ namespace Blaze.Cryptography.Extensions.Operations
     {
         public static byte[] Encrypt(this ICypher self, byte[] plain, byte[] key, Operation op)
         {
-            return self.Encrypt(plain, key, GetOpFunc(op));
+            var fop = GetOpFunc(op);
+            return self.Encrypt(plain, key, fop);
         }
 
         public static byte[] Decrypt(this ICypher self, byte[] cypher, byte[] key, Operation op)
         {
-            return self.Decrypt(cypher, key, GetOpFunc(op));
+            var fop = GetOpFunc(op);
+            return self.Decrypt(cypher, key, fop);
         }
 
         public static byte[] Encrypt(this ICypher self, byte[] plain, IRng key, Operation op)

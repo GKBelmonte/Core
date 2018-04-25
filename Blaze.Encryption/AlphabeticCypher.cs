@@ -24,9 +24,9 @@ namespace Blaze.Cryptography
 
         public virtual byte[] Decrypt(byte[] cypher, byte[] key, Func<int, int, int> reverseOp)
         {
-            //Good enough for symmetrical cyphers where op^(-1) is all you need
+            //Good enough for Reciprocal  cyphers where op^(-1) is all you need
             // i.e.: The Encrypt is an involution
-            //Fibonnacci and Chain will need to override tho
+            //Fibonnacci, Transposition and Chain will need to override tho
             return Encrypt(cypher, key, reverseOp);
         }
 
@@ -86,10 +86,10 @@ namespace Blaze.Cryptography
             return _map.Reverse[nomnom];
         }
 
-        protected int[] ByteToIndices(byte[] buff)
+        protected int[] ByteToIndices(IList<byte> buff)
         {
-            var keyIndices = new int[buff.Length];
-            for (var ii = 0; ii < buff.Length; ++ii)
+            var keyIndices = new int[buff.Count];
+            for (var ii = 0; ii < buff.Count; ++ii)
                 keyIndices[ii] = ByteToIndex(buff[ii]);
 
             return keyIndices;
@@ -100,10 +100,10 @@ namespace Blaze.Cryptography
             return _map.Forward[inx.UMod(_map.Count)];
         }
 
-        protected byte[] IndicesToBytes(int[] indices)
+        protected byte[] IndicesToBytes(IList<int> indices)
         {
-            var bytes = new byte[indices.Length];
-            for (var ii = 0; ii < indices.Length; ++ii)
+            var bytes = new byte[indices.Count];
+            for (var ii = 0; ii < indices.Count; ++ii)
                 bytes[ii] = IndexToByte(indices[ii]);
 
             return bytes;

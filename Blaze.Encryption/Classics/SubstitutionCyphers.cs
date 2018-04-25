@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Blaze.Cryptography
+namespace Blaze.Cryptography.Classics
 {
     public class Vigenere : AlphabeticCypher, ICypher
     {
@@ -53,6 +53,7 @@ namespace Blaze.Cryptography
     {
         public override byte[] Encrypt(byte[] plain, byte[] key, Func<int, int, int> op)
         {
+            //TODO: xor each key byte to get real Confusion results
             byte k = key.Length > 1 ? (byte)(key.ToSeed() % 256) : key[0];
             return base.Encrypt(plain, new[] {k}, op);
         }
