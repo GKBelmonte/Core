@@ -73,7 +73,7 @@ namespace Blaze.Cryptography
             ModulateKey = true;
         }
 
-        public override char[] Alphabet
+        public override IReadOnlyList<char> Alphabet
         {
             get
             {
@@ -135,7 +135,7 @@ namespace Blaze.Cryptography
 
         protected virtual void InitializeBijection(IRng rand)
         {
-            int size = Alphabet.Length;
+            int size = Alphabet.Count;
             _Bijection = new List<Map<int, int>>(size);
             for (var ii = 0; ii < size; ++ii)
             {
@@ -181,16 +181,16 @@ namespace Blaze.Cryptography
 
             int[] alphaIndexes = Alphabet
                 .Select(c => (byte)c)
-                .Select(b => _Map.Reverse[b])
+                .Select(b => _map.Reverse[b])
                 .ToArray();
 
             foreach (int k in alphaIndexes)
             {
-                var rowList = new List<char>() { ((char)_Map.Forward[k]) };
+                var rowList = new List<char>() { ((char)_map.Forward[k]) };
                 rowList.AddRange(
                     alphaIndexes
                         .Select(ix => Forward(ix, k))
-                        .Select(ix => (char)_Map.Forward[ix]));
+                        .Select(ix => (char)_map.Forward[ix]));
                 string row = string.Join("|", rowList.Select(c => $" {c} "));
                 res.AppendLine(row);
             }

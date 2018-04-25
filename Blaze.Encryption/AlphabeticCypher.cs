@@ -25,19 +25,25 @@ namespace Blaze.Cryptography
         public virtual byte[] Decrypt(byte[] cypher, byte[] key, Func<int, int, int> reverseOp)
         {
             //Good enough for symmetrical cyphers where op^(-1) is all you need
-            //Fibonnacci and Chain will need to override
+            // i.e.: The Encrypt is an involution
+            //Fibonnacci and Chain will need to override tho
             return Encrypt(cypher, key, reverseOp);
         }
 
 
         public virtual byte[] Encrypt(byte[] plain, IRng key, Func<int, int, int> op)
         {
-            throw new NotSupportedException($"The type {GetType().Name} does not support Rng based keys");
+            //Well let's make something work, yes?
+            byte[] keyGen = new byte[128];
+            key.NextBytes(keyGen);
+            return Encrypt(plain, keyGen, op);
         }
 
         public virtual byte[] Decrypt(byte[] cypher, IRng key, Func<int, int, int> reverseOp)
         {
-            throw new NotSupportedException($"The type {GetType().Name} does not support Rng based keys");
+            byte[] keyGen = new byte[128];
+            key.NextBytes(keyGen);
+            return Decrypt(cypher, keyGen, reverseOp);
         }
 
         /// <summary>
@@ -48,36 +54,36 @@ namespace Blaze.Cryptography
         /// So the first letter of the alphabet is index 0, regardless
         /// if it is 'A'
         /// </summary>
-        protected Map<int, byte> _Map;
+        protected Map<int, byte> _map;
 
-        protected char[] _Alphabet;
-        public virtual char[] Alphabet
+        protected IReadOnlyList<char> _alphabet;
+        public virtual IReadOnlyList<char> Alphabet
         {
-            get { return _Alphabet; }
+            get { return _alphabet; }
             set
             {
-                _Alphabet = value;
-                _Map = new Map<int, byte>();
-                for (var ii = 0; ii < Alphabet.Length; ++ii)
+                _alphabet = value.ToArray();
+                _map = new Map<int, byte>();
+                for (var ii = 0; ii < Alphabet.Count; ++ii)
                 {
                     byte b = (byte)Alphabet[ii];
-                    _Map.Add(ii, b);
+                    _map.Add(ii, b);
                 }
             }
         }
 
         protected void InitializeDefaultAlphabet()
         {
-            _Alphabet = new char[256];
+            var alphabet = new char[256];
             for (var ii = 0; ii < 256; ++ii)
-                _Alphabet[ii] = (char)ii;
+                alphabet[ii] = (char)ii;
 
-            Alphabet = _Alphabet;
+            Alphabet = alphabet;
         }
 
         protected int ByteToIndex(byte nomnom)
         {
-            return _Map.Reverse[nomnom];
+            return _map.Reverse[nomnom];
         }
 
         protected int[] ByteToIndices(byte[] buff)
@@ -91,7 +97,7 @@ namespace Blaze.Cryptography
 
         protected byte IndexToByte(int inx)
         {
-            return _Map.Forward[inx.UMod(_Map.Count)];
+            return _map.Forward[inx.UMod(_map.Count)];
         }
 
         protected byte[] IndicesToBytes(int[] indices)
@@ -131,20 +137,47 @@ namespace Blaze.Cryptography
             return powOf2Alphabet.ToArray();
         }
 
-        public static char[] GetPlainTextAlphabet()
-        {
-            List<char> plainTextChars = new List<char>(128);
-            plainTextChars.Add('\n');
 
+
+        private static IReadOnlyList<char> _plainTextAlphabet;
+        /// <summary>
+        /// Gets a plain text alphabet that contains exactly 128 characters
+        /// the first 126 non-control characters and \r and \n
+        /// </summary>
+        public static IReadOnlyList<char> GetPlainTextAlphabet()
+        {
+            if (_plainTextAlphabet != null)
+                return _plainTextAlphabet;
+
+            char[] plainTextChars = new char[128];
+            int charCount = 0;
+            plainTextChars[charCount++] = '\r';
+            plainTextChars[charCount++] = '\n';
+            
             for (int a = 0; a < 256; ++a)
             {
                 char c = (char)a;
                 if (!char.IsControl(c))
-                    plainTextChars.Add(c);
-                if (plainTextChars.Count == 128)
+                    plainTextChars[charCount++] = c;
+                if (charCount == 128)
                     break;
             }
-            return plainTextChars.ToArray();
+
+            _plainTextAlphabet = plainTextChars;
+            return _plainTextAlphabet;
+        }
+
+        public static bool IsTextPlain(string text)
+        {
+            IReadOnlyList<char> plainTextAlpha = GetPlainTextAlphabet();
+            bool[] isPlainChar = new bool[256];
+            foreach(char c in plainTextAlpha)
+            {
+                isPlainChar[(byte)c] = true;
+            }
+
+            return text.All(
+                c => isPlainChar[(byte)c]);
         }
     }
 }

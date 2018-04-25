@@ -87,7 +87,7 @@ namespace Blaze.Cryptography.Tests
         public void FibonacciCypher()
         {
             Log.Info("Fibonacci Tests");
-            using(Log.StartIndentScope())
+            using (Log.StartIndentScope())
             {
                 SimpleTest(typeof(FibonacciCypher), TestType.Full);
                 SimpleTest(typeof(FibonacciCypher), TestType.Alpha);

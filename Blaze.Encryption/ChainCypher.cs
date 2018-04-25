@@ -9,21 +9,34 @@ namespace Blaze.Cryptography
 {
     public class ChainCypher : ICypher
     {
-        private readonly IReadOnlyList<ICypher> _encrypts;
+        private readonly IReadOnlyList<ICypher> _cyphers;
+
+        public IReadOnlyList<char> _alphabet;
+        public IReadOnlyList<char> Alphabet
+        {
+            get { return _alphabet; }
+            set
+            {
+                _alphabet = value;
+                foreach (ICypher c in _cyphers)
+                    c.Alphabet = value;
+            }
+        }
+
         public ChainCypher(params Type[] types)
         {
             Type uninitializeableType = types.FirstOrDefault(t => t.GetConstructor(Type.EmptyTypes) == null);
             if (uninitializeableType != null)
                 throw new ArgumentException($"Type {uninitializeableType.FullName} does not have a default constructor");
 
-            _encrypts = types
+            _cyphers = types
                 .Select(t => (ICypher)Activator.CreateInstance(t))
                 .ToList();
         }
 
         public ChainCypher(params ICypher[] encrypts)
         {
-            _encrypts = encrypts.ToList();
+            _cyphers = encrypts.ToList();
         }
 
         public byte[] Encrypt(byte[] plain, byte[] key, Func<int, int, int> op)
@@ -33,10 +46,10 @@ namespace Blaze.Cryptography
             byte[] currentPass = new byte[plain.Length];
             plain.CopyTo(currentPass, 0);
 
-            for (int i = 0; i < _encrypts.Count; ++i)
+            for (int i = 0; i < _cyphers.Count; ++i)
             {
                 byte[] pepperedKey = pepperedKeys[i];
-                currentPass = _encrypts[i].Encrypt(currentPass, pepperedKey, op);
+                currentPass = _cyphers[i].Encrypt(currentPass, pepperedKey, op);
             }
 
             return currentPass;
@@ -49,10 +62,10 @@ namespace Blaze.Cryptography
             byte[] currentPass = new byte[cypher.Length];
             cypher.CopyTo(currentPass, 0);
 
-            for (int i = _encrypts.Count - 1; i >= 0; --i)
+            for (int i = _cyphers.Count - 1; i >= 0; --i)
             {
                 byte[] pepperedKey = pepperedKeys[i];
-                currentPass = _encrypts[i].Decrypt(currentPass, pepperedKey, op);
+                currentPass = _cyphers[i].Decrypt(currentPass, pepperedKey, op);
             }
 
             return currentPass;
@@ -60,14 +73,39 @@ namespace Blaze.Cryptography
 
         public byte[] Encrypt(byte[] plain, IRng key, Func<int, int, int> op)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
+            byte[] currentPass = new byte[plain.Length];
+            plain.CopyTo(currentPass, 0);
+            for (int i = 0; i < _cyphers.Count; ++i)
+            {
+                currentPass = _cyphers[i].Encrypt(currentPass, key, op);
+            }
+
+            return currentPass;
         }
 
-        public byte[] Decrypt(byte[] cypher, IRng key, Func<int, int, int> reverseOp)
+        public byte[] Decrypt(byte[] cypher, IRng key, Func<int, int, int> op)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
+            //This won't work S:(
+
+            //byte[] currentPass = new byte[cypher.Length];
+            //cypher.CopyTo(currentPass, 0);
+
+            //for (int i = _cyphers.Count - 1; i >= 0; --i)
+            //{
+            //    currentPass = _cyphers[i].Decrypt(currentPass, key, op);
+            //}
+
+            //return currentPass;
         }
 
+        /// <summary>
+        /// For each _cypher generate a peppered key from the original key
+        /// Re-using the key could leak statistical information if the key
+        /// is used for a Rng based cypher where the rng values would be
+        /// generated multiple times
+        /// </summary>
         private List<byte[]> GetPepperedKeys(byte[] key)
         {
             byte[] hashedKey = key.GetMD5Hash();
@@ -75,7 +113,7 @@ namespace Blaze.Cryptography
             byte[] discard = new byte[random.Next(100, 111)];
             random.NextBytes(discard);
 
-            List<byte[]> pepperedKeys = _encrypts
+            List<byte[]> pepperedKeys = _cyphers
                 .Select(e =>
                 {
                     byte[] pepper = new byte[hashedKey.Length];

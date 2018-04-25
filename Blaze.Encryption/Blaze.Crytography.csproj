@@ -47,7 +47,7 @@
     <Compile Include="EncryptExtensions.cs" />
     <Compile Include="EncryptionTesting.cs" />
     <Compile Include="FibonacciCypher.cs" />
-    <Compile Include="IEncrypt.cs" />
+    <Compile Include="ICypher.cs" />
     <Compile Include="Rng\MarsagliaRngs.cs" />
     <Compile Include="Rng\IRng.cs" />
     <Compile Include="NullCypher.cs" />

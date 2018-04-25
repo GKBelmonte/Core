@@ -36,19 +36,29 @@ namespace Blaze.Cryptography.Runner
                 }
             }
 
-            ICypher enc2 = new RandomBijection(new FibonacciCypher());
-            string what = enc2.Encrypt("Is this real life?", "Yes");
 
             ICypher enc = new ChainCypher(typeof(FibonacciCypher), typeof(StreamCypher), typeof(FibonacciCypherV3));
+
+            EncryptDecryptPlainText(ops, enc);
+        }
+
+        private static void EncryptDecryptPlainText(Options ops, ICypher enc)
+        {
+            string originalText = File.ReadAllText(ops.SourceFilePath);
+
+            if (!AlphabeticCypher.IsTextPlain(originalText))
+                throw new InvalidOperationException("Text is not considered plain text");
+            enc.Alphabet = AlphabeticCypher.GetPlainTextAlphabet();
+
             if (ops.Action == Action.Encrypt)
             {
-                string plainText = File.ReadAllText(ops.SourceFilePath);
+                string plainText = originalText;
                 string cryptoText = enc.Encrypt(plainText, ops.EncryptionKey);
                 File.WriteAllText(ops.TargetFilePath, cryptoText);
-            } 
+            }
             else
             {
-                string cryptoText = File.ReadAllText(ops.SourceFilePath);
+                string cryptoText = originalText;
                 string plainText = enc.Decrypt(cryptoText, ops.EncryptionKey);
                 File.WriteAllText(ops.TargetFilePath, plainText);
             }

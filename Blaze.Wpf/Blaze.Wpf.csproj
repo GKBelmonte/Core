@@ -41,9 +41,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="WPF\BindableBase.cs" />
-    <Compile Include="WPF\PropertySupport.cs" />
-    <Compile Include="WPF\ViewModelBase.cs" />
+    <Compile Include="BindableBase.cs" />
+    <Compile Include="PropertySupport.cs" />
+    <Compile Include="ViewModelBase.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="WPF\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
