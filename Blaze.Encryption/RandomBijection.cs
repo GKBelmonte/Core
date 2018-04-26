@@ -30,14 +30,20 @@ namespace Blaze.Cryptography
           Note: After further thought I realize this:
           This is still vulnerable to chosen plain text attack, since
           that may reveal the bijection if they key is re-used, which
-          might in turn be used to derive the seed.
+          might in turn be used to derive the seed.)
           (if the system allows encrypting arbitrary plaintext without requesting a key and reuses it internally)
         
           bijection is:
             f(p, k) = c OR _Bijection[k].Forward[p] = c
             f(c, k) = p OR _Bijection[k].Reverse[c] = p
+
          Because the bijection is generated, it most likely won't be commutative
          That is: f(p, k) != f(k, p), unlike f = p + k and f = p ^ k
+            
+            e.g.: given c1 = p1 ^ k and c2 = p2 ^ k
+            c1 ^ c2 = p1 ^ p2
+            Much easier to break.
+            With a non-commutative bijection, this can't be done.
 
          */
         private List<Map<int, int>> _Bijection;

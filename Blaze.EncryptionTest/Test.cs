@@ -12,8 +12,6 @@ namespace Blaze.Cryptography.Tests
     [TestClass]
     public class Test : TestBase
     {
-
-
         [TestMethod]
         public void VigenereTestForthAndBack()
         {
@@ -119,6 +117,34 @@ namespace Blaze.Cryptography.Tests
         }
 
         [TestMethod]
+        public void AutoKeyCypherWiki()
+        {
+            // Check Wikipedia
+            var tc = new Blaze.Cryptography.Classics.AutokeyCypher();
+            tc.Alphabet = AlphabeticCypher.GetSimpleAlphabet(true, false, false);
+
+            string k = "QUEENLY";
+            string plain1 = "ATTACKATDAWN"; 
+            string cypher1 = tc.Encrypt(plain1, k);
+            Assert.AreEqual("QNXEPVYTWTWP", cypher1);
+            string decypher1 = tc.Decrypt(cypher1, k);
+            Assert.AreEqual(plain1, decypher1);
+
+            string k2 = "KILT";
+            string plain2 = "MEETATTHEFOUNTAIN";
+            string cypher2 = tc.Encrypt(plain2, k2);
+            Assert.AreEqual("WMPMMXXAEYHBRYOCA", cypher2);
+            string decypher2 = tc.Decrypt(cypher2, k2);
+            Assert.AreEqual(plain2, decypher2);
+        }
+
+        [TestMethod]
+        public void AutoKeyCypher()
+        {
+            SimpleTest(typeof(AutokeyCypher), TestType.Full);
+        }
+
+        [TestMethod]
         public void AllCyphersForwardBackwards()
         {
             AllTest(TestType.Full);
@@ -159,7 +185,6 @@ namespace Blaze.Cryptography.Tests
 
             Assert.IsTrue(pass, "One or more tests have failed: {0}", string.Join(", ", failedTests));
         }
-
 
         private void SimpleTest(Type encType, TestType testType, char[] alpha = null)
         {

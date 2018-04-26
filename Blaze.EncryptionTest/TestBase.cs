@@ -39,8 +39,8 @@ namespace Blaze.Cryptography.Tests
                     "Chain1",
                     TestType.Full
                 },
-                { new TranspositionCypher(), "Transposition Cypher" , TestType.All }
-
+                { new TranspositionCypher(), "Transposition Cypher" , TestType.All },
+                { new AutokeyCypher(), "AutoKey Cypher", TestType.All }
             };
             return res;
         }

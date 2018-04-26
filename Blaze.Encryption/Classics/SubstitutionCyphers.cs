@@ -53,8 +53,11 @@ namespace Blaze.Cryptography.Classics
     {
         public override byte[] Encrypt(byte[] plain, byte[] key, Func<int, int, int> op)
         {
-            //TODO: xor each key byte to get real Confusion results
-            byte k = key.Length > 1 ? (byte)(key.ToSeed() % 256) : key[0];
+            uint shortKey = (uint)(key.Length > 1 ? key.ToSeed() : key[0]);
+            byte k = 0;
+            for (int ii = 0; ii < 4; ++ii)
+                k ^= (byte)((shortKey >> (ii * 8)) & 0xFF);
+
             return base.Encrypt(plain, new[] {k}, op);
         }
 

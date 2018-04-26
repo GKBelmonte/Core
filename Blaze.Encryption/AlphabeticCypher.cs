@@ -179,5 +179,10 @@ namespace Blaze.Cryptography
             return text.All(
                 c => isPlainChar[(byte)c]);
         }
+
+        public string TextFromIndices(int[] inx)
+        {
+            return IndicesToBytes(inx).ToTextString();
+        }
     }
 }
