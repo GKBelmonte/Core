@@ -12,6 +12,40 @@ namespace Blaze.Cryptography.Rng
     /// </summary>
     public abstract class MarsagliaRng : IRng
     {
+        // stole this from https://referencesource.microsoft.com/#mscorlib/system/random.cs,92e3cf6e56571d5a,references, 
+        // which they stole from Numerical Recipes in C (2nd Ed.)
+        // so I guess its ok :D
+        protected int[] ArrayFromSeed(int seed)
+        {
+            const int MSEED = 161803398;
+            int ii;
+            int mj, mk;
+            //Initialize our Seed array.
+            //This algorithm comes from Numerical Recipes in C (2nd Ed.)
+            int subtraction = (seed == Int32.MinValue) ? Int32.MaxValue : Math.Abs(seed);
+            int[] seedArray = new int[56];
+            mj = MSEED - subtraction;
+            seedArray[55] = mj;
+            mk = 1;
+            for (int i = 1; i < 55; i++)
+            {  //Apparently the range [1..55] is special (Knuth) and so we're wasting the 0'th position.
+                ii = (21 * i) % 55;
+                seedArray[ii] = mk;
+                mk = mj - mk;
+                if (mk < 0) mk += Int32.MaxValue;
+                mj = seedArray[ii];
+            }
+            for (int k = 1; k < 5; k++)
+            {
+                for (int i = 1; i < 56; i++)
+                {
+                    seedArray[i] -= seedArray[1 + (i + 30) % 55];
+                    if (seedArray[i] < 0) seedArray[i] += Int32.MaxValue;
+                }
+            }
+            return seedArray;
+        }
+
         public abstract int Next();
 
         public int Next(int minValue, int maxValue)
@@ -264,6 +298,17 @@ namespace Blaze.Cryptography.Rng
     {
         public class KissRng : MarsagliaRng
         {
+            public KissRng() { }
+            public KissRng(int seed)
+            {
+                // need z, w, jsr and jcong
+                var ints = ArrayFromSeed(seed);
+
+                z = (uint)ints[1];
+                w = (uint)ints[2];
+                jsr = (uint)ints[3];
+                jcong = (uint)ints[4];
+            }
             public override int Next() { return (int)KISS(); }
         }
 

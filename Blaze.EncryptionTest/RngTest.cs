@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text;
 using System.Collections.Generic;
+using Blaze.Cryptography.Rng.Marsaglia;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Blaze.Cryptography.Tests
@@ -11,31 +12,6 @@ namespace Blaze.Cryptography.Tests
     [TestClass]
     public class RngTest
     {
-        public RngTest()
-        {
-            //
-            // TODO: Add constructor logic here
-            //
-        }
-
-        private TestContext testContextInstance;
-
-        /// <summary>
-        ///Gets or sets the test context which provides
-        ///information about and functionality for the current test run.
-        ///</summary>
-        public TestContext TestContext
-        {
-            get
-            {
-                return testContextInstance;
-            }
-            set
-            {
-                testContextInstance = value;
-            }
-        }
-
         #region Additional test attributes
         //
         // You can use the following additional attributes as you write your tests:
@@ -61,9 +37,7 @@ namespace Blaze.Cryptography.Tests
         [TestMethod]
         public void TestMethod1()
         {
-            //
-            // TODO: Add test logic here
-            //
+            var rng = new KissRng(1);
         }
     }
 }

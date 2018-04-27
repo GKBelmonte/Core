@@ -9,6 +9,6 @@ namespace Blaze.Cryptography.Rng
     public class SysRng : Random, IRng
     {
         public SysRng(int seed) : base(seed) { }
-        public SysRng() : base() { }
+        public SysRng() { }
     }
 }
