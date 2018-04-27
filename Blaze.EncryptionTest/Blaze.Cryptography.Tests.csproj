@@ -59,6 +59,7 @@
     <Compile Include="TestCase.cs" />
     <Compile Include="TestTest.cs" />
     <Compile Include="Utils.cs" />
+    <Compile Include="UtilsTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Blaze.Core\Blaze.Core.csproj">

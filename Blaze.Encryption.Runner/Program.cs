@@ -5,6 +5,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Plossum.CommandLine;
 using Blaze.Core.Log;
+using Blaze.Core.Extensions;
 
 namespace Blaze.Cryptography.Runner
 {
@@ -36,35 +37,65 @@ namespace Blaze.Cryptography.Runner
                 }
             }
 
+            ICypher enc = new ChainCypher(
+                typeof(Classics.TranspositionCypher),
+                typeof(FibonacciCypher), 
+                typeof(StreamCypher), 
+                typeof(FibonacciCypherV3), 
+                typeof(StreamCypher));
 
-            ICypher enc = new ChainCypher(typeof(FibonacciCypher), typeof(StreamCypher), typeof(FibonacciCypherV3));
-
-            EncryptDecryptPlainText(ops, enc);
+            if (ops.PlainText)
+                EncryptDecryptPlainText(ops, enc);
+            else
+                EncryptDecryptBinary(ops, enc);
         }
 
-        private static void EncryptDecryptPlainText(Options ops, ICypher enc)
+        private static void EncryptDecryptPlainText(Options ops, ICypher cypher)
         {
             string originalText = File.ReadAllText(ops.SourceFilePath);
 
-            if (!AlphabeticCypher.IsTextPlain(originalText))
+            EndOfLine endOfLine;
+            if (!AlphabeticCypher.IsTextPlain(originalText, out endOfLine))
                 throw new InvalidOperationException("Text is not considered plain text");
-            enc.Alphabet = AlphabeticCypher.GetPlainTextAlphabet();
+            cypher.Alphabet = AlphabeticCypher.GetPlainTextAlphabet(endOfLine);
 
             if (ops.Action == Action.Encrypt)
             {
                 string plainText = originalText;
-                string cryptoText = enc.Encrypt(plainText, ops.EncryptionKey);
+                string cryptoText = cypher.Encrypt(plainText, ops.EncryptionKey);
                 File.WriteAllText(ops.TargetFilePath, cryptoText);
             }
             else
             {
                 string cryptoText = originalText;
-                string plainText = enc.Decrypt(cryptoText, ops.EncryptionKey);
+                string plainText = cypher.Decrypt(cryptoText, ops.EncryptionKey);
                 File.WriteAllText(ops.TargetFilePath, plainText);
             }
         }
 
-        [CommandLineManager(ApplicationName = "Blaze.Enc", EnabledOptionStyles = OptionStyles.ShortUnix)]
+        private static void EncryptDecryptBinary(Options ops, ICypher cypher)
+        {
+            byte[] originalText = File.ReadAllBytes(ops.SourceFilePath);
+
+            if (ops.Action == Action.Encrypt)
+            {
+                byte[] plainText = originalText;
+                byte[] cryptoText = cypher.Encrypt(
+                    plainText, 
+                    ops.EncryptionKey.ToByteArray());
+                File.WriteAllBytes(ops.TargetFilePath, cryptoText);
+            }
+            else
+            {
+                byte[] cryptoText = originalText;
+                byte[] plainText = cypher.Decrypt(
+                    cryptoText, 
+                    ops.EncryptionKey.ToByteArray());
+                File.WriteAllBytes(ops.TargetFilePath, plainText);
+            }
+        }
+
+        [CommandLineManager(ApplicationName = "Blaze.Crypto.Console", EnabledOptionStyles = OptionStyles.ShortUnix)]
         class Options
         {
             [CommandLineOption]

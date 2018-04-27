@@ -15,6 +15,7 @@ namespace Blaze.Cryptography.Tests
         /// repeat the test until you fix it in EnC
         /// (only in debugger)
         /// </summary>
+        [DebuggerStepThrough]
         public static bool WrappedTest(Func<bool> test, ILogger log)
         {
             bool passed = true;

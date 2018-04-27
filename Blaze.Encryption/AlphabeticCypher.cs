@@ -93,6 +93,7 @@ namespace Blaze.Cryptography
 
         protected void InitializeDefaultAlphabet()
         {
+            //not goot enough for utf-16
             var alphabet = new char[256];
             for (var ii = 0; ii < 256; ++ii)
                 alphabet[ii] = (char)ii;
@@ -159,17 +160,20 @@ namespace Blaze.Cryptography
         private static IReadOnlyList<char> _plainTextAlphabet;
         /// <summary>
         /// Gets a plain text alphabet that contains exactly 128 characters
-        /// the first 126 non-control characters and \r and \n
+        /// the first 126 non-control characters and \r and \n as applicable
         /// </summary>
-        public static IReadOnlyList<char> GetPlainTextAlphabet()
+        public static IReadOnlyList<char> GetPlainTextAlphabet(EndOfLine eol = EndOfLine.Mixed)
         {
             if (_plainTextAlphabet != null)
                 return _plainTextAlphabet;
 
             char[] plainTextChars = new char[128];
             int charCount = 0;
-            plainTextChars[charCount++] = '\r';
-            plainTextChars[charCount++] = '\n';
+
+            if(eol.HasFlag(EndOfLine.CarriageReturn))
+                plainTextChars[charCount++] = '\r';
+            if (eol.HasFlag(EndOfLine.LineFeed))
+                plainTextChars[charCount++] = '\n';
             
             for (int a = 0; a < 256; ++a)
             {
@@ -186,15 +190,27 @@ namespace Blaze.Cryptography
 
         public static bool IsTextPlain(string text)
         {
-            IReadOnlyList<char> plainTextAlpha = GetPlainTextAlphabet();
-            bool[] isPlainChar = new bool[256];
-            foreach(char c in plainTextAlpha)
+            EndOfLine eol;
+            return IsTextPlain(text, out eol);
+        }
+
+        public static bool IsTextPlain(string text, out EndOfLine eol)
+        {
+            eol = EndOfLine.None;
+
+            foreach(char c in text)
             {
-                isPlainChar[(byte)c] = true;
+                if (!char.IsControl(c))
+                    continue;
+                else if (c == '\r')
+                    eol |= EndOfLine.CarriageReturn;
+                else if (c == '\n')
+                    eol |= EndOfLine.LineFeed;
+                else //char.IsControl and not new line
+                    return false;
             }
 
-            return text.All(
-                c => isPlainChar[(byte)c]);
+            return true;
         }
 
         public string TextFromIndices(int[] inx)

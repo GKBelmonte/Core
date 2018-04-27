@@ -42,6 +42,7 @@
     <Compile Include="AlphabeticCypher.cs" />
     <Compile Include="Classics\AutokeyCypher.cs" />
     <Compile Include="Classics\TranspositionCyphers.cs" />
+    <Compile Include="EndOfLine.cs" />
     <Compile Include="Extensions\OperationExtensions.cs" />
     <Compile Include="Extensions\StreamExtensions.cs" />
     <Compile Include="StringCypherExtensions.cs" />
