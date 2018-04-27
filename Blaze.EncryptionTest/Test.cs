@@ -117,7 +117,7 @@ namespace Blaze.Cryptography.Tests
         }
 
         [TestMethod]
-        public void AutoKeyCypherWiki()
+        public void AutoKeyCypherWikipedia()
         {
             // Check Wikipedia
             var tc = new Blaze.Cryptography.Classics.AutokeyCypher();
@@ -142,6 +142,12 @@ namespace Blaze.Cryptography.Tests
         public void AutoKeyCypher()
         {
             SimpleTest(typeof(AutokeyCypher), TestType.Full);
+        }
+
+        [TestMethod]
+        public void NullCypher()
+        {
+            SimpleTest(typeof(NullCypher), TestType.Full);
         }
 
         [TestMethod]

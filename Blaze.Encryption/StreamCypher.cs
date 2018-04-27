@@ -16,7 +16,7 @@ namespace Blaze.Cryptography
             Alphabet = alphabet;
         }
 
-        public override byte[] Encrypt(byte[] plain, byte[] key, Func<int, int, int> op)
+        protected override byte[] Encrypt(byte[] plain, byte[] key, Op op)
         {
             byte[] keyHash = key.GetMD5Hash();
             IRng rand = keyHash.KeyToRand();
@@ -26,12 +26,7 @@ namespace Blaze.Cryptography
             return cypher;
         }
 
-        public override byte[] Decrypt(byte[] cypher, byte[] key, Func<int, int, int> reverseOp)
-        {
-            return Encrypt(cypher, key, reverseOp);
-        }
-
-        public override byte[] Encrypt(byte[] plain, IRng rand, Func<int, int, int> op)
+        protected virtual byte[] Encrypt(byte[] plain, IRng rand, Op op)
         {
             var cypher = new byte[plain.Length];
 

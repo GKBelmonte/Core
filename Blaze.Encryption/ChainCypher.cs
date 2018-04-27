@@ -23,6 +23,30 @@ namespace Blaze.Cryptography
             }
         }
 
+        private Op _forwardOp;
+        public Op ForwardOp
+        {
+            get { return _forwardOp; }
+            set
+            {
+                foreach (ICypher c in _cyphers)
+                    c.ForwardOp = value;
+                _forwardOp = value;
+            }
+        }
+
+        private Op _reverseOp;
+        public Op ReverseOp
+        {
+            get { return _reverseOp; }
+            set
+            {
+                foreach (ICypher c in _cyphers)
+                    c.ReverseOp = value;
+                _reverseOp = value;
+            }
+        }
+
         public ChainCypher(params Type[] types)
         {
             Type uninitializeableType = types.FirstOrDefault(t => t.GetConstructor(Type.EmptyTypes) == null);
@@ -39,7 +63,7 @@ namespace Blaze.Cryptography
             _cyphers = encrypts.ToList();
         }
 
-        public byte[] Encrypt(byte[] plain, byte[] key, Func<int, int, int> op)
+        public byte[] Encrypt(byte[] plain, byte[] key)
         {
             List<byte[]> pepperedKeys = GetPepperedKeys(key);
 
@@ -49,13 +73,13 @@ namespace Blaze.Cryptography
             for (int i = 0; i < _cyphers.Count; ++i)
             {
                 byte[] pepperedKey = pepperedKeys[i];
-                currentPass = _cyphers[i].Encrypt(currentPass, pepperedKey, op);
+                currentPass = _cyphers[i].Encrypt(currentPass, pepperedKey);
             }
 
             return currentPass;
         }
 
-        public byte[] Decrypt(byte[] cypher, byte[] key, Func<int, int, int> op)
+        public byte[] Decrypt(byte[] cypher, byte[] key)
         {
             List<byte[]> pepperedKeys = GetPepperedKeys(key);
 
@@ -65,26 +89,26 @@ namespace Blaze.Cryptography
             for (int i = _cyphers.Count - 1; i >= 0; --i)
             {
                 byte[] pepperedKey = pepperedKeys[i];
-                currentPass = _cyphers[i].Decrypt(currentPass, pepperedKey, op);
+                currentPass = _cyphers[i].Decrypt(currentPass, pepperedKey);
             }
 
             return currentPass;
         }
 
-        public byte[] Encrypt(byte[] plain, IRng key, Func<int, int, int> op)
+        public byte[] Encrypt(byte[] plain, IRng key)
         {
             throw new NotSupportedException();
             byte[] currentPass = new byte[plain.Length];
             plain.CopyTo(currentPass, 0);
             for (int i = 0; i < _cyphers.Count; ++i)
             {
-                currentPass = _cyphers[i].Encrypt(currentPass, key, op);
+                currentPass = _cyphers[i].Encrypt(currentPass, key);
             }
 
             return currentPass;
         }
 
-        public byte[] Decrypt(byte[] cypher, IRng key, Func<int, int, int> op)
+        public byte[] Decrypt(byte[] cypher, IRng key)
         {
             throw new NotSupportedException();
             //This won't work S:(

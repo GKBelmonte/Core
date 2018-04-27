@@ -17,7 +17,6 @@ namespace Blaze.Cryptography.Extensions.Streams
             this ICypher self,
             Stream plain,
             byte[] key,
-            Func<int, int, int> op,
             Stream outCypher)
         {
             if (!plain.CanRead)
@@ -30,7 +29,7 @@ namespace Blaze.Cryptography.Extensions.Streams
             while ((read = plain.Read(buff, 0, 1024)) != 0)
             {
                 byte[] bytesRead = buff.Take(read).ToArray();
-                outCypher.Write(self.Encrypt(bytesRead, key, op), 0, read);
+                outCypher.Write(self.Encrypt(bytesRead, key), 0, read);
             }
         }
 
@@ -38,7 +37,6 @@ namespace Blaze.Cryptography.Extensions.Streams
             this ICypher self,
             Stream cypher,
             byte[] key,
-            Func<int, int, int> reverseOp,
             Stream outPlain)
         {
             if (!cypher.CanRead)
@@ -51,36 +49,9 @@ namespace Blaze.Cryptography.Extensions.Streams
             while ((read = cypher.Read(buff, 0, 1024)) != 0)
             {
                 byte[] bytesRead = buff.Take(read).ToArray();
-                outPlain.Write(self.Decrypt(bytesRead, key, reverseOp), 0, read);
+                outPlain.Write(self.Decrypt(bytesRead, key), 0, read);
             }
         }
-
-        public static void Encrypt(
-            this ICypher self,
-            Stream plain,
-            byte[] key,
-            Stream outCypher)
-        {
-            Encrypt(self, 
-                plain, 
-                key, 
-                Operations.OperationExtensions.GetOpFunc(Operation.Xor), 
-                outCypher);
-        }
-
-        public static void Decrypt(
-            this ICypher self,
-            Stream cypher,
-            byte[] key,
-            Stream outPlain)
-        {
-            Decrypt(self,
-                cypher,
-                key,
-                Operations.OperationExtensions.GetOpFunc(Operation.Xor),
-                outPlain);
-        }
-
 
 
 
@@ -88,7 +59,6 @@ namespace Blaze.Cryptography.Extensions.Streams
             this ICypher self,
             Stream plain,
             IRng key,
-            Func<int, int, int> op,
             Stream outCypher)
         {
             if (!plain.CanRead)
@@ -101,7 +71,7 @@ namespace Blaze.Cryptography.Extensions.Streams
             while ((read = plain.Read(buff, 0, 1024)) != 0)
             {
                 byte[] bytesRead = buff.Take(read).ToArray();
-                outCypher.Write(self.Encrypt(bytesRead, key, op), 0, read);
+                outCypher.Write(self.Encrypt(bytesRead, key), 0, read);
             }
         }
 
@@ -109,7 +79,6 @@ namespace Blaze.Cryptography.Extensions.Streams
             this ICypher self,
             Stream cypher,
             IRng key,
-            Func<int, int, int> reverseOp,
             Stream outPlain)
         {
             if (!cypher.CanRead)
@@ -122,7 +91,7 @@ namespace Blaze.Cryptography.Extensions.Streams
             while ((read = cypher.Read(buff, 0, 1024)) != 0)
             {
                 byte[] bytesRead = buff.Take(read).ToArray();
-                outPlain.Write(self.Decrypt(bytesRead, key, reverseOp), 0, read);
+                outPlain.Write(self.Decrypt(bytesRead, key), 0, read);
             }
         }
 

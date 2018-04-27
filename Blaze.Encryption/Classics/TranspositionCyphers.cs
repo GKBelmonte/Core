@@ -9,38 +9,38 @@ namespace Blaze.Cryptography.Classics
 {
     public class TranspositionCypher : AlphabeticCypher
     {
-        public override byte[] Encrypt(byte[] plain, byte[] key, Func<int, int, int> op)
+        public override byte[] Encrypt(byte[] plain, byte[] key)
         {
             IRng rng = key.KeyToRand();
 
             int columnNumber = GetColumnNumber(plain, rng);
 
-            byte[] cypher = Encrypt(plain, columnNumber, op);
+            byte[] cypher = Encrypt(plain, columnNumber);
 
             return cypher;
         }
 
-        public override byte[] Decrypt(byte[] cypher, byte[] key, Func<int, int, int> reverseOp)
+        public override byte[] Decrypt(byte[] cypher, byte[] key)
         {
             IRng rng = key.KeyToRand();
 
             int columnNumber = GetColumnNumber(cypher, rng);
 
-            byte[] plain = Decrypt(cypher, columnNumber, reverseOp);
+            byte[] plain = Decrypt(cypher, columnNumber);
 
             return plain;
         }
 
-        public byte[] Encrypt(byte[] plain, int columnNumber, Func<int, int, int> op)
+        public byte[] Encrypt(byte[] plain, int columnNumber)
         {
             int[] plainIx = ByteToIndices(plain);
 
-            int[] cypher = Encrypt(plainIx, columnNumber, op);
+            int[] cypher = Encrypt(plainIx, columnNumber);
 
             return IndicesToBytes(cypher).ToArray();
         }
 
-        private int[] Encrypt(int[] plainInts, int columnNumber, Func<int, int, int> op)
+        private int[] Encrypt(int[] plainInts, int columnNumber)
         {
             int rowSize = columnNumber;
             
@@ -53,16 +53,16 @@ namespace Blaze.Cryptography.Classics
             return cypher.ToArray();
         }
 
-        public byte[] Decrypt(byte[] cypher, int columnNumber, Func<int, int, int> op)
+        public byte[] Decrypt(byte[] cypher, int columnNumber)
         {
             int[] cypherIx = ByteToIndices(cypher);
 
-            int[] plainIx = Decrypt(cypherIx, columnNumber, op);
+            int[] plainIx = Decrypt(cypherIx, columnNumber);
 
             return IndicesToBytes(plainIx).ToArray();
         }
 
-        private int[] Decrypt(int[] cypherIx, int originalColumnNumber, Func<int, int, int> op)
+        private int[] Decrypt(int[] cypherIx, int originalColumnNumber)
         {
             // new columnSize is old columnNumber
             int columnSize = originalColumnNumber;
@@ -117,6 +117,12 @@ namespace Blaze.Cryptography.Classics
             else if (plain.Length < 65536)
                 columnNumber = rng.Next(230, 280);
             return columnNumber;
+        }
+
+        protected override byte[] Encrypt(byte[] plain, byte[] key, Op op)
+        {
+            //not needed
+            throw new NotImplementedException();
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Blaze.Core.Collections;
+using Blaze.Cryptography.Rng;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -45,7 +46,7 @@ namespace Blaze.Cryptography.Classics
             }
         }
 
-        public override byte[] Encrypt(byte[] plain, byte[] key, Func<int, int, int> op)
+        protected override byte[] Encrypt(byte[] plain, byte[] key, Op forwardOp)
         {
             InitRabulaRectaInternal();
             int[] plainIx = ByteToIndices(plain);
@@ -62,7 +63,7 @@ namespace Blaze.Cryptography.Classics
             return IndicesToBytes(cypherIx);
         }
 
-        public override byte[] Decrypt(byte[] cypher, byte[] key, Func<int, int, int> op)
+        protected override byte[] Decrypt(byte[] cypher, byte[] key, Op forwardOp)
         {
             InitRabulaRectaInternal();
             int[] cypherIx = ByteToIndices(cypher);

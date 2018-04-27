@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Blaze.Core.Collections;
 using Blaze.Core.Extensions;
+using Blaze.Cryptography.Extensions.Operations;
 using Blaze.Cryptography.Rng;
 
 namespace Blaze.Cryptography
@@ -18,33 +19,51 @@ namespace Blaze.Cryptography
         protected AlphabeticCypher()
         {
             InitializeDefaultAlphabet();
+            ForwardOp = BasicOperations.Xor.GetOpFunc();
+            ReverseOp = BasicOperations.Xor.GetOpFunc();
         }
 
-        public abstract byte[] Encrypt(byte[] plain, byte[] key, Func<int, int, int> op);
+        // You can ignore the override if you override public Encrypt
+        // You can ignore overriding the decrypt if the cypher is reciprocal
+        // and the op is an involution
+        protected abstract byte[] Encrypt(byte[] plain, byte[] key, Op op);
 
-        public virtual byte[] Decrypt(byte[] cypher, byte[] key, Func<int, int, int> reverseOp)
+        // Must be overriden for any non-reciprocal cypher
+        protected virtual byte[] Decrypt(byte[] cypher, byte[] key, Op op)
         {
-            //Good enough for Reciprocal  cyphers where op^(-1) is all you need
+            //Good enough for Reciprocal cyphers where op^(-1) is all you need
             // i.e.: The Encrypt is an involution
             //Fibonnacci, Transposition and Chain will need to override tho
-            return Encrypt(cypher, key, reverseOp);
+            return Encrypt(cypher, key, op);
         }
 
+        public virtual byte[] Encrypt(byte[] plain, byte[] key)
+        {
+            return Encrypt(plain, key, ForwardOp);
+        }
 
-        public virtual byte[] Encrypt(byte[] plain, IRng key, Func<int, int, int> op)
+        public virtual byte[] Decrypt(byte[] cypher, byte[] key)
+        {
+            return Decrypt(cypher, key, ReverseOp);
+        }
+
+        public virtual byte[] Encrypt(byte[] plain, IRng key)
         {
             //Well let's make something work, yes?
             byte[] keyGen = new byte[128];
             key.NextBytes(keyGen);
-            return Encrypt(plain, keyGen, op);
+            return Encrypt(plain, keyGen, ForwardOp);
         }
 
-        public virtual byte[] Decrypt(byte[] cypher, IRng key, Func<int, int, int> reverseOp)
+        public virtual byte[] Decrypt(byte[] cypher, IRng key)
         {
             byte[] keyGen = new byte[128];
             key.NextBytes(keyGen);
-            return Decrypt(cypher, keyGen, reverseOp);
+            return Decrypt(cypher, keyGen, ReverseOp);
         }
+
+        public Op ForwardOp { get; set; }
+        public Op ReverseOp { get; set; }
 
         /// <summary>
         /// An alphabet is a set of characters whose representation
@@ -136,8 +155,6 @@ namespace Blaze.Cryptography
             powOf2Alphabet.AddRange(new char[] { 'A', 'H', 'B', 'W', 'N' });
             return powOf2Alphabet.ToArray();
         }
-
-
 
         private static IReadOnlyList<char> _plainTextAlphabet;
         /// <summary>

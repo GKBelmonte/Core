@@ -1,6 +1,7 @@
 ﻿using Blaze.Core.Extensions;
 using Blaze.Core.Log;
 using Blaze.Cryptography.Classics;
+using Blaze.Cryptography.Extensions.Operations;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
@@ -201,6 +202,8 @@ namespace Blaze.Cryptography.Tests
 
         protected bool TestBackwardsForward(ICypher enc, string text, string key)
         {
+            enc.ForwardOp = BasicOperations.Add.GetOpFunc();
+            enc.ReverseOp = BasicOperations.Sub.GetOpFunc();
             string cypher = enc.Encrypt(text, key);
             string plain = enc.Decrypt(cypher, key);
             Log.Info($"Plain text: {text}");
@@ -212,8 +215,10 @@ namespace Blaze.Cryptography.Tests
 
         protected bool TestBackwardsForwardXor(ICypher enc, string text, string key)
         {
-            string cypher = enc.Encrypt(text, key, Operation.Xor);
-            string plain = enc.Decrypt(cypher, key, Operation.Xor);
+            enc.ForwardOp = BasicOperations.Xor.GetOpFunc();
+            enc.ReverseOp = BasicOperations.Xor.GetOpFunc();
+            string cypher = enc.Encrypt(text, key);
+            string plain = enc.Decrypt(cypher, key);
             Log.Info($"Plain text: {text}");
             Log.Info($"Cypher text: {cypher}");
             Log.Info($"Decypher text: {plain}");

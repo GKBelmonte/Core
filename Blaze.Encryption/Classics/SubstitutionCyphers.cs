@@ -31,7 +31,7 @@ namespace Blaze.Cryptography.Classics
             return cypher;
         }
 
-        public override byte[] Encrypt(byte[] plain, byte[] key, Func<int, int, int> d)
+        protected override byte[] Encrypt(byte[] plain, byte[] key, Op op)
         {
             byte[] cypher = new byte[plain.Length];
             int inx = -1;
@@ -43,7 +43,7 @@ namespace Blaze.Cryptography.Classics
             {
                 int keyInx = keyIndices[inx % key.Length];
                 int plainInx = textIndices[inx];
-                cypher[inx] = IndexToByte(d(plainInx, keyInx));
+                cypher[inx] = IndexToByte(op(plainInx, keyInx));
             }
             return cypher;
         }
@@ -51,7 +51,7 @@ namespace Blaze.Cryptography.Classics
 
     public class CaesarCypher : Vigenere
     {
-        public override byte[] Encrypt(byte[] plain, byte[] key, Func<int, int, int> op)
+        protected override byte[] Encrypt(byte[] plain, byte[] key, Op op)
         {
             uint shortKey = (uint)(key.Length > 1 ? key.ToSeed() : key[0]);
             byte k = 0;
@@ -61,7 +61,7 @@ namespace Blaze.Cryptography.Classics
             return base.Encrypt(plain, new[] {k}, op);
         }
 
-        public byte[] Encrypt(byte[] plain, byte key, Func<int, int, int> op)
+        protected byte[] Encrypt(byte[] plain, byte key, Op op)
         {
             return base.Encrypt(plain, new[] { key }, op);
         }
@@ -74,7 +74,7 @@ namespace Blaze.Cryptography.Classics
             Alphabet = Enumerable.Range('A', 'Z' - 'A' + 1).Select(i => (char) i).ToArray();
         }
 
-        public override byte[] Encrypt(byte[] plain, byte[] key, Func<int, int, int> op)
+        protected override byte[] Encrypt(byte[] plain, byte[] key, Op op)
         {   
             return Encrypt(plain, (byte)('A' + 13), op);
         }

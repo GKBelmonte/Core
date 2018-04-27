@@ -93,50 +93,32 @@ namespace Blaze.Cryptography
             }
         }
 
-        public override byte[] Encrypt(byte[] plain, byte[] key, Func<int, int, int> op)
+        public override byte[] Encrypt(byte[] plain, byte[] key)
         {
-            //how to deal with ignoring the op?
             byte[] keyHash = key.GetMD5Hash();
             var rand = keyHash.KeyToRand();
 
             InitializeBijection(rand);
-            return _Encrypt.Encrypt(plain, key, Forward);
+            _Encrypt.ForwardOp = Forward;
+            _Encrypt.ReverseOp = Reverse;
+            return _Encrypt.Encrypt(plain, key);
         }
 
-        public override byte[] Decrypt(byte[] cypher, byte[] key, Func<int, int, int> op)
+        public override byte[] Decrypt(byte[] cypher, byte[] key)
         {
-            //how to deal with ignoring the op?
             byte[] keyHash = key.GetMD5Hash();
             var rand = keyHash.KeyToRand();
 
             InitializeBijection(rand);
-            return _Encrypt.Decrypt(cypher, key, Reverse);
+            _Encrypt.ForwardOp = Forward;
+            _Encrypt.ReverseOp = Reverse;
+            return _Encrypt.Decrypt(cypher, key);
         }
 
-        public byte[] Encrypt(byte[] plain, byte[] key)
+        protected override byte[] Encrypt(byte[] plain, byte[] key, Op op)
         {
-            return Encrypt(plain, key, Operation.Custom);
-        }
-
-        public byte[] Decrypt(byte[] cypher, byte[] key)
-        {
-            return Decrypt(cypher, key, Operation.ReverseCustom);
-        }
-
-        public byte[] Encrypt(byte[] plain, byte[] key, Operation op = Operation.Custom)
-        {
-            if (op != Operation.Custom && op!= Operation.ReverseCustom)
-                throw new ArgumentException("Bijection Decorator defines its own operation, the only op allowed is custom.", "op");
-
-            return Encrypt(plain, key, null);
-        }
-
-        public byte[] Decrypt(byte[] cypher, byte[] key, Operation op = Operation.ReverseCustom)
-        {
-            if (op != Operation.Custom && op != Operation.ReverseCustom)
-                throw new ArgumentException("Bijection Decorator defines its own operation, the only op allowed is custom.", "op");
-
-            return Decrypt(cypher, key, null);
+            //not needed
+            throw new NotImplementedException();
         }
 
         protected virtual void InitializeBijection(IRng rand)

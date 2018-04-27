@@ -10,18 +10,6 @@ namespace Blaze.Cryptography
 {
     public static class EncryptExtenstions
     {
-        public static byte[] Encrypt(this ICypher self, byte[] plain, byte[] key)
-        {
-            var f = OperationExtensions.GetOpFunc(Operation.Add);
-            return self.Encrypt(plain, key, f);
-        }
-
-        public static byte[] Decrypt(this ICypher self, byte[] cypher, byte[] key)
-        {
-            var refF = OperationExtensions.GetOpFunc(Operation.Sub);
-            return self.Decrypt(cypher, key, refF);
-        }
-
         #region KeyStuff
         public static byte[] GetMD5Hash(this byte[] key, byte[] salt = null)
         {
