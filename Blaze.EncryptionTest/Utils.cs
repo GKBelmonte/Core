@@ -1,8 +1,10 @@
 ﻿using Blaze.Core.Log;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -36,5 +38,30 @@ namespace Blaze.Cryptography.Tests
             } while (Debugger.IsAttached && !passed);
             return passed;
         }
+
+        public static void TestResultAssert(this TestResult self, string message)
+        {
+            if (!self.HasFlag(TestResult.Passed))
+                Assert.Fail(message);
+            else if (self.HasFlag(TestResult.Inconclusive))
+                Assert.Inconclusive(message);
+        }
+
+        public static void ExecuteTester<T>(this Tester tester, [CallerMemberName] string caller = null)
+        {
+            string message;
+            tester(typeof(T), out message)
+                .TestResultAssert($"Test {caller} failed. {message}");
+        }
+    }
+
+    public delegate TestResult Tester(Type testedType, out string message);
+
+    [Flags]
+    public enum TestResult
+    {
+        Failed = 0x0,
+        Passed =  0x1,
+        Inconclusive = 0x10
     }
 }

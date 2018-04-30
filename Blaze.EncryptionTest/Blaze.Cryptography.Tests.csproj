@@ -51,7 +51,9 @@
   </Choose>
   <ItemGroup>
     <Compile Include="Log.cs" />
-    <Compile Include="RngTest.cs" />
+    <Compile Include="Rng\NullRng.cs" />
+    <Compile Include="Rng\RangeTests.cs" />
+    <Compile Include="Rng\RngTest.cs" />
     <Compile Include="StreamTests.cs" />
     <Compile Include="Test.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

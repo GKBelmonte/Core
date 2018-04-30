@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Blaze.Core.Extensions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,16 +16,16 @@ namespace Blaze.Cryptography.Rng
         // stole this from https://referencesource.microsoft.com/#mscorlib/system/random.cs,92e3cf6e56571d5a,references, 
         // which they stole from Numerical Recipes in C (2nd Ed.)
         // so I guess its ok :D
-        protected int[] ArrayFromSeed(int seed)
+        protected uint[] ArrayFromSeed(int seed)
         {
             const int MSEED = 161803398;
             int ii;
-            int mj, mk;
+            uint mj, mk;
             //Initialize our Seed array.
             //This algorithm comes from Numerical Recipes in C (2nd Ed.)
             int subtraction = (seed == Int32.MinValue) ? Int32.MaxValue : Math.Abs(seed);
-            int[] seedArray = new int[56];
-            mj = MSEED - subtraction;
+            uint[] seedArray = new uint[56];
+            mj = (uint)(MSEED - subtraction);
             seedArray[55] = mj;
             mk = 1;
             for (int i = 1; i < 55; i++)
@@ -50,12 +51,14 @@ namespace Blaze.Cryptography.Rng
 
         public int Next(int minValue, int maxValue)
         {
-            return (Next() % maxValue) + minValue;
+            int range = maxValue - minValue;
+            int next = Next();
+            return (next.UMod(range)) + minValue;
         }
 
         public int Next(int maxValue)
         {
-            return Next() % maxValue;
+            return Next(0, maxValue);
         }
 
         public virtual void NextBytes(byte[] buffer)
@@ -81,6 +84,19 @@ namespace Blaze.Cryptography.Rng
         public double NextDouble()
         {
             return Next() * 2.328306e-10;
+        }
+
+        protected void InitalizeLaggedFibTable(uint[] ints)
+        {
+            for (int i = 0; i < 256; ++i)
+                t[i] = (ints[Next(1, 55)] >> 3) ^ (ints[Next(1, 55)] << 5) ^ (ints[Next(1, 55)] >> 7);
+
+        }
+
+        protected void InitalizeSubWithBorrowTable(uint[] ints)
+        {
+            for (int i = 0; i < 256; ++i)
+                tswb[i] = (ints[Next(1, 55)] >> 3) ^ (ints[Next(1, 55)] << 5) ^ (ints[Next(1, 55)] >> 7);
         }
 
         #region Marsaglia's stuff
@@ -194,10 +210,13 @@ namespace Blaze.Cryptography.Rng
         protected uint LFIB4()
         {
             c++;
-            t[c] = t[c] + t[c + 58] + t[c + 119] + t[c + 178];
+            t[c] = t[c] 
+                + t[(byte)(c + 58)] 
+                + t[(byte)(c + 119)] 
+                + t[(byte)(c + 178)];
             return t[c];
         }
-        protected byte c;
+        protected byte c = 0;
         protected uint[] t = new uint[256];
 
         /// <summary>
@@ -234,11 +253,11 @@ namespace Blaze.Cryptography.Rng
         {
             cswb++;
             bro = x < y ? 1u : 0u;
-            tswb[c] = (x = tswb[cswb + 34]) - (y = tswb[cswb + 19] + bro);
+            tswb[c] = (x = tswb[(byte)(cswb + 34)]) - (y = tswb[(byte)(cswb + 19)] + bro);
             return tswb[c];
         }
-        protected byte cswb;
-        protected uint bro, x = 0, y = 0; //tee hee
+        protected byte cswb = 0;
+        protected uint bro = 0, x = 0, y = 0; //tee hee
         protected uint[] tswb = new uint[256];
 
         /* Any one of KISS, MWC, FIB, LFIB4, SWB, SHR3, or CONG
@@ -301,40 +320,115 @@ namespace Blaze.Cryptography.Rng
             public KissRng() { }
             public KissRng(int seed)
             {
-                // need z, w, jsr and jcong
                 var ints = ArrayFromSeed(seed);
 
-                z = (uint)ints[1];
-                w = (uint)ints[2];
-                jsr = (uint)ints[3];
-                jcong = (uint)ints[4];
+                z = ints[1];
+                w = ints[2];
+                jsr = ints[3];
+                jcong = ints[4];
             }
             public override int Next() { return (int)KISS(); }
         }
 
         public class MultiplyWithCarryRng : MarsagliaRng
         {
+            public MultiplyWithCarryRng() { }
+            public MultiplyWithCarryRng(int seed)
+            {
+                var ints = ArrayFromSeed(seed);
+
+                z = ints[1];
+                w = ints[2];
+            }
             public override int Next() { return (int)MWC(); }
         }
 
         public class ShiftRegisterRng : MarsagliaRng
         {
+            public ShiftRegisterRng() { }
+            public ShiftRegisterRng(int seed)
+            {
+                var ints = ArrayFromSeed(seed);
+
+                jsr = ints[1];
+            }
             public override int Next() { return (int)SHR3(); }
         }
 
         public class CongruentialRng : MarsagliaRng
         {
+            public CongruentialRng() { }
+            public CongruentialRng(int seed)
+            {
+                var ints = ArrayFromSeed(seed);
+
+                jcong = ints[1];
+            }
             public override int Next() { return (int)CONG(); }
         }
 
         public class LaggedFibonacciRng : MarsagliaRng
         {
+            public LaggedFibonacciRng() : this(0) { }
+            public LaggedFibonacciRng(int seed)
+            {
+                uint[] ints = ArrayFromSeed(seed);
+
+                InitalizeLaggedFibTable(ints);
+            }
             public override int Next() { return (int)LFIB4(); }
         }
 
         public class SubstractWithBorrowRng : MarsagliaRng
         {
+            public SubstractWithBorrowRng() : this(0) { }
+            public SubstractWithBorrowRng(int seed)
+            {
+                var ints = ArrayFromSeed(seed);
+
+                InitalizeSubWithBorrowTable(ints);
+            }
             public override int Next() { return (int)SWB(); }
         }
+
+        /// <summary>
+        /// Mixed Shared State Random Marsaglia Rng
+        /// </summary>
+        public class MSSRMRng : MarsagliaRng
+        {
+            public MSSRMRng() : this(0) { }
+            public MSSRMRng(int seed)
+            {
+                var ints = ArrayFromSeed(seed);
+
+                z = ints[1];
+                w = ints[2];
+                jsr = ints[3];
+                jcong = ints[4];
+
+                InitalizeLaggedFibTable(ints);
+                InitalizeSubWithBorrowTable(ints);
+            }
+
+            int switcher = 0;
+
+            public override int Next()
+            {
+                switcher = (switcher+1) & 0b111;
+                switch (switcher)
+                {
+                    case 0: return (int)KISS();
+                    case 1: return (int)MWC();
+                    case 2: return (int)SHR3();
+                    case 3: return (int)SWB();
+                    case 4: return (int)LFIB4();
+                    case 5: return (int)CONG();
+                    case 6: return (int)(KISS() ^ SHR3() + FIB());
+                    case 7: return (int)(MWC() ^ SWB() + LFIB4());
+                    default: throw new InvalidOperationException();
+                }
+            }
+        }
+
     }
 }
