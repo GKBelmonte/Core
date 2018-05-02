@@ -63,6 +63,51 @@ namespace Blaze.Cryptography.Tests
         }
 
         [TestMethod]
+        public void TranspositionCustomTest()
+        {
+            var cypher = new TranspositionCypher();
+            cypher.Alphabet = AlphabeticCypher.GetSimpleAlphabet(true, false, false);
+            string[] testStrings =
+            {
+                "WEMUSTATTACKATDAWN",
+                "ATTACKATDAWN"
+            };
+            bool success = true;
+
+            Log.Info("Without fill");
+            using (Log.StartIndentScope()) 
+            foreach (string testStr in testStrings)
+            {
+                Utils.WrappedTest(() =>
+                {
+                    string cypherStr = cypher.Encrypt(testStr.ToByteArray(), 4).ToTextString();
+                    string plainStr = cypher.Decrypt(cypherStr.ToByteArray(), 4).ToTextString();
+                    Log.Info($"Plain text: {testStr}");
+                    Log.Info($"Cypher text: {cypherStr}");
+                    Log.Info($"Decypher text: {plainStr}");
+                    return plainStr == testStr;
+                }, Log);
+            }
+
+            byte[] key = "KEY".ToByteArray();
+            //With fill
+            Log.Info("With fill");
+            using (Log.StartIndentScope())
+            foreach (string testStr in testStrings)
+            {
+                Utils.WrappedTest(() =>
+                {
+                    string cypherStr = cypher.EncryptWithFill(testStr.ToByteArray(), key).ToTextString();
+                    string plainStr = cypher.DecryptWithFill(cypherStr.ToByteArray(), key).ToTextString();
+                    Log.Info($"Plain text: {testStr}");
+                    Log.Info($"Cypher text: {cypherStr}");
+                    Log.Info($"Decypher text: {plainStr}");
+                    return plainStr == testStr;
+                }, Log);
+            }
+        }
+
+        [TestMethod]
         public void RanBijectionCypherOnNullCypher()
         {
             SimpleTest("RBIJ on Null", TestType.Full);
