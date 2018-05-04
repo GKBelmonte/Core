@@ -1,6 +1,7 @@
 ﻿using Blaze.Cryptography.Rng;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -118,6 +119,13 @@ namespace Blaze.Cryptography.Classics
             return GetColCount(plainLength, next);
         }
 
+        protected static int GetReverseColumnCount(int cypherLength, IRng rng)
+        {
+            int next = rng.Next();
+
+            return GetColCount(cypherLength, next);
+        }
+
         private static int GetColCount(int plainLength, int next)
         {
             int columnCount = 0;
@@ -131,6 +139,24 @@ namespace Blaze.Cryptography.Classics
                 columnCount = ClampNext(next, 18, 30);
             else if (plainLength <= 4096) //64*64
                 columnCount = ClampNext(next, 36, 60);
+            return columnCount;
+        }
+
+        private static int GetColCountV2(int plainLength, int next)
+        {
+            //+/-1/3*ave(sqrt(min),sqrt(max))
+            int root = next;
+            int columnCount = 0;
+            if (plainLength <= 16) //4x4
+                columnCount = ClampNext(root, 2, 4);
+            else if (plainLength <= 64)  //8*8
+                columnCount = ClampNext(root, 4, 8);
+            else if (plainLength <= 256)  //16*16
+                columnCount = ClampNext(root, 8, 16);
+            else if (plainLength <= 1024)  //32*32
+                columnCount = ClampNext(root, 16, 32);
+            else if (plainLength <= 4096) //64*64
+                columnCount = ClampNext(root, 32, 64);
             return columnCount;
         }
 
@@ -179,7 +205,7 @@ namespace Blaze.Cryptography.Classics
                 .ToArray();
         }
 
-        protected List<int> BytesToIndicesAndFill(byte[] plain, int columnCount)
+        protected List<int> BytesToIndicesAndFill(byte[] plain, int columnCount, bool extraRow = false)
         {
             //we don't care about these values, it's probably better that
             // we don't use the key-stream to generate them to not leak them at all. 
@@ -190,10 +216,15 @@ namespace Blaze.Cryptography.Classics
             int missingEntries = rowSize - remainder;
             List<int> plainIndices = plain.Select(ByteToIndex).ToList();
 
+            if (extraRow)
+                missingEntries += rowSize;
+
             for (int i = 0; i < missingEntries - 1; ++i)
                 plainIndices.Add(rng.Next(_map.Count));
 
+            Debug.Assert(missingEntries < _map.Count);
             plainIndices.Add(missingEntries);
+
             return plainIndices;
         }
     }
@@ -219,9 +250,15 @@ namespace Blaze.Cryptography.Classics
 
         public byte[] Encrypt(byte[] plain, IReadOnlyList<int> columnOrder)
         {
-            List<int> plainIx = BytesToIndicesAndFill(plain, columnOrder.Count);
+            List<int> plainIx = BytesToIndicesAndFill(plain, columnOrder.Count, true);
 
             List<int> cypherIx = Encrypt(plainIx, columnOrder);
+
+            int remainder = plain.Length % columnOrder.Count;
+            int rowSize = columnOrder.Count;
+            int missingEntries = rowSize - remainder;
+            //I dont know a better way, I can't revert GetColumnCount
+            cypherIx[cypherIx.Count - 1] = missingEntries;
 
             return IndicesToBytes(cypherIx);
         }
