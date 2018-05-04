@@ -110,52 +110,53 @@ namespace Blaze.Cryptography.Tests
         [TestMethod]
         public void TranspositionColumnTest()
         {
-            var rng = new Random(0);
-
-            int next = rng.Next();
-
             bool res = true;
-            for (int pl = 0; pl < 1024; ++pl)
+            for (int next = 0; next < 10; ++next)
             {
-                Utils.WrappedTest(() =>
+                for (int pl = 0; pl < 1024; ++pl)
                 {
-                    int cc = GetColCount(pl, next);
-                    int cl = pl + (cc - pl % cc);
-                    int newCc = GetReverseColCount(cl, next);
-                    return newCc == cc;
-                }, Log);
-
+                    Utils.WrappedTest(() =>
+                    {
+                        int cc = GetColCount(pl, next);
+                        int cl = pl + (cc - pl % cc);
+                        int newCc = GetReverseColCount(cl, next);
+                        return newCc == cc;
+                    }, Log);
+                }
             }
         }
         private static int GetReverseColCount(int cypherLength, int next)
         {
-            int columnCount = 0;
-            if (cypherLength <= 16) //4x4
-                columnCount = ClampNext(next, 3, 6);
-            else if (cypherLength <= 64)  //8*8
-                columnCount = ClampNext(next, 3, 8);
-            else if (cypherLength <= 256)  //16*16
-                columnCount = ClampNext(next, 4, 15);
-            else if (cypherLength <= 1024)  //32*32
-                columnCount = ClampNext(next, 9, 30);
-            else if (cypherLength <= 4096) //64*64
-                columnCount = ClampNext(next, 18, 60);
-            return columnCount;
+            int diff = 0;
+            int cc = 0;
+            //Worst case plain length
+            int tentativePlainLength = cypherLength;
+            do
+            {
+                cc = GetColCount(tentativePlainLength, next);
+                int tentativeCypherLength = tentativePlainLength + (cc - tentativePlainLength % cc);
+                diff = cypherLength - tentativeCypherLength;
+                tentativePlainLength--;
+
+            } while (diff != 0);
+            return cc;
         }
 
         private static int GetColCount(int plainLength, int next)
         {
+            //+/-1/3*ave(sqrt(min),sqrt(max))
+            int root = next;
             int columnCount = 0;
             if (plainLength <= 16) //4x4
-                columnCount = ClampNext(next, 3, 6);
+                columnCount = ClampNext(root, 2, 4);
             else if (plainLength <= 64)  //8*8
-                columnCount = ClampNext(next, 4, 8);
+                columnCount = ClampNext(root, 4, 8);
             else if (plainLength <= 256)  //16*16
-                columnCount = ClampNext(next, 9, 15);
+                columnCount = ClampNext(root, 8, 16);
             else if (plainLength <= 1024)  //32*32
-                columnCount = ClampNext(next, 18, 30);
+                columnCount = ClampNext(root, 16, 32);
             else if (plainLength <= 4096) //64*64
-                columnCount = ClampNext(next, 36, 60);
+                columnCount = ClampNext(root, 32, 64);
             return columnCount;
         }
 
