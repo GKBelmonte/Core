@@ -89,14 +89,22 @@ namespace Blaze.Cryptography.Rng
         protected void InitalizeLaggedFibTable(uint[] ints)
         {
             for (int i = 0; i < 256; ++i)
-                t[i] = (ints[Next(1, 55)] >> 3) ^ (ints[Next(1, 55)] << 5) ^ (ints[Next(1, 55)] >> 7);
+                t[i] = (uint)i;
+
+            for (int j = 0; j < 4; ++j)
+                for (int i = 0; i < 256; ++i)
+                    t[i] = (ints[Next(1, 55)] >> 3) ^ (ints[Next(1, 55)] << 5) ^ (ints[Next(1, 55)] >> 7);
 
         }
 
         protected void InitalizeSubWithBorrowTable(uint[] ints)
         {
             for (int i = 0; i < 256; ++i)
-                tswb[i] = (ints[Next(1, 55)] >> 3) ^ (ints[Next(1, 55)] << 5) ^ (ints[Next(1, 55)] >> 7);
+                tswb[i] = (uint)i;
+
+            for (int j = 0; j < 4; ++j)
+                for (int i = 0; i < 256; ++i)
+                    tswb[i] = (ints[Next(1, 55)] >> 3) ^ (ints[Next(1, 55)] << 5) ^ (ints[Next(1, 55)] >> 7);
         }
 
         #region Marsaglia's stuff

@@ -48,7 +48,7 @@
     <Compile Include="StringCypherExtensions.cs" />
     <Compile Include="ChainCypher.cs" />
     <Compile Include="EncryptExtensions.cs" />
-    <Compile Include="EncryptionTesting.cs" />
+    <Compile Include="Tests\EncryptionTesting.cs" />
     <Compile Include="FibonacciCypher.cs" />
     <Compile Include="ICypher.cs" />
     <Compile Include="Rng\MarsagliaRngs.cs" />
@@ -59,6 +59,7 @@
     <Compile Include="StreamCypher.cs" />
     <Compile Include="Rng\SysRng.cs" />
     <Compile Include="Classics\SubstitutionCyphers.cs" />
+    <Compile Include="Tests\RngTesting.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Blaze.Core\Blaze.Core.csproj">

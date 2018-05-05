@@ -12,15 +12,15 @@ namespace Blaze.Cryptography.Tests
     /// Summary description for StreamTests
     /// </summary>
     [TestClass]
-    public class StreamTests : TestBase
+    public class ByteStreamTests : TestBase
     {
-        public StreamTests()
+        public ByteStreamTests()
         {
             Log = new TestLogger(1);
         }
 
         [TestMethod]
-        public void TestStream()
+        public void TestByteStream()
         {
             var tests = GetEncryptions();
             bool pass = true;
@@ -28,12 +28,12 @@ namespace Blaze.Cryptography.Tests
             foreach (EncryptTest test in tests)
             {
                 using (Log.StartIndentScope())
-                    pass &= TestEnc(test, TestType.Full, summary, failedTests);
+                    pass &= TestEnc(test, TestType.Full, summary, failedTests).HasFlag(TestResult.Passed);
             }
 
             Log.Info("\n\n");
             summary.ForEach(s => Log.Info(s));
-
+            //should fail for cyphers with feedback and texts > 1024
             Assert.IsTrue(pass, "One or more tests have failed: {0}", string.Join(", ", failedTests));
         }
 

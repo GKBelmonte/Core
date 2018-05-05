@@ -53,9 +53,17 @@ namespace Blaze.Cryptography.Tests
             tester(typeof(T), out message)
                 .TestResultAssert($"Test {caller} failed. {message}");
         }
+
+        public static void ExecuteTester<T>(this Tester<T> tester, [CallerMemberName] string caller = null)
+        {
+            string message;
+            tester(out message)
+                .TestResultAssert($"Test {caller} failed. {message}");
+        }
     }
 
     public delegate TestResult Tester(Type testedType, out string message);
+    public delegate TestResult Tester<T>(out string message);
 
     [Flags]
     public enum TestResult

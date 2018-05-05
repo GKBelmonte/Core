@@ -26,17 +26,6 @@ namespace Blaze.Cryptography.Classics
             return cypher;
         }
 
-        public override byte[] Decrypt(byte[] cypher, byte[] key)
-        {
-            IRng rng = key.KeyToRand();
-
-            int columnCount = GetColumnCount(cypher.Length, rng);
-
-            byte[] plain = Decrypt(cypher, columnCount);
-
-            return plain;
-        }
-
         public byte[] Encrypt(byte[] plain, int columnCount)
         {
             int[] plainIx = ByteToIndices(plain);
@@ -57,6 +46,17 @@ namespace Blaze.Cryptography.Classics
                     cypher.Add(plainIx[j]);
             }
             return cypher.ToArray();
+        }
+
+        public override byte[] Decrypt(byte[] cypher, byte[] key)
+        {
+            IRng rng = key.KeyToRand();
+
+            int columnCount = GetColumnCount(cypher.Length, rng);
+
+            byte[] plain = Decrypt(cypher, columnCount);
+
+            return plain;
         }
 
         public byte[] Decrypt(byte[] cypher, int columnCount)
@@ -213,7 +213,7 @@ namespace Blaze.Cryptography.Classics
             IRng rng = new SysRng();
             int remainder = plain.Length % columnCount;
             int rowSize = columnCount;
-            int missingEntries = rowSize - remainder;
+            int missingEntries = rowSize - remainder; //remainder == 0 ? 0 : rowSize - remainder;
             List<int> plainIndices = plain.Select(ByteToIndex).ToList();
 
             if (extraRow)
@@ -236,6 +236,22 @@ namespace Blaze.Cryptography.Classics
     /// </summary>
     public class ColumnarTranspositionCypher : TranspositionCypher
     {
+        /// <summary>
+        /// Use the key as a keyword, nothing fancy
+        /// </summary>
+        public byte[] EncryptClassic(byte[] plain, byte[] key)
+        {
+            int columnCount = key.Length;
+
+            int[] plainIx = ByteToIndices(plain);
+
+            List<int> columnOrder = GetColumnOrderFromKey(key);
+
+            byte[] cypher = Encrypt(plain, columnOrder);
+
+            return cypher;
+        }
+
         public override byte[] Encrypt(byte[] plain, byte[] key)
         {
             IRng rng = key.KeyToRand();
@@ -250,15 +266,9 @@ namespace Blaze.Cryptography.Classics
 
         public byte[] Encrypt(byte[] plain, IReadOnlyList<int> columnOrder)
         {
-            List<int> plainIx = BytesToIndicesAndFill(plain, columnOrder.Count, true);
+            int[] plainIx = ByteToIndices(plain);
 
             List<int> cypherIx = Encrypt(plainIx, columnOrder);
-
-            int remainder = plain.Length % columnOrder.Count;
-            int rowSize = columnOrder.Count;
-            int missingEntries = rowSize - remainder;
-            //I dont know a better way, I can't revert GetColumnCount
-            cypherIx[cypherIx.Count - 1] = missingEntries;
 
             return IndicesToBytes(cypherIx);
         }
@@ -267,44 +277,99 @@ namespace Blaze.Cryptography.Classics
         {
             int columnCount = columnOrder.Count;
             int rowSize = columnCount;
-            int columnSize = plainIx.Count / rowSize;
 
+            var order = columnOrder
+                .Select((or, colIx) => new { Col = colIx, Order = or })
+                .OrderBy(k=> k.Order);
 
-            var cypherIx = new List<int>(plainIx.Count);
-            foreach (int column in columnOrder)
+            List<int> cypherIx = new List<int>(plainIx.Count);
+            foreach(var o in order)
             {
-                for (int i = 0; i < columnSize; ++i)
-                {
-                    cypherIx.Add(plainIx[column + i*rowSize]);
-                }
+                for (int j = o.Col; j < plainIx.Count; j += rowSize)
+                    cypherIx.Add(plainIx[j]);
             }
 
             return cypherIx;
+        }
+
+        /// <summary>
+        /// Use the key as a keyword, nothing fancy
+        /// </summary>
+        public byte[] DecryptClassic(byte[] cypher, byte[] key)
+        {
+            int columnCount = key.Length;
+
+            int[] cypherIx = ByteToIndices(cypher);
+
+            List<int> columnOrder = GetColumnOrderFromKey(key);
+
+            byte[] plain = Decrypt(cypher, columnOrder);
+
+            return plain;
         }
 
         public override byte[] Decrypt(byte[] cypher, byte[] key)
         {
             IRng rng = key.KeyToRand();
 
-            //Dammit. 
-            //In order to know the number of columns i need the plain-length AND
-            // the rng, 
-            // but i order to know the plain-length i need the number of columns AND
-            // the rng...
+            int columnCount = GetColumnCount(cypher.Length, rng);
+            List<int> columnOrder = GetColumnOrder(rng, columnCount);
 
-            byte[] plain = Decrypt(cypher, 3);
+            byte[] plain = Decrypt(cypher, columnOrder);
 
             return plain;
         }
 
         public byte[] Decrypt(byte[] cypherTxt, IReadOnlyList<int> columnOrder)
         {
-            throw new NotImplementedException();
+            int[] cypherIx = ByteToIndices(cypherTxt);
+
+            List<int> plainIx = Decrypt(cypherIx, columnOrder);
+
+            return IndicesToBytes(plainIx);
         }
 
-        public List<int> Decrypt(IReadOnlyList<int> cypherIxs, IReadOnlyList<int> columnOrder)
+        public List<int> Decrypt(IReadOnlyList<int> cypherIx, IReadOnlyList<int> columnOrder)
         {
-            throw new NotImplementedException();
+            int columnCount = columnOrder.Count;
+            int rowSize = columnCount;
+
+            var order = columnOrder
+                .Select((or, colIx) => new { Col = colIx, Order = or })
+                .OrderBy(k => k.Order);
+
+            List<int> plainIx = Enumerable
+                .Range(0, cypherIx.Count)
+                .Select(_ => -1)
+                .ToList();
+
+            int i = 0;
+            foreach (var o in order)
+            {
+                for (int j = o.Col; j < cypherIx.Count; j += rowSize)
+                    plainIx[j] = cypherIx[i++];
+            }
+
+            return plainIx;
+        }
+
+        private List<int> GetColumnOrderFromKey(byte[] key)
+        {
+            int[] keyIx = ByteToIndices(key);
+            var order = Enumerable.Range(0, key.Length).ToList();
+            //all unique indices that appear in key in order
+            var ixsInKey = keyIx.Distinct().OrderBy(ix => ix);
+            int count = 0;
+            foreach (int ixInKey in ixsInKey)
+            {
+                for (int i = 0; i < order.Count; ++i)
+                {
+                    if (keyIx[i] == ixInKey)
+                        order[i] = count++;
+                }
+            }
+
+            return order;
         }
 
         protected static List<int> GetColumnOrder(IRng rng, int columnCount)

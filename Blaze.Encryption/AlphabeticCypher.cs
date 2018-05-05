@@ -24,8 +24,8 @@ namespace Blaze.Cryptography
         }
 
         // You can ignore the override if you override public Encrypt
-        // You can ignore overriding the decrypt if the cypher is reciprocal
-        // and the op is an involution
+        // You can ignore overriding the pulic Decrypt 
+        // if the cypher is reciprocal and the op is an involution
         protected abstract byte[] Encrypt(byte[] plain, byte[] key, Op op);
 
         // Must be overriden for any non-reciprocal cypher

@@ -41,6 +41,7 @@ namespace Blaze.Cryptography.Tests
                     TestType.Full
                 },
                 { new TranspositionCypher(), "Transposition Cypher" , TestType.All },
+                { new ColumnarTranspositionCypher(), "Columnar Transposition Cypher" , TestType.All },
                 { new AutokeyCypher(), "AutoKey Cypher", TestType.All }
             };
             return res;
@@ -97,14 +98,14 @@ namespace Blaze.Cryptography.Tests
         };
 
         
-        protected bool TestEnc(EncryptTest test, TestType type)
+        protected TestResult TestEnc(EncryptTest test, TestType type)
         {
             return TestEnc(test, type, new List<string>(), new List<string>());
         }
 
         //Tests the test with the given type optionally giving back a summary and the
         // description of the failed tests
-        protected bool TestEnc(EncryptTest test, TestType type, List<string> summary, List<string> failedTests)
+        protected TestResult TestEnc(EncryptTest test, TestType type, List<string> summary, List<string> failedTests)
         {
             Log.Info($"{test.Name} Test of type {type}");
             var texts = new List<string>();
@@ -112,14 +113,14 @@ namespace Blaze.Cryptography.Tests
             {
                 Log.Warn($"{test.Name} has restricted alphabet, skipping general test\n\n\n");
                 summary.Add($"Test for {test.Name} has been SKIPPED");
-                return true;//continue;
+                return TestResult.Inconclusive | TestResult.Passed;//continue;
             }
 
             if (!test.AllowedTypes.HasFlag(type))
             {
                 Log.Warn($"{test.Name} does not allow test of type {type}. Skipping.");
                 summary.Add($"Test for {test.Name} has been SKIPPED");
-                return true;
+                return TestResult.Inconclusive | TestResult.Passed;
             }
 
             if (test.Alpha != null)
@@ -135,25 +136,24 @@ namespace Blaze.Cryptography.Tests
             var keys = GetKeys(test, type);
 
 
-            bool passInternal;
+            TestResult result;
             using (Log.StartIndentScope())
-                passInternal = TestEncTexts(test, type, keys, texts, failedTests);
+                result = TestEncTexts(test, type, keys, texts, failedTests);
 
-            string res = string.Format("Test for {0} has {1}", test.Name, passInternal ? "PASSED" : "!!!FAILED!!!");
+            string res = string.Format("Test for {0} has {1}", test.Name, result);
             summary.Add(res);
             Log.Info(res);
 
-            return passInternal;
+            return result;
         }
 
-        private bool TestEncTexts(EncryptTest test, TestType type, List<string> keys, List<string> texts, List<string> failedTests)
+        private TestResult TestEncTexts(EncryptTest test, TestType type, List<string> keys, List<string> texts, List<string> failedTests)
         {
             var enc = test.Enc;
             bool passInternal = true;
             Func<ICypher, string, string, bool> tester = GetTester(test, type);
             if (tester == null)
-                return true; //cannot be tested in the current setting
-
+                return TestResult.Inconclusive; //cannot be tested in the current setting
 
             foreach (string k in keys)
             {
@@ -176,7 +176,7 @@ namespace Blaze.Cryptography.Tests
             if (!passInternal)
                 failedTests.Add(test.Name);
 
-            return passInternal;
+            return passInternal ? TestResult.Passed : TestResult.Failed;
         }
 
         protected virtual Func<ICypher, string, string, bool> GetTester(EncryptTest test, TestType type)
