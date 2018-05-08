@@ -40,6 +40,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AlphabeticCypher.cs" />
+    <Compile Include="BifidCypher.cs" />
     <Compile Include="Classics\AutokeyCypher.cs" />
     <Compile Include="Classics\TranspositionCyphers.cs" />
     <Compile Include="EndOfLine.cs" />
