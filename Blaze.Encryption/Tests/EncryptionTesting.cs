@@ -14,7 +14,7 @@ namespace Blaze.Cryptography
     /// </summary>
     public static class EncryptionTesting
     {
-        private static Random _RNG;
+        private static Random _RNG = new Random(RSeed);
         //Bit flipping by 1 in key should flip 50% of cypher text
         /// <summary>
         /// Measure of how much 1 bit in the key changes the cypher text.
@@ -97,7 +97,7 @@ namespace Blaze.Cryptography
             return res;
         }
 
-        private static List<byte[]> CreateFlips(byte[] buff, int num)
+        public static List<byte[]> CreateFlips(byte[] buff, int num)
         {
             var res = new List<byte[]>();
             for (var ii = 0; ii < num; ++ii)
@@ -120,7 +120,6 @@ namespace Blaze.Cryptography
             byte[] plain;
             byte[] key;
             byte[] cypher;
-            _RNG = new Random(RSeed);
             float[] scores = new float[TryCount];
             float[] plainChis = new float[TryCount];
             float[] cypherChis = new float[TryCount];
@@ -180,8 +179,6 @@ namespace Blaze.Cryptography
                     throw new ArgumentOutOfRangeException(nameof(type));
             }
         }
-
-
 
         public static List<int> GetBlockCount(byte[] buff, byte[] alphabet = null)
         {

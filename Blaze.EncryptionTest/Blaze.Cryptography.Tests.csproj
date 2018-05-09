@@ -57,7 +57,7 @@
     <Compile Include="Rng\RangeTests.cs" />
     <Compile Include="Rng\RngTest.cs" />
     <Compile Include="StreamTests.cs" />
-    <Compile Include="Test.cs" />
+    <Compile Include="EncryptDecryptTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestBase.cs" />
     <Compile Include="TestCase.cs" />

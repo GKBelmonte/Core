@@ -86,9 +86,7 @@ namespace Blaze.Cryptography.Tests.Rng
             message = string.Empty;
             TestResult testRes = TestResult.Passed;
 
-            var rngCypher = new RngCypher<T>();
-
-            float res = EncryptionTesting.TestForConfusion(rngCypher, 32);
+            float res = RngTesting.ConfusionTest<T>();
 
             Log.Info($"Confusion for {typeof(T).Name} scored {res.ToString("0.0000")}");
 

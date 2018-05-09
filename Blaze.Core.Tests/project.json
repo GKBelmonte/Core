@@ -1,0 +1,15 @@
+﻿{
+"frameworks": {
+    "net461": { },
+  },
+  "runtimes": {
+    "win-x64": { },
+    "win-x86": { },
+    "win-anycpu": { },
+    "win": { }
+  },
+  "dependencies": {
+    "MSTest.TestAdapter" : "1.2.0",
+    "MSTest.TestFramework": "1.2.0"
+  },
+}

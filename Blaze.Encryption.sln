@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blaze.Wpf", "Blaze.Wpf\Blaz
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blaze.Cryptography.Console", "Blaze.Encryption.Runner\Blaze.Cryptography.Console.csproj", "{61B102A0-ADF5-4CFF-8994-178642B114A8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blaze.Core.Tests", "Blaze.Core.Tests\Blaze.Core.Tests.csproj", "{A1AE8898-957D-4350-BD3F-6E159A65A7A9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{61B102A0-ADF5-4CFF-8994-178642B114A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{61B102A0-ADF5-4CFF-8994-178642B114A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{61B102A0-ADF5-4CFF-8994-178642B114A8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1AE8898-957D-4350-BD3F-6E159A65A7A9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1AE8898-957D-4350-BD3F-6E159A65A7A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1AE8898-957D-4350-BD3F-6E159A65A7A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1AE8898-957D-4350-BD3F-6E159A65A7A9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

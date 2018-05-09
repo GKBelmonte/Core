@@ -11,7 +11,8 @@ namespace Blaze.Cryptography
     public static class RngTesting
     {
         /// <summary>
-        /// Tests the Rng distribution from 0 to 1
+        /// Tests the Rng distribution 0 being a perfect score.
+        /// The worst score is 1024* (256 - 10)
         /// </summary>
         /// <typeparam name="T">Rng type to test</typeparam>
         /// <returns></returns>
@@ -31,7 +32,7 @@ namespace Blaze.Cryptography
             //This is verified with the NullRng
 
             const int POP_SIZE= 1024;
-            double theoMax = POP_SIZE * (256 - 1);
+            //double theoMax = POP_SIZE * (256 - 1);
             //random seeds from [0,65535]
             int[] seeds = { 0, 7501, 21584, 42875 };
             double[] seedResult = new double[seeds.Length];
@@ -55,9 +56,51 @@ namespace Blaze.Cryptography
 
             //if finalAverage = theoMax, we return 0
             // if finalAverage = 0, we return 1 (uniform distribution)
-            double percentResult = (theoMax - finalAverage) / theoMax;
+            //double percentResult = (theoMax - finalAverage) / theoMax;
 
-            return percentResult;
+            return finalAverage;
+        }
+
+        /// <summary>
+        /// Tests the Rng confusion from 0 to 1.
+        /// If the seed is changed by one bit, how much does the output change.
+        /// Exactly 50%, gives a score of 1.
+        /// 0% or 100% (!input) gives a score of 0
+        /// </summary>
+        public static float ConfusionTest<T>() where T : IRng
+        {
+            List<int> flipSeeds = CreateSeeds();
+            var flipBytes = new List<byte[]>(16);
+            IEnumerable<IRng> rngs = CreateSeeds()
+                .Select(s => (IRng)Activator.CreateInstance(typeof(T), s));
+
+            foreach (IRng rng in rngs)
+            {
+                byte[] bytes = new byte[1024];
+                rng.NextBytes(bytes);
+                flipBytes.Add(bytes);
+            }
+
+            List<float> results = flipBytes
+                .Select(b => EncryptionTesting.PercentFlips(flipBytes[0], b))
+                .Skip(1)
+                .ToList();
+
+            float ave = results.Average();
+            return (0.5f - Math.Abs(0.5f - ave)) / 0.5f;
+        }
+
+        public static List<int> CreateSeeds(int number = 16)
+        {
+            var rng = new Random(0);
+            byte[] mainSeed = new byte[4];
+            rng.NextBytes(mainSeed);
+            List<byte[]> flips = EncryptionTesting.CreateFlips(mainSeed, number - 1);
+            flips.Insert(0, mainSeed);
+
+            return flips
+                .Select(f => f.ToSeed())
+                .ToList();
         }
     }
 }
