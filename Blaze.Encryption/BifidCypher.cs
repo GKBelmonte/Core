@@ -71,14 +71,13 @@ namespace Blaze.Cryptography
             }
 
             var cypherIxs = new List<int>(plainIxs.Length);
-            int rowSize = 2;
-            for (int i = 0; i < rowSize; ++i)
+            int mod = polySub.Count - 1;
+            for (int c = 0; c < plainIxs.Length; ++c)
             {
-                for (int j = i; j < polySub.Count; j += 2 * rowSize)
-                {
-                    int cypherIx = polybiusSquare[polySub[j], polySub[j + rowSize]];
-                    cypherIxs.Add(cypherIx);
-                }
+                int i = (c * 4) % mod;
+                int j = i + 2 == mod ? i + 2 : (i + 2) % mod ;
+                int cypherIx = polybiusSquare[polySub[i], polySub[j]];
+                cypherIxs.Add(cypherIx);
             }
 
             return IndicesToBytes(cypherIxs);
@@ -107,13 +106,11 @@ namespace Blaze.Cryptography
 
             var plainIxs = new List<int>(cypherIxs.Length);
             int rowSize = polySub.Count / 2;
-            for (int i = 0; i < rowSize; ++i)
+
+            for (int c = 0; c < cypherIxs.Length; ++c)
             {
-                for (int j = i; j < polySub.Count; j += 2 * rowSize)
-                {
-                    int plainIx = polybiusSquare[polySub[j], polySub[j + rowSize]];
-                    plainIxs.Add(plainIx);
-                }
+                int plainIx = polybiusSquare[polySub[c], polySub[c+rowSize]];
+                plainIxs.Add(plainIx);
             }
 
             return IndicesToBytes(plainIxs);
@@ -156,29 +153,6 @@ namespace Blaze.Cryptography
         protected override byte[] Encrypt(byte[] plain, byte[] key, Op op)
         {
             throw new InvalidOperationException("unused");
-        }
-
-        //TODO: move post merge
-        public static void WikiTest()
-        {
-            byte[] plainText = "FLEEATONCE".ToByteArray();
-            byte[] polybiusSq = @"B G W K Z
-                                 Q P N D S
-                                 I O A X E
-                                 F C L U M
-                                 T H Y V R"
-                .Replace(" ", string.Empty)
-                .Replace("\r\n", string.Empty)
-                .Replace("\n", string.Empty)
-                .ToByteArray();
-
-            var bifid = new BifidCypher();
-            var cypherBytes = bifid.EncryptClassic(plainText, polybiusSq);
-            string cypher = cypherBytes.ToTextString();
-            bool ok = cypher == "U  A  E  O  L  W  R  I  N  S".Replace(" ", string.Empty);
-
-            string decypher = bifid.DecrpytClassic(cypherBytes, polybiusSq)
-                .ToTextString();
         }
     }
 }

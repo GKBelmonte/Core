@@ -253,6 +253,39 @@ namespace Blaze.Cryptography.Tests
         }
 
         [TestMethod]
+        public void BifidCypherWikipedia()
+        {
+
+            byte[] plainText = "FLEEATONCE".ToByteArray();
+            byte[] polybiusSq = @"B G W K Z
+                                 Q P N D S
+                                 I O A X E
+                                 F C L U M
+                                 T H Y V R"
+                .Replace(" ", string.Empty)
+                .Replace("\r\n", string.Empty)
+                .Replace("\n", string.Empty)
+                .ToByteArray();
+
+            var bifid = new BifidCypher();
+            var cypherBytes = bifid.EncryptClassic(plainText, polybiusSq);
+            string cypher = cypherBytes.ToTextString();
+            bool ok = cypher == "U  A  E  O  L  W  R  I  N  S".Replace(" ", string.Empty);
+
+            string decypher = bifid.DecrpytClassic(cypherBytes, polybiusSq)
+                .ToTextString();
+
+            ok &= decypher == plainText.ToTextString();
+            Assert.IsTrue(ok);
+        }
+
+        [TestMethod]
+        public void BifidCypher()
+        {
+            SimpleTest(typeof(BifidCypher), TestType.Full);
+        }
+
+        [TestMethod]
         public void NullCypher()
         {
             SimpleTest(typeof(NullCypher), TestType.Full);

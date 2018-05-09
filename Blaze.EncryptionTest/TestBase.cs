@@ -42,7 +42,8 @@ namespace Blaze.Cryptography.Tests
                 },
                 { new TranspositionCypher(), "Transposition Cypher" , TestType.All },
                 { new ColumnarTranspositionCypher(), "Columnar Transposition Cypher" , TestType.All },
-                { new AutokeyCypher(), "AutoKey Cypher", TestType.All }
+                { new AutokeyCypher(), "AutoKey Cypher", TestType.All },
+                { new BifidCypher(), "Bifid Cypher", TestType.All }
             };
             return res;
         }
