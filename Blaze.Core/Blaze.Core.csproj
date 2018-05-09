@@ -48,6 +48,7 @@
     <Compile Include="Log\ConsoleLogger.cs" />
     <Compile Include="Log\ILogger.cs" />
     <Compile Include="Math\Stats.cs" />
+    <Compile Include="Math\Utils.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
