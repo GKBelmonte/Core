@@ -69,7 +69,7 @@ namespace Blaze.Cryptography.Tests
         }
 
         [TestMethod]
-        public void TranspositionCustomTest()
+        public void TranspositionBasicTest()
         {
             var cypher = new TranspositionCypher();
             cypher.Alphabet = AlphabeticCypher.GetSimpleAlphabet(true, false, false);
@@ -115,8 +115,6 @@ namespace Blaze.Cryptography.Tests
 
             Assert.IsTrue(success, "One or more cases failed");
         }
-
-        static int GetCryptoLength(int pl, int cc) { return pl + (cc - 1) * (pl % cc); }
 
         [TestMethod]
         public void ColumnarTranspositionCypherCustom()
@@ -283,6 +281,24 @@ namespace Blaze.Cryptography.Tests
         public void BifidCypher()
         {
             SimpleTest(typeof(BifidCypher), TestType.Full);
+        }
+
+        [TestMethod]
+        public void ShuffleCypherBasicTest()
+        {
+            var cypher = new ShuffleCypher();
+            cypher.Alphabet = "0123456789".ToCharArray();
+            string text = "0123";
+            string cypherText = cypher.Encrypt(text, "A");
+            string decypher = cypher.Decrypt(cypherText, "A");
+
+            Assert.AreEqual(text, decypher);
+        }
+
+        [TestMethod]
+        public void ShuffleCypher()
+        {
+            SimpleTest(typeof(ShuffleCypher), TestType.Full);
         }
 
         [TestMethod]

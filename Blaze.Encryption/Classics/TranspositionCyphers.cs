@@ -383,4 +383,48 @@ namespace Blaze.Cryptography.Classics
         }
     }
 
+
+    public class ShuffleCypher : TranspositionCypher
+    {
+        public override byte[] Encrypt(byte[] plain, byte[] key)
+        {
+            IRng rng = key.KeyToRand();
+            int[] plainIxs = ByteToIndices(plain);
+            var transform = Enumerable
+                .Range(0, plainIxs.Length - 1)
+                .Select(i => new { old = plain.Length - i - 1, @new = rng.Next(plain.Length - i) })
+                .ToList();
+
+            int[] cypherIxs = plainIxs.ToArray();
+            foreach(var t in transform)
+            {
+                int temp = cypherIxs[t.@new];
+                cypherIxs[t.@new] = cypherIxs[t.old];
+                cypherIxs[t.old] = temp;
+            }
+
+            return IndicesToBytes(cypherIxs);
+        }
+
+        public override byte[] Decrypt(byte[] cypher, byte[] key)
+        {
+            IRng rng = key.KeyToRand();
+            int[] cypherIxs = ByteToIndices(cypher);
+            var transform = Enumerable
+                .Range(0, cypherIxs.Length - 1)
+                .Select(i => new { old = cypher.Length - i - 1, @new = rng.Next(cypher.Length - i) })
+                .Reverse()
+                .ToList();
+
+            int[] plainIxs = cypherIxs.ToArray();
+            foreach (var t in transform)
+            {
+                int temp = plainIxs[t.old];
+                plainIxs[t.old] = plainIxs[t.@new];
+                plainIxs[t.@new] = temp;
+            }
+
+            return IndicesToBytes(plainIxs);
+        }
+    }
 }
