@@ -46,6 +46,9 @@
     <Compile Include="EndOfLine.cs" />
     <Compile Include="Extensions\OperationExtensions.cs" />
     <Compile Include="Extensions\StreamExtensions.cs" />
+    <Compile Include="Rng\BaseRngs.cs" />
+    <Compile Include="Rng\RngHelpers.cs" />
+    <Compile Include="Rng\Trivium.cs" />
     <Compile Include="StringCypherExtensions.cs" />
     <Compile Include="ChainCypher.cs" />
     <Compile Include="EncryptExtensions.cs" />

@@ -17,55 +17,61 @@ namespace Blaze.Cryptography.Tests.Rng
         [TestMethod]
         public void SysDistribution()
         {
-            Utils.ExecuteTester<SysRng>(TestRngConfusion<SysRng>);
+            Utils.ExecuteTester<SysRng>(TestRngDistribution<SysRng>);
         }
 
         [TestMethod]
         public void KissDistribution()
         {
-            Utils.ExecuteTester<KissRng>(TestRngConfusion<KissRng>);
+            Utils.ExecuteTester<KissRng>(TestRngDistribution<KissRng>);
         }
 
         [TestMethod]
         public void MwcDistribution()
         {
-            Utils.ExecuteTester<MultiplyWithCarryRng>(TestRngConfusion<MultiplyWithCarryRng>);
+            Utils.ExecuteTester<MultiplyWithCarryRng>(TestRngDistribution<MultiplyWithCarryRng>);
         }
 
         [TestMethod]
         public void LIB4Distribution()
         {
-            Utils.ExecuteTester<LaggedFibonacciRng>(TestRngConfusion<LaggedFibonacciRng>);
+            Utils.ExecuteTester<LaggedFibonacciRng>(TestRngDistribution<LaggedFibonacciRng>);
         }
 
         [TestMethod]
         public void SWBDistribution()
         {
-            Utils.ExecuteTester<SubstractWithBorrowRng>(TestRngConfusion<SubstractWithBorrowRng>);
+            Utils.ExecuteTester<SubstractWithBorrowRng>(TestRngDistribution<SubstractWithBorrowRng>);
         }
 
         [TestMethod]
         public void SHR3Distribution()
         {
-            Utils.ExecuteTester<ShiftRegisterRng>(TestRngConfusion<ShiftRegisterRng>);
+            Utils.ExecuteTester<ShiftRegisterRng>(TestRngDistribution<ShiftRegisterRng>);
         }
 
         [TestMethod]
         public void CongDistribution()
         {
-            Utils.ExecuteTester<CongruentialRng>(TestRngConfusion<CongruentialRng>);
+            Utils.ExecuteTester<CongruentialRng>(TestRngDistribution<CongruentialRng>);
+        }
+
+        [TestMethod]
+        public void TriviumDistribution()
+        {
+            Utils.ExecuteTester<TriviumRng>(TestRngDistribution<TriviumRng>);
         }
 
         [TestMethod]
         public void NullDistribution()
         {
-            Utils.ExecuteTester<NullRng>(TestRngConfusion<NullRng>);
+            Utils.ExecuteTester<NullRng>(TestRngDistribution<NullRng>);
         }
 
         [TestMethod]
         public void FlushDistribution()
         {
-            Utils.ExecuteTester<FlushRng>(TestRngConfusion<FlushRng>);
+            Utils.ExecuteTester<FlushRng>(TestRngDistribution<FlushRng>);
         }
 
         [TestMethod]
@@ -80,9 +86,10 @@ namespace Blaze.Cryptography.Tests.Rng
             SHR3Distribution();
             SWBDistribution();
             SysDistribution();
+            TriviumDistribution();
         }
 
-        private TestResult TestRngConfusion<T>(out string message) where T : IRng
+        private TestResult TestRngDistribution<T>(out string message) where T : IRng
         {
             message = string.Empty;
             TestResult testRes = TestResult.Passed;

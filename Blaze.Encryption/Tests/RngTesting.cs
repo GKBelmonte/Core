@@ -71,8 +71,11 @@ namespace Blaze.Cryptography
         {
             List<int> flipSeeds = CreateSeeds();
             var flipBytes = new List<byte[]>(16);
-            IEnumerable<IRng> rngs = CreateSeeds()
-                .Select(s => (IRng)Activator.CreateInstance(typeof(T), s));
+            List<int> seeds = CreateSeeds();
+
+            List<IRng> rngs = seeds
+                .Select(s => (IRng)Activator.CreateInstance(typeof(T), s))
+                .ToList();
 
             foreach (IRng rng in rngs)
             {

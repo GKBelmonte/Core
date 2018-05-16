@@ -11,81 +11,8 @@ namespace Blaze.Cryptography.Rng
     /// Got them from Marsagliia Rngs http://www.cse.yorku.ca/~oz/marsaglia-rng.html
     /// A dozen different methods and explenations for my hearts content
     /// </summary>
-    public abstract class MarsagliaRng : IRng
+    public abstract class MarsagliaRng : Int32Rng, IRng
     {
-        // stole this from https://referencesource.microsoft.com/#mscorlib/system/random.cs,92e3cf6e56571d5a,references, 
-        // which they stole from Numerical Recipes in C (2nd Ed.)
-        // so I guess its ok :D
-        protected uint[] ArrayFromSeed(int seed)
-        {
-            const int MSEED = 161803398;
-            int ii;
-            uint mj, mk;
-            //Initialize our Seed array.
-            //This algorithm comes from Numerical Recipes in C (2nd Ed.)
-            int subtraction = (seed == Int32.MinValue) ? Int32.MaxValue : Math.Abs(seed);
-            uint[] seedArray = new uint[56];
-            mj = (uint)(MSEED - subtraction);
-            seedArray[55] = mj;
-            mk = 1;
-            for (int i = 1; i < 55; i++)
-            {  //Apparently the range [1..55] is special (Knuth) and so we're wasting the 0'th position.
-                ii = (21 * i) % 55;
-                seedArray[ii] = mk;
-                mk = mj - mk;
-                if (mk < 0) mk += Int32.MaxValue;
-                mj = seedArray[ii];
-            }
-            for (int k = 1; k < 5; k++)
-            {
-                for (int i = 1; i < 56; i++)
-                {
-                    seedArray[i] -= seedArray[1 + (i + 30) % 55];
-                    if (seedArray[i] < 0) seedArray[i] += Int32.MaxValue;
-                }
-            }
-            return seedArray;
-        }
-
-        public abstract int Next();
-
-        public int Next(int minValue, int maxValue)
-        {
-            int range = maxValue - minValue;
-            int next = Next();
-            return (next.UMod(range)) + minValue;
-        }
-
-        public int Next(int maxValue)
-        {
-            return Next(0, maxValue);
-        }
-
-        public virtual void NextBytes(byte[] buffer)
-        {
-            //Cast to avoid sign extensions when shiftting
-            uint next = (uint)Next();
-            //we could do Next(0,256) and that would discard 3/4 bytes
-            byte consumedCount = 0;
-            for (int i = 0; i < buffer.Length; ++i)
-            {
-                byte b = (byte)(next & 0xFF);
-                buffer[i] = b;
-
-                //At every 4th byte consumed, get a new uint
-                consumedCount++;
-                if (consumedCount % 4 == 0)
-                    next = (uint)Next();
-                else
-                    next = next >> 8;
-            }
-        }
-
-        public double NextDouble()
-        {
-            return Next() * 2.328306e-10;
-        }
-
         protected void InitalizeLaggedFibTable(uint[] ints)
         {
             for (int i = 0; i < 256; ++i)
@@ -328,7 +255,7 @@ namespace Blaze.Cryptography.Rng
             public KissRng() { }
             public KissRng(int seed)
             {
-                var ints = ArrayFromSeed(seed);
+                var ints = RngHelpers.ArrayFromSeed(seed);
 
                 z = ints[1];
                 w = ints[2];
@@ -343,7 +270,7 @@ namespace Blaze.Cryptography.Rng
             public MultiplyWithCarryRng() { }
             public MultiplyWithCarryRng(int seed)
             {
-                var ints = ArrayFromSeed(seed);
+                var ints = RngHelpers.ArrayFromSeed(seed);
 
                 z = ints[1];
                 w = ints[2];
@@ -356,7 +283,7 @@ namespace Blaze.Cryptography.Rng
             public ShiftRegisterRng() { }
             public ShiftRegisterRng(int seed)
             {
-                var ints = ArrayFromSeed(seed);
+                var ints = RngHelpers.ArrayFromSeed(seed);
 
                 jsr = ints[1];
             }
@@ -368,7 +295,7 @@ namespace Blaze.Cryptography.Rng
             public CongruentialRng() { }
             public CongruentialRng(int seed)
             {
-                var ints = ArrayFromSeed(seed);
+                var ints = RngHelpers.ArrayFromSeed(seed);
 
                 jcong = ints[1];
             }
@@ -380,7 +307,7 @@ namespace Blaze.Cryptography.Rng
             public LaggedFibonacciRng() : this(0) { }
             public LaggedFibonacciRng(int seed)
             {
-                uint[] ints = ArrayFromSeed(seed);
+                uint[] ints = RngHelpers.ArrayFromSeed(seed);
 
                 InitalizeLaggedFibTable(ints);
             }
@@ -392,7 +319,7 @@ namespace Blaze.Cryptography.Rng
             public SubstractWithBorrowRng() : this(0) { }
             public SubstractWithBorrowRng(int seed)
             {
-                var ints = ArrayFromSeed(seed);
+                var ints = RngHelpers.ArrayFromSeed(seed);
 
                 InitalizeSubWithBorrowTable(ints);
             }
@@ -407,7 +334,7 @@ namespace Blaze.Cryptography.Rng
             public MSSRMRng() : this(0) { }
             public MSSRMRng(int seed)
             {
-                var ints = ArrayFromSeed(seed);
+                var ints = RngHelpers.ArrayFromSeed(seed);
 
                 z = ints[1];
                 w = ints[2];

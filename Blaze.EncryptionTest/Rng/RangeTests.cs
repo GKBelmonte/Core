@@ -48,6 +48,12 @@ namespace Blaze.Cryptography.Tests.Rng
         }
 
         [TestMethod]
+        public void TriviumRange()
+        {
+            Utils.ExecuteTester<TriviumRng>(TestRngRange);
+        }
+
+        [TestMethod]
         public void CongRange()
         {
             Utils.ExecuteTester<CongruentialRng>(TestRngRange);
