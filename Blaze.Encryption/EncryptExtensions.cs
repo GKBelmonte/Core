@@ -24,6 +24,19 @@ namespace Blaze.Cryptography
             return keyHash;
         }
 
+        public static byte[] GetSHA256Hash(this byte[] key, byte[] salt = null)
+        {
+            byte[] keyHash;
+            using (var sha256 = System.Security.Cryptography.SHA256.Create())
+            {
+                var saltedKey = new List<byte>(key);
+                if (salt != null)
+                    saltedKey.AddRange(salt);
+                keyHash = sha256.ComputeHash(saltedKey.ToArray());
+            }
+            return keyHash;
+        }
+
         public static int ToSeed(this byte[] self, bool littleEndian = true)
         {
             int res = 0;
