@@ -302,6 +302,24 @@ namespace Blaze.Cryptography.Tests
         }
 
         [TestMethod]
+        public void BasicMazeCypher()
+        {
+            var c = new MazeCypher();
+            string plainStr = "HELLO, WORLD";
+            byte[] plainBytes = plainStr.ToByteArray();
+            var keystream = new Blaze.Cryptography.Rng.Marsaglia.MSSRMRng(8);
+            Maze m;
+            byte[] cypherBytes = c.Encrypt(plainBytes, 4, keystream, out m);
+            string cypherStr = cypherBytes.ToTextString();
+            Log.Info(cypherStr);
+            Log.Info(m);
+            keystream = new Blaze.Cryptography.Rng.Marsaglia.MSSRMRng(8);
+            byte[] decypher = c.Decrypt(cypherBytes, 4, keystream);
+            string decypherStr = decypher.ToTextString();
+            Assert.AreEqual(plainStr, decypherStr);
+        }
+
+        [TestMethod]
         public void NullCypher()
         {
             SimpleTest(typeof(NullCypher), TestType.Full);

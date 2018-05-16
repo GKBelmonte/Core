@@ -41,7 +41,7 @@ namespace Blaze.Core.Collections
                     throw new ArgumentOutOfRangeException(nameof(r));
                 if (c > _columnCount)
                     throw new ArgumentOutOfRangeException(nameof(c));
-                return _vals[r * _rowCount + c];
+                return _vals[r * _columnCount + c];
             }
             set
             {
@@ -49,7 +49,7 @@ namespace Blaze.Core.Collections
                     throw new ArgumentOutOfRangeException(nameof(r));
                 if (c > _columnCount)
                     throw new ArgumentOutOfRangeException(nameof(c));
-                _vals[r * _rowCount + c] = value;
+                _vals[r * _columnCount + c] = value;
             }
         }
 
