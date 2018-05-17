@@ -57,6 +57,12 @@ namespace Blaze.Cryptography.Tests.Rng
         }
 
         [TestMethod]
+        public void MarsagliaDistribution()
+        {
+            Utils.ExecuteTester<MSSRMRng>(TestRngDistribution<MSSRMRng>);
+        }
+
+        [TestMethod]
         public void TriviumDistribution()
         {
             Utils.ExecuteTester<TriviumRng>(TestRngDistribution<TriviumRng>);
@@ -86,6 +92,7 @@ namespace Blaze.Cryptography.Tests.Rng
             SHR3Distribution();
             SWBDistribution();
             SysDistribution();
+            MarsagliaDistribution();
             TriviumDistribution();
         }
 

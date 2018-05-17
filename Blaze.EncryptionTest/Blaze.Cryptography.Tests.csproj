@@ -55,7 +55,7 @@
     <Compile Include="Rng\DistributionTests.cs" />
     <Compile Include="Rng\TestRngs.cs" />
     <Compile Include="Rng\RangeTests.cs" />
-    <Compile Include="Rng\RngTest.cs" />
+    <Compile Include="Rng\DeterminismTest.cs" />
     <Compile Include="StreamTests.cs" />
     <Compile Include="EncryptDecryptTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

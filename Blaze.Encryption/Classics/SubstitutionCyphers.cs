@@ -53,7 +53,7 @@ namespace Blaze.Cryptography.Classics
     {
         protected override byte[] Encrypt(byte[] plain, byte[] key, Op op)
         {
-            uint shortKey = (uint)(key.Length > 1 ? key.ToSeed() : key[0]);
+            uint shortKey = (uint)(key.Length > 1 ? key.ToInt32() : key[0]);
             byte k = 0;
             for (int ii = 0; ii < 4; ++ii)
                 k ^= (byte)((shortKey >> (ii * 8)) & 0xFF);

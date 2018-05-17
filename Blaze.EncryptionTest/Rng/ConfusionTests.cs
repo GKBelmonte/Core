@@ -56,6 +56,12 @@ namespace Blaze.Cryptography.Tests.Rng
         }
 
         [TestMethod]
+        public void MarsagliaConfusion()
+        {
+            Utils.ExecuteTester<MSSRMRng>(TestRngConfusion<MSSRMRng>);
+        }
+
+        [TestMethod]
         public void TriviumConfusion()
         {
             Utils.ExecuteTester<TriviumRng>(TestRngConfusion<TriviumRng>);
@@ -85,6 +91,7 @@ namespace Blaze.Cryptography.Tests.Rng
             SHR3Confusion();
             SWBConfusion();
             SysConfusion();
+            MarsagliaConfusion();
             TriviumConfusion();
         }
 

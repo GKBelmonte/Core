@@ -37,7 +37,7 @@ namespace Blaze.Cryptography
             return keyHash;
         }
 
-        public static int ToSeed(this byte[] self, bool littleEndian = true)
+        public static int ToInt32(this byte[] self, bool littleEndian = true)
         {
             int res = 0;
             if (self.Length == sizeof(int))
@@ -73,14 +73,11 @@ namespace Blaze.Cryptography
                 }
             }
             return res;
-
         }
 
         public static IRng KeyToRand(this byte[] key)
         {
-            int seed = key.ToSeed();
-            var rand = new SysRng(seed);
-            return rand;
+            return new TriviumRng(key);
         }
 
         public static byte[] Pepper(this byte[] key, byte[] pepper)

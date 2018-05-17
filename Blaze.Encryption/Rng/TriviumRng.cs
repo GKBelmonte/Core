@@ -34,7 +34,7 @@ namespace Blaze.Cryptography.Rng
         public TriviumRng(byte[] seeds)
         {
             if (seeds.Length <= 4)
-                Init(seeds.ToSeed());
+                Init(seeds.ToInt32());
 
             int halfLength = seeds.Length / 2;
 

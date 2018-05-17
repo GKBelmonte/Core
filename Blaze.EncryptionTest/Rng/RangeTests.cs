@@ -48,6 +48,12 @@ namespace Blaze.Cryptography.Tests.Rng
         }
 
         [TestMethod]
+        public void MarsagliaRange()
+        {
+            Utils.ExecuteTester<MSSRMRng>(TestRngRange);
+        }
+
+        [TestMethod]
         public void TriviumRange()
         {
             Utils.ExecuteTester<TriviumRng>(TestRngRange);

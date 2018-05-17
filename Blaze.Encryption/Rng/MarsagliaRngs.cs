@@ -357,7 +357,7 @@ namespace Blaze.Cryptography.Rng
                     case 2: return (int)SHR3();
                     case 3: return (int)SWB();
                     case 4: return (int)LFIB4();
-                    case 5: return (int)CONG();
+                    case 5: return (int)(CONG() >> 11 ^ CONG() << 13 ^ CONG() >> 17);
                     case 6: return (int)(KISS() ^ SHR3() + FIB());
                     case 7: return (int)(MWC() ^ SWB() + LFIB4());
                     default: throw new InvalidOperationException();

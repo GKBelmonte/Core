@@ -70,13 +70,10 @@ namespace Blaze.Cryptography
         public static float ConfusionTest<T>() where T : IRng
         {
             List<int> flipSeeds = CreateSeeds();
-            var flipBytes = new List<byte[]>(16);
-            List<int> seeds = CreateSeeds();
-
-            List<IRng> rngs = seeds
+            List<IRng> rngs = flipSeeds
                 .Select(s => (IRng)Activator.CreateInstance(typeof(T), s))
                 .ToList();
-
+            var flipBytes = new List<byte[]>(16);
             foreach (IRng rng in rngs)
             {
                 byte[] bytes = new byte[1024];
@@ -102,7 +99,7 @@ namespace Blaze.Cryptography
             flips.Insert(0, mainSeed);
 
             return flips
-                .Select(f => f.ToSeed())
+                .Select(f => f.ToInt32())
                 .ToList();
         }
     }
