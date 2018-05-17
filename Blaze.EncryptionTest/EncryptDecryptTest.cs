@@ -302,6 +302,16 @@ namespace Blaze.Cryptography.Tests
         }
 
         [TestMethod]
+        public void HillCypherBasicTest()
+        {
+            var hill = new HillCypher();
+            hill.Alphabet = "0123456789".ToCharArray();
+            string text = "0123";
+            string cypherText = hill.Encrypt(text, "K");
+
+        }
+
+        [TestMethod]
         public void NullCypher()
         {
             SimpleTest(typeof(NullCypher), TestType.Full);
