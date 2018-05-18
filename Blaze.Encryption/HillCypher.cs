@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Blaze.Core.Collections;
 using Blaze.Core.Extensions;
 using Blaze.Cryptography.Rng;
-
+using MathNet.Numerics.LinearAlgebra;
 using MathNet.Numerics.LinearAlgebra.Double;
 
 namespace Blaze.Cryptography
@@ -69,61 +70,86 @@ namespace Blaze.Cryptography
             return IndicesToBytes(cypherIxs);
         }
 
-        /// <summary>
-        /// Encodes the number 'fill' in a base 'numBase' with
-        /// Usefull if let's the alphabet size is 32, in which case
-        /// fill bigger than 32 cannot be represented in the alphabet.
-        /// Biggest possible describable fill will be b^(4) - 1
-        /// (could be b^(b-1) - 1 if we prepend the fill-length, but
-        /// in practice b > 26, making it useless)
-        /// </summary>
-        private static List<int> EncodeFill(int fill, int numBase)
-        {
-            // e.g. base 4, can have up to 4 digits (0-4)
-            // the max value being 333 (b4) which is 1000 - 1 (b4)
-            // decimal: 4^4 - 1 = 255
-            // Our smalles alphabet is 10 (test decimal alphabet), so with 4 digits we have 999
-            // should be safe ;)
-            int numOfDigits = fill == 0 ? 0 : (int)(Math.Log(fill, numBase) + 1);
-            if (numOfDigits > 4)
-                throw new InvalidOperationException($"Can't encode {fill} in base {numBase} in more than {numBase - 1}");
-            List<int> res = new List<int>(numOfDigits);
-
-            //little endian
-            int currentFill = fill;
-            for(int i = 0; i < 4; ++i)
-            {
-                int n = currentFill % numBase;
-                currentFill = currentFill / numBase;
-                res.Add(n);
-            }
-            return res;
-        }
-
         public IEnumerable<int> Encrypt(IReadOnlyList<int> plainIxs, IRng rng)
         {
             DenseMatrix keyStreamMatrix = CreateEncryptionMatrix(rng);
 
-            //Column Major ordering is not what I intended but wtv, free transposition
-            double[] plainIxsDouble = plainIxs.Select(i => (double) i).ToArray();
-            var plainVector = new DenseVector(plainIxsDouble);
+            #if DEBUG
+            {
+                int det = ((int)Math.Round(keyStreamMatrix.Determinant())).UMod(Alphabet.Count);
 
+                DenseMatrix inv = (DenseMatrix)keyStreamMatrix.Inverse();
+                MatrixUMod(inv, Alphabet.Count);
+
+                var identity = keyStreamMatrix * inv;
+                MatrixUMod(identity, Alphabet.Count);
+                Debug.Assert(identity.Equals(Matrix.Build.SparseIdentity(_matrixDimension)));
+            }
+            #endif
+
+            //Column Major ordering is not what I intended but wtv, free transposition
+            double[] plainIxsDouble = plainIxs.Select(i => (double)i).ToArray();
+            var plainVector = new DenseVector(plainIxsDouble);
 
             DenseVector cypherVector = keyStreamMatrix * plainVector;
             return VectorToList(cypherVector, Alphabet.Count);
         }
 
-        private static IEnumerable<int> MatrixToList(DenseMatrix mx, int mod)
+        public override byte[] Decrypt(byte[] cypher, byte[] key)
         {
-            for(int r = 0; r < mx.RowCount; ++r)
+            int[] cypherIxs = ByteToIndices(cypher);
+            int fill = DecodeFill(cypherIxs, Alphabet.Count);
+
+            int originalPlainLength = cypher.Length - 4 - fill;
+            //Let's encrypt 8x8 or 16x16 at a time
+            //Insert padding amount at the beginning of the cypher so we know how much to remove
+            _matrixDimension = 16;
+            if (originalPlainLength < 16 * 16)
+                _matrixDimension = 8;
+            _matrixSize = _matrixDimension * _matrixDimension;
+
+            var plainIxs = new List<int>(cypherIxs.Length);
+            IRng rng = key.KeyToRand();
+            for (int i = 4; i < cypherIxs.Length; i += _matrixDimension)
+            {
+                plainIxs.AddRange(Decrypt(new ListSpan<int>(cypherIxs, i, i + _matrixDimension), rng));
+            }
+
+            plainIxs.RemoveRange(plainIxs.Count - fill, fill);
+
+            return IndicesToBytes(plainIxs);
+        }
+
+        public IEnumerable<int> Decrypt(IReadOnlyList<int> cypherIxs, IRng rng)
+        {
+            DenseMatrix keyStreamMatrix = CreateEncryptionMatrix(rng);
+            // inv = 1/det(A) * (C(A))^T
+            // det = 1 and Adj = C(A)^T
+            // so adj(A) == inv
+            // modinv = det(A) * adj(A) mod m
+            // but det(A) == 1
+            DenseMatrix inv = (DenseMatrix)keyStreamMatrix.Inverse();
+            //Don't think i even need this
+            //MatrixUMod(inv, Alphabet.Count);
+
+            double[] cypherIxsDouble = cypherIxs.Select(i => (double)i).ToArray();
+            var cypherVector = new DenseVector(cypherIxsDouble);
+
+            var plainIxs = inv * cypherVector;
+            return VectorToList(plainIxs, Alphabet.Count);
+        }
+
+        private static IEnumerable<int> MatrixToList(Matrix<double> mx, int mod)
+        {
+            for (int r = 0; r < mx.RowCount; ++r)
                 for (int c = 0; c < mx.ColumnCount; ++c)
-                    yield return((int) mx[r, c]).UMod(mod);
+                    yield return ((int)Math.Round(mx[r, c])).UMod(mod);
         }
 
         private static IEnumerable<int> VectorToList(DenseVector v, int mod)
         {
             for (int r = 0; r < v.Count; ++r)
-                yield return ((int)v[r]).UMod(mod);
+                yield return ((int)Math.Round(v[r])).UMod(mod);
         }
 
         private DenseMatrix CreateEncryptionMatrix(IRng rng)
@@ -161,8 +187,53 @@ namespace Blaze.Cryptography
                 for (int j = 0; j < _matrixDimension; ++j)
                     encryptionMatrix[targetRow, j] += encryptionMatrix[sourceRow, j] * add;
             }
-
+            MatrixUMod(encryptionMatrix, Alphabet.Count);
             return encryptionMatrix;
+        }
+
+        /// <summary>
+        /// Encodes the number 'fill' in a base 'numBase' with
+        /// Usefull if let's the alphabet size is 32, in which case
+        /// fill bigger than 32 cannot be represented in the alphabet.
+        /// Biggest possible describable fill will be b^(4) - 1
+        /// (could be b^(b-1) - 1 if we prepend the fill-length, but
+        /// in practice b > 26, making it useless)
+        /// </summary>
+        private static List<int> EncodeFill(int fill, int numBase)
+        {
+            // e.g. base 4, can have up to 4 digits (0-4)
+            // the max value being 333 (b4) which is 1000 - 1 (b4)
+            // decimal: 4^4 - 1 = 255
+            // Our smalles alphabet is 10 (test decimal alphabet), so with 4 digits we have 999
+            // should be safe ;)
+            int numOfDigits = fill == 0 ? 0 : (int)(Math.Log(fill, numBase) + 1);
+            if (numOfDigits > 4)
+                throw new InvalidOperationException($"Can't encode {fill} in base {numBase} in more than {numBase - 1}");
+            List<int> res = new List<int>(numOfDigits);
+
+            //little endian
+            int currentFill = fill;
+            for (int i = 0; i < 4; ++i)
+            {
+                int n = currentFill % numBase;
+                currentFill = currentFill / numBase;
+                res.Add(n);
+            }
+            return res;
+        }
+
+        private static int DecodeFill(IList<int> header, int numBase)
+        {
+            int pow = 1;
+
+            //little endian
+            int currentFill = 0;
+            for (int i = 0; i < 4; ++i)
+            {
+                currentFill += pow * header[i];
+                pow = pow * numBase;
+            }
+            return currentFill;
         }
 
         private string MatrixToStr(DenseMatrix m)
@@ -172,11 +243,18 @@ namespace Blaze.Cryptography
             {
                 for (int c = 0; c < m.ColumnCount; ++c)
                 {
-                    b.Append(m[r, c].ToString().PadRight(4));
+                    b.Append(m[r, c].ToString("0").PadRight(8));
                 }
                 b.AppendLine();
             }
             return b.ToString();
+        }
+
+        private void MatrixUMod(DenseMatrix m, int n)
+        {
+            for (int r = 0; r < m.RowCount; ++r)
+                for (int c = 0; c < m.ColumnCount; ++c)
+                    m[r,c] = ((int)Math.Round(m[r, c])).UMod(n);
         }
 
         protected override byte[] Encrypt(byte[] plain, byte[] key, Op op)

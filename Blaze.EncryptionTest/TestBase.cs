@@ -44,6 +44,7 @@ namespace Blaze.Cryptography.Tests
                 { new ColumnarTranspositionCypher(), "Columnar Transposition Cypher" , TestType.All },
                 { new AutokeyCypher(), "AutoKey Cypher", TestType.All },
                 { new BifidCypher(), "Bifid Cypher", TestType.Full | TestType.Xor },
+                { new HillCypher(), "Hill Cypher", TestType.All },
                 { new ShuffleCypher(), "Shuffle Cypher", TestType.All }
             };
             return res;
