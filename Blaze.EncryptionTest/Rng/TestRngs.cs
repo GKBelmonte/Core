@@ -36,7 +36,7 @@ namespace Blaze.Cryptography.Tests.Rng
     {
         protected override byte[] Encrypt(byte[] plain, byte[] key, Op op)
         {
-            int seed = key.ToSeed();
+            int seed = key.ToInt32();
             IRng rng = (IRng)Activator.CreateInstance(typeof(T), seed);
             byte[] cypher = new byte[plain.Length];
             rng.NextBytes(cypher);

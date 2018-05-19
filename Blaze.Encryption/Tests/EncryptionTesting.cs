@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Blaze.Core.Math;
 using Blaze.Core.Extensions;
+using Blaze.Cryptography.Rng;
 
 namespace Blaze.Cryptography
 {
@@ -97,15 +98,18 @@ namespace Blaze.Cryptography
             return res;
         }
 
-        public static List<byte[]> CreateFlips(byte[] buff, int num)
+        public static List<byte[]> CreateFlips(byte[] buff, int num, IRng rng = null)
         {
+            if (rng == null)
+                rng = new SysRng(123456);
+
             var res = new List<byte[]>();
             for (var ii = 0; ii < num; ++ii)
             {
                 byte[] flip = new byte[buff.Length];
                 buff.CopyTo(flip, 0);
-                int flipByte = _RNG.Next(buff.Length);
-                int flipBit = _RNG.Next(8);
+                int flipByte = rng.Next(buff.Length);
+                int flipBit = rng.Next(8);
                 flip[flipByte] ^= (byte)(1 << flipBit);
                 res.Add(flip);
             }

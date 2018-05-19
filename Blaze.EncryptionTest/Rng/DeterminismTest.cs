@@ -54,6 +54,18 @@ namespace Blaze.Cryptography.Tests.Rng
         }
 
         [TestMethod]
+        public void MarsagliaDeterminism()
+        {
+            Utils.ExecuteTester<MSSRMRng>(TestRngDeterminism);
+        }
+
+        [TestMethod]
+        public void TriviumDeterminism()
+        {
+            Utils.ExecuteTester<TriviumRng>(TestRngDeterminism);
+        }
+
+        [TestMethod]
         public void NullDeterminism()
         {
             Utils.ExecuteTester<NullRng>(TestRngDeterminism);
