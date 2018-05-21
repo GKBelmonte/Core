@@ -9,10 +9,10 @@ namespace Blaze.Core.Collections
 {
     public class ListSpan<T> : IReadOnlyList<T>
     {
-        private IList<T> _source;
+        private IReadOnlyList<T> _source;
         private int _begin;
         private int _end;
-        public ListSpan(IList<T> source, int begin, int exclusiveEnd)
+        public ListSpan(IReadOnlyList<T> source, int begin, int exclusiveEnd)
         {
             _source = source;
             if (begin > exclusiveEnd)
@@ -29,11 +29,11 @@ namespace Blaze.Core.Collections
 
         public T this[int index] { get { return _source[index + _begin]; } }
 
-        public IEnumerator<T> GetEnumerator() { return new ListSpanEnumerator<T>(this); }
+        public IEnumerator<T> GetEnumerator() { return new ListSpanEnumerator(this); }
 
         IEnumerator IEnumerable.GetEnumerator() { return GetEnumerator(); }
 
-        private class ListSpanEnumerator<T> : IEnumerator<T>
+        private class ListSpanEnumerator : IEnumerator<T>
         {
             ListSpan<T> _span;
             int _ix;
