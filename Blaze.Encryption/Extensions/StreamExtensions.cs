@@ -29,7 +29,8 @@ namespace Blaze.Cryptography.Extensions.Streams
             while ((read = plain.Read(buff, 0, 1024)) != 0)
             {
                 byte[] bytesRead = buff.Take(read).ToArray();
-                outCypher.Write(self.Encrypt(bytesRead, key), 0, read);
+                byte[] bytesWrite = self.Encrypt(bytesRead, key);
+                outCypher.Write(bytesWrite, 0, bytesWrite.Length);
             }
         }
 
@@ -49,7 +50,8 @@ namespace Blaze.Cryptography.Extensions.Streams
             while ((read = cypher.Read(buff, 0, 1024)) != 0)
             {
                 byte[] bytesRead = buff.Take(read).ToArray();
-                outPlain.Write(self.Decrypt(bytesRead, key), 0, read);
+                byte[] bytesWrite = self.Decrypt(bytesRead, key);
+                outPlain.Write(bytesWrite, 0, bytesWrite.Length);
             }
         }
 
@@ -71,7 +73,8 @@ namespace Blaze.Cryptography.Extensions.Streams
             while ((read = plain.Read(buff, 0, 1024)) != 0)
             {
                 byte[] bytesRead = buff.Take(read).ToArray();
-                outCypher.Write(self.Encrypt(bytesRead, key), 0, read);
+                byte[] bytesWrite = self.Encrypt(bytesRead, key);
+                outCypher.Write(bytesWrite, 0, bytesWrite.Length);
             }
         }
 
@@ -91,7 +94,8 @@ namespace Blaze.Cryptography.Extensions.Streams
             while ((read = cypher.Read(buff, 0, 1024)) != 0)
             {
                 byte[] bytesRead = buff.Take(read).ToArray();
-                outPlain.Write(self.Decrypt(bytesRead, key), 0, read);
+                byte[] bytesWrite = self.Decrypt(bytesRead, key);
+                outPlain.Write(bytesWrite, 0, bytesWrite.Length);
             }
         }
 

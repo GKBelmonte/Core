@@ -74,19 +74,7 @@ namespace Blaze.Cryptography
         {
             DenseMatrix keyStreamMatrix = CreateEncryptionMatrix(rng);
 
-            #if DEBUG
-            {
-                double detBeforeMod = keyStreamMatrix.Determinant();
-                int det = ((int)Math.Round(detBeforeMod)).UMod(Alphabet.Count);
-
-                DenseMatrix inv = (DenseMatrix)keyStreamMatrix.Inverse();
-                MatrixUMod(inv, Alphabet.Count);
-
-                var identity = keyStreamMatrix * inv;
-                MatrixUMod(identity, Alphabet.Count);
-                Debug.Assert(identity.Equals(Matrix.Build.SparseIdentity(_matrixDimension)));
-            }
-            #endif
+            DenseMatrix inv = GetDecryptionMatrix(keyStreamMatrix);
 
             //Column Major ordering is not what I intended but wtv, free transposition
             double[] plainIxsDouble = plainIxs.Select(i => (double)i).ToArray();
@@ -94,6 +82,30 @@ namespace Blaze.Cryptography
 
             DenseVector cypherVector = keyStreamMatrix * plainVector;
             return VectorToList(cypherVector, Alphabet.Count);
+        }
+
+        private DenseMatrix GetDecryptionMatrix(DenseMatrix keyStreamMatrix)
+        {
+            // inv = 1/det(A) * (C(A))^T
+            // det = 1 and Adj = C(A)^T
+            // so adj(A) == inv
+            // modinv = det(A) * adj(A) mod m
+            // but det(A) == 1
+            double detBeforeMod = keyStreamMatrix.Determinant();
+            int det = ((int)Math.Round(detBeforeMod)).UMod(Alphabet.Count);
+
+            Debug.Assert(det == 1, "Determinant is different than 1");
+
+            DenseMatrix inv = (DenseMatrix)keyStreamMatrix.Inverse();
+            inv = detBeforeMod * inv;
+            MatrixUMod(inv, Alphabet.Count);
+
+#if DEBUG
+            var identity = keyStreamMatrix * inv;
+            MatrixUMod(identity, Alphabet.Count);
+            Debug.Assert(identity.Equals(Matrix.Build.SparseIdentity(_matrixDimension)));
+#endif
+            return inv;
         }
 
         public override byte[] Decrypt(byte[] cypher, byte[] key)
@@ -124,14 +136,8 @@ namespace Blaze.Cryptography
         public IEnumerable<int> Decrypt(IReadOnlyList<int> cypherIxs, IRng rng)
         {
             DenseMatrix keyStreamMatrix = CreateEncryptionMatrix(rng);
-            // inv = 1/det(A) * (C(A))^T
-            // det = 1 and Adj = C(A)^T
-            // so adj(A) == inv
-            // modinv = det(A) * adj(A) mod m
-            // but det(A) == 1
-            DenseMatrix inv = (DenseMatrix)keyStreamMatrix.Inverse();
-            // This wouldn't be necessary except for number precision loss
-            MatrixUMod(inv, Alphabet.Count);
+
+            DenseMatrix inv = GetDecryptionMatrix(keyStreamMatrix);
 
             double[] cypherIxsDouble = cypherIxs.Select(i => (double)i).ToArray();
             var cypherVector = new DenseVector(cypherIxsDouble);

@@ -34,7 +34,7 @@ namespace Blaze.Cryptography
         // for example suppose Alpha = {00,01,10} hence |Alpha| = 3, 
         // If we observe the table given by (a ^ k) % |A| we notice there are duplicates, so bijection does not hold
         // for example 01 ^ 01 = 00 and 01 ^ 10 = 11 == 00 MOD 11
-        // so (1 ^ 1) % 3 == (1 ^ 2) % 5 and there's no way to destinguish which plain text is correct
+        // so (1 ^ 1) mod 3 == (1 ^ 2) mod 3 and there's no way to destinguish which plain text is correct
 
         //public static string Encrypt(this ICypher self, string plain, string key, BasicOperations op)
         //{

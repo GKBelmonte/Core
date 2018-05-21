@@ -337,6 +337,9 @@ namespace Blaze.Cryptography.Tests
             string text = "0123";
             string cypherText = hill.Encrypt(text, "K");
             string decypherText = hill.Decrypt(cypherText, "K");
+            Log.Info($"Plain Text: {text}");
+            Log.Info($"Cypher Text: {cypherText}");
+            Log.Info($"Decypher Text: {decypherText}");
 
             Assert.AreEqual(text, decypherText);
         }
