@@ -45,15 +45,15 @@ namespace Blaze.Cryptography
         {
             //Let's encrypt 8x8 or 16x16 at a time
             //Insert padding amount at the beginning of the cypher so we know how much to remove
-            _matrixDimension = 16;
-            if (plain.Length < 16 * 16)
-                _matrixDimension = 8;
+            _matrixDimension = 8;
+            //if (plain.Length >= 16 * 16)
+            //    _matrixDimension = 16;
             _matrixSize = _matrixDimension * _matrixDimension;
             //fix this
             List<int> plainIxs = ByteToIndices(plain).ToList();
 
             //calculate fill
-            int fill = plain.Length % _matrixSize;
+            int fill = _matrixDimension - plain.Length % _matrixDimension;
             var noise = new SysRng();
             for (int i = 0; i < fill; ++i)
                 plainIxs.Add(noise.Next(0, Alphabet.Count));
@@ -76,14 +76,15 @@ namespace Blaze.Cryptography
 
             #if DEBUG
             {
-                int det = ((int)Math.Round(keyStreamMatrix.Determinant())).UMod(Alphabet.Count);
+                double detBeforeMod = keyStreamMatrix.Determinant();
+                int det = ((int)Math.Round(detBeforeMod)).UMod(Alphabet.Count);
 
                 DenseMatrix inv = (DenseMatrix)keyStreamMatrix.Inverse();
                 MatrixUMod(inv, Alphabet.Count);
 
                 var identity = keyStreamMatrix * inv;
                 MatrixUMod(identity, Alphabet.Count);
-                //Debug.Assert(identity.Equals(Matrix.Build.SparseIdentity(_matrixDimension)));
+                Debug.Assert(identity.Equals(Matrix.Build.SparseIdentity(_matrixDimension)));
             }
             #endif
 
@@ -103,9 +104,9 @@ namespace Blaze.Cryptography
             int originalPlainLength = cypher.Length - 4 - fill;
             //Let's encrypt 8x8 or 16x16 at a time
             //Insert padding amount at the beginning of the cypher so we know how much to remove
-            _matrixDimension = 16;
-            if (originalPlainLength < 16 * 16)
-                _matrixDimension = 8;
+            _matrixDimension = 8;
+            //if (plain.Length >= 16 * 16)
+            //    _matrixDimension = 16;
             _matrixSize = _matrixDimension * _matrixDimension;
 
             var plainIxs = new List<int>(cypherIxs.Length);
@@ -129,8 +130,8 @@ namespace Blaze.Cryptography
             // modinv = det(A) * adj(A) mod m
             // but det(A) == 1
             DenseMatrix inv = (DenseMatrix)keyStreamMatrix.Inverse();
-            //Don't think i even need this
-            //MatrixUMod(inv, Alphabet.Count);
+            // This wouldn't be necessary except for number precision loss
+            MatrixUMod(inv, Alphabet.Count);
 
             double[] cypherIxsDouble = cypherIxs.Select(i => (double)i).ToArray();
             var cypherVector = new DenseVector(cypherIxsDouble);
@@ -152,6 +153,11 @@ namespace Blaze.Cryptography
                 yield return ((int)Math.Round(v[r])).UMod(mod);
         }
 
+        //Maxing out at 16 or inverse matrix numbers can loose precision on
+        // how big the numbers are. If I implement my own matrix multiplication and
+        // inversion mod x, this could be solved
+        private int _modulus = 16;
+
         private DenseMatrix CreateEncryptionMatrix(IRng rng)
         {
             var encryptionMatrix = new DenseMatrix(_matrixDimension);
@@ -160,7 +166,21 @@ namespace Blaze.Cryptography
             {
                 encryptionMatrix[r, r] = 1;
                 for (int c = r + 1; c < _matrixDimension; ++c)
-                    encryptionMatrix[r, c] = rng.Next(0, Alphabet.Count);
+                    encryptionMatrix[r, c] = rng.Next(0, _modulus);//rng.Next(0, Alphabet.Count);
+            }
+
+            // fill up zeroes
+            // Add the zeroth row to rows 1 through n-1 ,
+            // first to second through n-1, etc till the third
+            for (int r = 0; r < 3; ++r)
+            {
+                for (int i = r + 1; i < _matrixDimension; ++i)
+                {
+                    int sourceRow = r;
+                    int targetRow = i;
+
+                    AddRows(encryptionMatrix, sourceRow, targetRow);
+                }
             }
 
             int[] colPermutation = Enumerable.Range(0, _matrixDimension).Select(i => i).ToArray();
@@ -176,19 +196,14 @@ namespace Blaze.Cryptography
                 encryptionMatrix.PermuteColumns(new MathNet.Numerics.Permutation(fixDeterminant));
             }
 
-            for (int i = 0; i < _matrixDimension / 4; ++i)
-            {
-                int sourceRow = rng.Next(0, _matrixDimension);
-                int targetRow = rng.Next(0, _matrixDimension);
-                if (sourceRow == targetRow)
-                    continue;
-                int add = rng.Next(0, 2);
-                add = add == 1 ? add : -1;
-                for (int j = 0; j < _matrixDimension; ++j)
-                    encryptionMatrix[targetRow, j] += encryptionMatrix[sourceRow, j] * add;
-            }
             MatrixUMod(encryptionMatrix, Alphabet.Count);
             return encryptionMatrix;
+        }
+
+        private void AddRows(DenseMatrix matrix, int sourceRow, int targetRow)
+        {
+            for (int j = 0; j < _matrixDimension; ++j)
+                matrix[targetRow, j] += matrix[sourceRow, j];
         }
 
         /// <summary>
