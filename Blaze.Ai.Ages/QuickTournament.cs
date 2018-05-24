@@ -3,16 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Ages
+namespace Blaze.Ai.Ages
 {
     class QuickTournament
     {
         //What happens is that the Evaluator has two call-backs
         // evaluator: call this to tell the Fighter what to evaluate
         // master: call this to tell the overall algorithm that a full evaluation of the
-        // 			population was completed.
-        //	
-        //	Population evaluation resolves in a quick-sort tournament.
+        //      population was completed.
+        //
+        // Population evaluation resolves in a quick-sort tournament.
         // Pick a random individual and test it against every other.
         // The better get thrown in one group and the worse in another.
         // Repeat which each sub-group ( O(nlog(n) )
@@ -23,182 +23,195 @@ namespace Ages
         //	with callback.Execute ( A - B ) or callback.Execute ( A > B )
         //master: A function to call to let the object owner that the total evaluation was completed 
 
-        List<IIndividual> mArr;
-        int begin ;
-        int end ;
-        IIndividual pivotVal ;
-        int pointing = 0;
-        List<IIndividual> ArrBetter ;
-        List<IIndividual> ArrWorse ;
-        Evaluate Compare;  
-        OnTournamentComplete Master;
+        List<IIndividual> _individuals;
+        int _begin;
+        int _end;
+        IIndividual _pivotIndividual;
+        int _pivotIndex = 0;
+        List<IIndividual> _betterIndividuals;
+        List<IIndividual> _worseIndividuals;
+        CompareEvaluate Compare;
+        TournamentComplete OnCompleteCallBack;
+
         bool _done;
         bool _executing;
-        public int CompCount { get { return _CompCount; } }
-        int _CompCount;
-        public int DrawCount { get { return _DrawCount; } }
-        int _DrawCount;
-        int [] _Histogram ;
-        
-        
-        private struct QuickSortNextPair { public int begin; public int end; public QuickSortNextPair(int begin, int end) { this.begin = begin; this.end = end; } }
-        List<QuickSortNextPair> queue;
-        int queuepointer;
-        
-        public QuickTournament(List<IIndividual> arr, Evaluate evaluator,OnTournamentComplete  master)
+
+        public int CompCount { get; private set; }
+        /// <summary>
+        /// Number of draws. As the population reaches an optimum
+        /// this will increase, since there will be stagnation
+        /// </summary>
+        public int DrawCount { get; private set; }
+
+        int[] _histogram;
+
+
+        private struct QuickSortPair
         {
-	        //std vals
-	        this.mArr = arr;
-	        this.begin = 0;
-	        this.end = mArr.Count -1;
-	
-	        //piv vals
-	        var pivot = Utils.RandomInt(0,mArr.Count);
-	        pivotVal = mArr[pivot];
-          
-	        _swap(mArr,this.end,pivot);
-	
-	        //changing vals
-	        this.pointing = 0;
-	        this.ArrBetter = new List<IIndividual>();
-	        this.ArrWorse = new List<IIndividual>();
-	        this.queue = new List<QuickSortNextPair>();
-	        this.queuepointer = 0;
-	        this.queue.Add( new QuickSortNextPair(0,this.end)  );
-	
-	        //callbacks
-	        this.Compare = evaluator; //Roughly speakin is A > B 
-	        this.Master = master;
-	
-	        //check var
-	        this._done = false;
-	
-	        this._executing = false;
-	        this._CompCount = 0;
-	        this._DrawCount = 0;
-	
-	        /*0-9,10-19,20-29,30-39,40-49,50-59, 60+*/
-	        this._Histogram = new int [] {0, 0, 0, 0, 0, 0, 0};
-	        Console.WriteLine("Current Pivot is " + this.pivotVal.Name);
+            public int Begin;
+            public int End;
+            public QuickSortPair(int begin, int end)
+            {
+                Begin = begin;
+                End = end;
+            }
         }
 
-        void Evaluate (float score)
-        {
-	        if(!this._done)
-	        {
-		        this._CompCount++;
-		        if(score > 0 )
-		        {
-			        this.ArrBetter.Add(this.mArr[this.pointing]);
-		        }
-		        else 
-		        {
-			        this.ArrWorse.Add(this.mArr[this.pointing]);
+        List<QuickSortPair> _queue;
+        int _queueIndex;
 
-			        if(score == 0)
-				        this._DrawCount++;
-		        }
-		        //scope to add stuff to histogram
-		        {
-			        var posScore = (score > 0) ? score: - score;
-			        var histInd = (int) Math.Floor(posScore / 10);
-			        histInd = (histInd > 6 ? 6 : histInd);
-			        this._Histogram[histInd] += 1;
-		        }
-		        this.pointing++;
-		        if(this.pointing >= this.end)
-		        {
-                var pivPos = -1;
-                {//Reorder array
-			              //Untouched first chunk
-			              var Temp = new List<IIndividual>();
-			              for(var ii = 0; ii < this.begin;++ii)
-			              {
-                    Temp.Add(this.mArr[ii]);
-			              }
-			              //Worse than pivot
-			              Temp.AddRange(this.ArrWorse);
-                    pivPos = Temp.Count;
-			              //Pivot
-			              Temp.Add(pivotVal);
-                    //Better than pivot and the other untouched better chunk
-                    Temp.AddRange(ArrBetter);
-                    // Second untouched chunk
-                    for(var ii = end+1; ii < mArr.Count;++ii)
-			              {
-                    Temp.Add(this.mArr[ii]);
-			              }
-              
-			              mArr = Temp;
+        public QuickTournament(List<IIndividual> arr, CompareEvaluate evaluator, TournamentComplete master)
+        {
+            //std vals
+            _individuals = arr;
+            _begin = 0;
+            _end = _individuals.Count - 1;
+
+            //piv vals
+            var pivot = Utils.RandomInt(0, _individuals.Count);
+            _pivotIndividual = _individuals[pivot];
+
+            _swap(_individuals, _end, pivot);
+
+            //changing vals
+            _pivotIndex = 0;
+            _betterIndividuals = new List<IIndividual>();
+            _worseIndividuals = new List<IIndividual>();
+            _queue = new List<QuickSortPair>();
+            _queueIndex = 0;
+            _queue.Add(new QuickSortPair(0, _end));
+
+            //callbacks
+            Compare = evaluator; //Roughly speakin is A > B 
+            OnCompleteCallBack = master;
+
+            //check var
+            _done = false;
+
+            _executing = false;
+            CompCount = 0;
+            DrawCount = 0;
+
+            /*0-9,10-19,20-29,30-39,40-49,50-59, 60+*/
+            _histogram = new int[] { 0, 0, 0, 0, 0, 0, 0 };
+            Console.WriteLine("Current Pivot is " + _pivotIndividual.Name);
+        }
+
+        void Evaluate(float score)
+        {
+            if (!_done)
+            {
+                CompCount++;
+                if (score > 0)
+                {
+                    _betterIndividuals.Add(_individuals[_pivotIndex]);
                 }
-			        //Add execution queue if relevant (more than 1 individual left to fight)
-			        if(begin < pivPos-1)
-				        queue.Add(new QuickSortNextPair( begin, pivPos-1) );
-			        if(pivPos + 1 < end)
-				        queue.Add(new QuickSortNextPair( pivPos+1,end));
-			
-			
-			        this.queuepointer++;
-			        if(this.queuepointer < this.queue.Count)
-			        {
-				        //Reset all values taking into consideration the queue
-				        this.begin = this.queue[this.queuepointer].begin;
-				        this.end = this.queue[this.queuepointer].end;
-				        var pivot = Utils.RandomInt(this.begin,this.end+1);
-				        this.pivotVal = this.mArr[pivot];
-				        _swap(this.mArr,this.end,pivot);
-				        this.pointing = this.begin;
-				        this.ArrBetter = new List<IIndividual>();
-				        this.ArrWorse = new List<IIndividual>();
-			        }
-			        else
-			        {
-				        this._done = true;
-			        }
-				
-		        }
-		        //Call-back evaluator to continue
-		        if(_done)
-		        {
-			        _executing = false;
-			        Master(mArr) ;//Tell the master algorithm this the evaluation is complete. Send it the "sorted" array.
-		        }
-	        }
-	        else
-		        Console.WriteLine("Evaluation already complete");
+                else
+                {
+                    _worseIndividuals.Add(_individuals[_pivotIndex]);
+
+                    if (score == 0)
+                        DrawCount++;
+                }
+                //scope to add stuff to histogram
+                {
+                    var posScore = (score > 0) ? score : -score;
+                    var histInd = (int)Math.Floor(posScore / 10);
+                    histInd = (histInd > 6 ? 6 : histInd);
+                    _histogram[histInd] += 1;
+                }
+                _pivotIndex++;
+                if (_pivotIndex >= _end)
+                {
+                    var pivPos = -1;
+                    {//Reorder array
+                     //Untouched first chunk
+                        var Temp = new List<IIndividual>();
+                        for (var ii = 0; ii < _begin; ++ii)
+                        {
+                            Temp.Add(_individuals[ii]);
+                        }
+                        //Worse than pivot
+                        Temp.AddRange(_worseIndividuals);
+                        pivPos = Temp.Count;
+                        //Pivot
+                        Temp.Add(_pivotIndividual);
+                        //Better than pivot and the other untouched better chunk
+                        Temp.AddRange(_betterIndividuals);
+                        // Second untouched chunk
+                        for (var ii = _end + 1; ii < _individuals.Count; ++ii)
+                        {
+                            Temp.Add(_individuals[ii]);
+                        }
+
+                        _individuals = Temp;
+                    }
+                    //Add execution queue if relevant (more than 1 individual left to fight)
+                    if (_begin < pivPos - 1)
+                        _queue.Add(new QuickSortPair(_begin, pivPos - 1));
+                    if (pivPos + 1 < _end)
+                        _queue.Add(new QuickSortPair(pivPos + 1, _end));
+
+
+                    _queueIndex++;
+                    if (_queueIndex < _queue.Count)
+                    {
+                        //Reset all values taking into consideration the queue
+                        _begin = _queue[_queueIndex].Begin;
+                        _end = _queue[_queueIndex].End;
+                        var pivot = Utils.RandomInt(_begin, _end + 1);
+                        _pivotIndividual = _individuals[pivot];
+                        _swap(_individuals, _end, pivot);
+                        _pivotIndex = _begin;
+                        _betterIndividuals = new List<IIndividual>();
+                        _worseIndividuals = new List<IIndividual>();
+                    }
+                    else
+                    {
+                        _done = true;
+                    }
+
+                }
+                //Call-back evaluator to continue
+                if (_done)
+                {
+                    _executing = false;
+                    OnCompleteCallBack(_individuals);//Tell the master algorithm this the evaluation is complete. Send it the "sorted" array.
+                }
+            }
+            else
+                Console.WriteLine("Evaluation already complete");
         }
 
 
-        
+
         //Start the evaluator by calling the call-back with the required parameters
         //Two objects two compare and the object to call-back the score from
         //Evaluator.prototype.Start = function()
         //{
-        //  this.Executing = true;
-        //  this.Continue(this.Arr[this.pointing],this.pivotVal, this);
+        //  Executing = true;
+        //  Continue(Arr[pointing],pivotVal, this);
         //}
 
         public void Start()
         {
-            this._executing = true;
+            _executing = true;
             while (!_done)
-            { 
-              var score = Compare(this.mArr[this.pointing], this.pivotVal);
-              Evaluate(score);
+            {
+                var score = Compare(_individuals[_pivotIndex], _pivotIndividual);
+                Evaluate(score);
             }
         }
 
         //helper swap function.
-        static void _swap (List<IIndividual> arr, int a,int b)
+        static void _swap(List<IIndividual> arr, int a, int b)
         {
-	        var t = arr[a];
-	        arr[a] = arr[b];
-	        arr[b] = t;
+            var t = arr[a];
+            arr[a] = arr[b];
+            arr[b] = t;
         }
 
     }//endclass
-
-
 
 }
 

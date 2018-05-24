@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace AiLibrary
+namespace Blaze.Ai
 {
     public delegate List<object> FindAllPossibleMoves(object state);
 

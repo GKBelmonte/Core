@@ -1,15 +1,15 @@
-﻿using System;
+﻿using Blaze.Ai;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace GotchaEngine
+namespace Blaze.Games.Gotcha
 {
     public static class Evaluators
     {
-
-        public static AiLibrary.GetFitnessForState FitnessEvaluatorLevel2
-        { get { return new AiLibrary.GetFitnessForState(fitnessEvaluatorLevel2); } }
+        public static GetFitnessForState FitnessEvaluatorLevel2
+        { get { return new GetFitnessForState(fitnessEvaluatorLevel2); } }
 
         static float fitnessEvaluatorLevel2(object state, object parameters)
         {
@@ -38,8 +38,8 @@ namespace GotchaEngine
         }
 
 
-        public static AiLibrary.GetFitnessForState FitnessEvaluatorLevel1
-        { get { return new AiLibrary.GetFitnessForState(fitnessEvaluatorLevel1); } }
+        public static GetFitnessForState FitnessEvaluatorLevel1
+        { get { return new GetFitnessForState(fitnessEvaluatorLevel1); } }
 
         static float fitnessEvaluatorLevel1(object state, object parameters)
         {
@@ -72,8 +72,8 @@ namespace GotchaEngine
 
         static object[] paras = (object[])new float[][] { new float[] { 5, 9, 9, 5 }, new float[] { 9, 11, 11, 9 }, new float[] { 9, 11, 11, 9 }, new float[] { 5, 9, 9, 5 } };
 
-        public static AiLibrary.Prioritizer Prioritizer
-        { get { return  new AiLibrary.Prioritizer(fPrioritizer); } }
+        public static Prioritizer Prioritizer
+        { get { return  new Prioritizer(fPrioritizer); } }
 
         static void fPrioritizer(List<object> mves, bool maximizing)
         {
@@ -124,8 +124,8 @@ namespace GotchaEngine
         }
 
 
-        public static AiLibrary.GetFitnessForState FitnessEvaluatorAvalaibleMoves
-        { get { return new AiLibrary.GetFitnessForState(fitnessEvaluatorAvalaibleMoves); } }
+        public static GetFitnessForState FitnessEvaluatorAvalaibleMoves
+        { get { return new GetFitnessForState(fitnessEvaluatorAvalaibleMoves); } }
 
         static float fitnessEvaluatorAvalaibleMoves(object state, object parameters)
         {
@@ -142,8 +142,8 @@ namespace GotchaEngine
         }
 
 
-        public static AiLibrary.GetFitnessForState FitnessEvaluatorLevel3
-        { get { return new AiLibrary.GetFitnessForState(fitnessEvaluatorLevel3); } }
+        public static GetFitnessForState FitnessEvaluatorLevel3
+        { get { return new GetFitnessForState(fitnessEvaluatorLevel3); } }
 
         static float fitnessEvaluatorLevel3(object state, object parameters)
         {

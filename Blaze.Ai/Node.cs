@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace AiLibrary
+namespace Blaze.Ai
 {
     class Node
     {
@@ -25,7 +25,5 @@ namespace AiLibrary
             children = new List<Node>();
             mState = state;
         }
-
     }
-
 }

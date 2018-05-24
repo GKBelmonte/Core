@@ -1,17 +1,18 @@
 ﻿//#define moveproviderBench
 //#define _moveBench
 //#define _getCellsBench
+using Blaze.Ai;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace GotchaEngine
+namespace Blaze.Games.Gotcha
 {
     public enum PlayerColor { Black = -1, White = 1} ;
     public enum Direction { Up=0, Down=4, Left=6, Right=2, UpLeft=7, UpRight=1, DownLeft=5, DownRight=3} ;
     
-    public class Engine : AiLibrary.IReadableState
+    public class Engine : IReadableState
     {
         struct MoveInfo {
            public int row;
@@ -27,23 +28,33 @@ namespace GotchaEngine
         PlayerColor _turn ;
         bool _gameOver ;
         MoveInfo _lastMove;
-        public AiLibrary.AiLibrary thinker;
-        public List<Board> mCtrlZStack;
+        public AdversarialAi _Thinker;
+        public List<Board> _undoStack;
         
         #region Constructors
-        public Engine() : this(new AiLibrary.AiLibrary(MoveProvider, Evaluators.FitnessEvaluatorLevel2, 7,
-            (object[])new float[][] { new float[] { 5, 9, 9, 5 }, new float[] { 9, 11, 11, 9 }, new float[] { 9, 11, 11, 9 }, new float[] { 5, 9, 9, 5 } }
-            , Evaluators.Prioritizer) )
+        public Engine() : this(
+            new AdversarialAi(
+                MoveFinder: MoveProvider, 
+                Evaluator: Evaluators.FitnessEvaluatorLevel2, 
+                depth: 7,
+                EvalParams: (object[])new float[][] 
+                {
+                    new float[] { 5, 9, 9, 5 },
+                    new float[] { 9, 11, 11, 9 },
+                    new float[] { 9, 11, 11, 9 },
+                    new float[] { 5, 9, 9, 5 }
+                }, 
+                queuePrioritizer: Evaluators.Prioritizer))
         {
         }
 
-        public Engine(AiLibrary.AiLibrary mind)
+        public Engine(AdversarialAi mind)
         {
             _turn = PlayerColor.Black;
             _gameOver = false;
             _board = new Board();
-            thinker = mind;
-            mCtrlZStack = new List<Board>();
+            _Thinker = mind;
+            _undoStack = new List<Board>();
         }
 
         public Engine(Engine other)
@@ -51,8 +62,8 @@ namespace GotchaEngine
             _turn = other._turn;
             _gameOver = other._gameOver;
             _board = new Board(other.Board);
-            thinker = null;//When creating copies we should not create a new AiLibrary
-            mCtrlZStack = null; //WHen creating copies dont allocate a CtrlZ stack
+            _Thinker = null;//When creating copies we should not create a new AiLibrary
+            _undoStack = null; //WHen creating copies dont allocate a CtrlZ stack
         }
         #endregion
 
@@ -94,10 +105,10 @@ namespace GotchaEngine
 
         public void Undo()
         {
-            _board = mCtrlZStack[mCtrlZStack.Count - 1];
-            mCtrlZStack.RemoveAt(mCtrlZStack.Count - 1);
-            _board = mCtrlZStack[mCtrlZStack.Count - 1];
-            mCtrlZStack.RemoveAt(mCtrlZStack.Count - 1);
+            _board = _undoStack[_undoStack.Count - 1];
+            _undoStack.RemoveAt(_undoStack.Count - 1);
+            _board = _undoStack[_undoStack.Count - 1];
+            _undoStack.RemoveAt(_undoStack.Count - 1);
         }
 
         #region MOVE FUNCTIONS
@@ -207,7 +218,7 @@ namespace GotchaEngine
             }
             else
             {
-                mCtrlZStack.Add(_oldBoard);
+                _undoStack.Add(_oldBoard);
                 return "OK";
             }
         }
@@ -407,10 +418,6 @@ namespace GotchaEngine
             return _gameOver;
         }
 
-
-
-
-        
         private static Direction GetDirectionFromCoordinatePair( int kk, int ll)
         {
             if (0 > kk)//General up
@@ -452,7 +459,7 @@ namespace GotchaEngine
         {
             double time = 0;
             //var move =  (Engine)thinker.AlphaBeta(this, _turn == PlayerColor.White, ref time);
-            var move = (Engine)thinker.AlphaBetaTimeLimited(this, _turn == PlayerColor.White, timeout, ref time);
+            var move = (Engine)_Thinker.AlphaBetaTimeLimited(this, _turn == PlayerColor.White, timeout, ref time);
             
             totalTime += time;
             this.Move(move._lastMove.row, move._lastMove.col, move._lastMove.dir);
@@ -493,10 +500,10 @@ namespace GotchaEngine
             b_moveproviderMove = 0;
         }
 #endif
-        public static AiLibrary.FindAllPossibleMoves MoveProvider
-        { get { return new AiLibrary.FindAllPossibleMoves(moveProvider); } }
+        public static FindAllPossibleMoves MoveProvider
+        { get { return new FindAllPossibleMoves(_MoveProvider); } }
 
-        static List<object> moveProvider(object state)
+        private static List<object> _MoveProvider(object state)
         {
 #if moveproviderBench
             var benchStart = DateTime.Now;

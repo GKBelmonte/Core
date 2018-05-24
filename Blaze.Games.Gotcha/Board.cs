@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace GotchaEngine
+namespace Blaze.Games.Gotcha
 {
     public class Board
     {

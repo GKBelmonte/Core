@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Ages
+namespace Blaze.Ai.Ages
 {
     public static class Utils
     {
@@ -13,7 +13,6 @@ namespace Ages
         {
 	        return rand.Next(p1,p2);
         }
-
 
         //Given a probability p, generates a random number, and
         //checks if the probability passes as true or false 
@@ -29,15 +28,15 @@ namespace Ages
         }
         static Random rand = new Random();
         //Given a standard deviation s, return a random value around 0 with that standard deviation
-        public static float GausianNoise(float s) 
+        public static double GausianNoise(double s) 
         {
-	        //3 random numbers from -1 to 1.
+	        //5 random numbers from -1 to 1.
 	        var d0 = rand.NextDouble()*2.0 - 1.0;
 	        var d1 = rand.NextDouble()*2.0 - 1.0;
 	        var d2 = rand.NextDouble()*2.0 - 1.0;
 	        var d3 = rand.NextDouble()*2.0 - 1.0;
 	        var d4 = rand.NextDouble()*2.0 - 1.0;
-	        return (float)((d0 + d1 + d2 + d3 + d4)*s);
+	        return ((d0 + d1 + d2 + d3 + d4)*s);
 	
         }
     }

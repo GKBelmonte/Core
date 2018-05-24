@@ -8,9 +8,9 @@ using System.Threading;
 using System.IO;
 
 
-namespace AiLibrary
+namespace Blaze.Ai
 {
-    public class AiLibrary
+    public class AdversarialAi
     {
         #region Members
         int maxDepth;
@@ -29,16 +29,16 @@ namespace AiLibrary
 
 
         #region Constructors
-        public AiLibrary(FindAllPossibleMoves MoveFinder, GetFitnessForState Evaluator, int depth, object[] EvalParams)
+        public AdversarialAi(FindAllPossibleMoves MoveFinder, GetFitnessForState Evaluator, int depth, object[] EvalParams)
             : this(MoveFinder, Evaluator, depth, EvalParams, null)
         {
         }
-        public AiLibrary(FindAllPossibleMoves MoveFinder, GetFitnessForState Evaluator, int depth, object[] EvalParams, Prioritizer queuePrioritizer)
+        public AdversarialAi(FindAllPossibleMoves MoveFinder, GetFitnessForState Evaluator, int depth, object[] EvalParams, Prioritizer queuePrioritizer)
             : this(MoveFinder, Evaluator, depth, EvalParams, queuePrioritizer, null)
         {
         }
 
-        public AiLibrary(FindAllPossibleMoves MoveFinder, GetFitnessForState Evaluator, int depth, object[] EvalParams, Prioritizer queuePrioritizer, OnMoveReady callback)
+        public AdversarialAi(FindAllPossibleMoves MoveFinder, GetFitnessForState Evaluator, int depth, object[] EvalParams, Prioritizer queuePrioritizer, OnMoveReady callback)
         {
 #if logging
             FullLog = new List<List<string>>(depth + 1);  

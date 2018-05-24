@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace GotchaEngine
+namespace Blaze.Games.Gotcha
 {
     class Program
     {
@@ -118,11 +118,11 @@ namespace GotchaEngine
                     Console.WriteLine(string.Format("AI made the move {0}", aiMove));
                     var aiMoveStd = AiMoveToStd(aiMove);
                     Console.WriteLine(aiMoveStd);
-                    Console.WriteLine("Pruned total : {0} ; Evaluated total : {1}", e.thinker.SavedChildrenTotal, e.thinker.EvaluatedTotal);
+                    Console.WriteLine("Pruned total : {0} ; Evaluated total : {1}", e._Thinker.SavedChildrenTotal, e._Thinker.EvaluatedTotal);
                     // Engine.thinker.PrintBench();
 
                     //Engine.PrintMoveproviderBench();
-                     e.thinker.LogTree();
+                     e._Thinker.LogTree();
                     //  Engine.PrintMoveBench();
                     //  Engine.PrintGetBench();
 
