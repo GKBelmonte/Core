@@ -163,13 +163,13 @@ namespace Blaze.Ai.Ages
             {
                 if (_GenerationCount <= _NumberOfGenerations)
                 {
-
                     Thread t = new Thread(new ThreadStart(OneGenerationAsync));
                     t.Start();
-
                 }
                 else
+                {
                     Console.WriteLine(_GenerationCount + " generations completed");
+                }
             }
         }
 

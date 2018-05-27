@@ -25,6 +25,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blaze.Games.Gotcha.GA", "Bl
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blaze.Ai.Ages.Tests", "Blaze.Ai.Ages.Tests\Blaze.Ai.Ages.Tests.csproj", "{99015117-4A10-40DD-BB44-23B83FBC8C84}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blaze.Ai.Ages.Viewer", "Blaze.Ai.Ages.Viewer\Blaze.Ai.Ages.Viewer.csproj", "{F9062B58-3431-4A41-AA79-AC300DFE206F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -117,6 +119,14 @@ Global
 		{99015117-4A10-40DD-BB44-23B83FBC8C84}.Release|Any CPU.Build.0 = Release|Any CPU
 		{99015117-4A10-40DD-BB44-23B83FBC8C84}.Release|x86.ActiveCfg = Release|Any CPU
 		{99015117-4A10-40DD-BB44-23B83FBC8C84}.Release|x86.Build.0 = Release|Any CPU
+		{F9062B58-3431-4A41-AA79-AC300DFE206F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F9062B58-3431-4A41-AA79-AC300DFE206F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F9062B58-3431-4A41-AA79-AC300DFE206F}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{F9062B58-3431-4A41-AA79-AC300DFE206F}.Debug|x86.Build.0 = Debug|Any CPU
+		{F9062B58-3431-4A41-AA79-AC300DFE206F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F9062B58-3431-4A41-AA79-AC300DFE206F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F9062B58-3431-4A41-AA79-AC300DFE206F}.Release|x86.ActiveCfg = Release|Any CPU
+		{F9062B58-3431-4A41-AA79-AC300DFE206F}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
