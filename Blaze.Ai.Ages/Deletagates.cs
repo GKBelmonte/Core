@@ -19,5 +19,5 @@ namespace Blaze.Ai.Ages
     public delegate float Evaluate(IIndividual pers);
     public delegate void TournamentComplete(List<IIndividual> sortedPop);
 
-    public delegate IIndividual Generate(Random r);
+    public delegate IIndividual Generate();
 }

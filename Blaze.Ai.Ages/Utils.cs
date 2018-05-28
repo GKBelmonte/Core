@@ -37,7 +37,11 @@ namespace Blaze.Ai.Ages
 	        var d3 = rand.NextDouble()*2.0 - 1.0;
 	        var d4 = rand.NextDouble()*2.0 - 1.0;
 	        return ((d0 + d1 + d2 + d3 + d4)*s);
-	
+        }
+
+        public static void SetRandomSeed(int seed)
+        {
+            rand = new Random(seed);
         }
     }
 }

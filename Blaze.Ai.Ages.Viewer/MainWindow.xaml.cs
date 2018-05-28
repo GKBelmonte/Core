@@ -1,5 +1,8 @@
-﻿using Blaze.Core.Wpf;
+﻿using Blaze.Ai.Ages.Basic;
+using Blaze.Core.Wpf;
 using LiveCharts;
+using LiveCharts.Configurations;
+using LiveCharts.Defaults;
 using LiveCharts.Wpf;
 using System;
 using System.Collections.Generic;
@@ -37,18 +40,30 @@ namespace Blaze.Ai.Ages.Viewer
                 Interval = TimeSpan.FromMilliseconds(500),
             };
             _timer.Tick += Timer_Tick;
-            //_timer.Start();
         }
 
         private void Timer_Tick(object sender, EventArgs e)
         {
             _timer.Stop();
-            PolynomialIndividual champ = _series.GA.Generation();
-            float mse = champ.MseScore * 1000;
-            _series.Score.Values.Add((double)mse);
+            CartesianIndividual champ = _series.GA.Generation();
+            float mse = champ.Score.Value * 1000;
+            double logmse = Math.Log10(mse);
+            _series.Score.Values.Add(logmse);
             _timer.Start();
         }
 
+
+        private void PrintGen()
+        {
+            StringBuilder gen = new StringBuilder();
+            foreach (var ind in _series.GA.Ages.Population)
+            {
+                gen.AppendLine(string.Format("{0}\t{1}", ind.Name, ind.ToString()));
+            }
+            //Console.WriteLine(gen.ToString());
+            System.IO.File.WriteAllText(string.Format("Generation{0}.txt", 0), gen.ToString());
+
+        }
         DispatcherTimer _timer;
 
         private Series _series;
@@ -71,7 +86,11 @@ namespace Blaze.Ai.Ages.Viewer
         {
             public Series()
             {
-                SeriesCollection = new SeriesCollection
+                var mapper = Mappers.Xy<ObservablePoint>()
+                    .X(p => p.X)
+                    .Y(p => Math.Log10(p.Y));
+
+                SeriesCollection = new SeriesCollection()
                 {
                     new LineSeries
                     {
@@ -80,6 +99,8 @@ namespace Blaze.Ai.Ages.Viewer
                         Fill = Brushes.Transparent,
                     }
                 };
+
+                Formatter = y => Math.Pow(y, 10).ToString("N");
 
                 GA = new GA();
                 _actionText = "Start";
@@ -90,6 +111,8 @@ namespace Blaze.Ai.Ages.Viewer
             public SeriesCollection SeriesCollection { get; set; }
 
             public LineSeries Score => (LineSeries)SeriesCollection[0];
+
+            public Func<double, string> Formatter { get; set; }
 
             public string _actionText;
             public string ActionText
@@ -123,7 +146,5 @@ namespace Blaze.Ai.Ages.Viewer
                 }
             }
         }
-
-
     }
 }

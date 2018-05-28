@@ -33,12 +33,14 @@ namespace Blaze.Ai.Ages
             Generate generator,
             int popSize)
         {
-            _Population = new List<IIndividual>(popSize);
-            throw new NotImplementedException("Creating infered types not implemented");
-            //for(var ii = 0; ii < popSize; ++ii)
-            //{
-            // // mPopulation.Add(generateThisType.);
-            //}
+            Init(numberOfGenerations,
+                compareTwo,
+                null,
+                crossoverOp,
+                generator,
+                null);
+
+            Sow(generator, popSize);
         }
 
         public Ages(
@@ -48,7 +50,29 @@ namespace Blaze.Ai.Ages
             Generate generator,
             List<IIndividual> individuals)
         {
-            Init(numberOfGenerations, null, eval, crossOverOp, generator, individuals);
+            Init(numberOfGenerations, 
+                null, 
+                eval, 
+                crossOverOp, 
+                generator, 
+                individuals);
+        }
+
+        public Ages(
+            int numberOfGenerations,
+            Evaluate eval,
+            CrossOver crossOverOp,
+            Generate generator,
+            int popSize)
+        {
+            Init(numberOfGenerations, 
+                null, 
+                eval, 
+                crossOverOp, 
+                generator, 
+                null);
+
+            Sow(generator, popSize);
         }
 
         private void Init(
@@ -76,13 +100,18 @@ namespace Blaze.Ai.Ages
         }
 
         #region Properties and Members
+        public bool Maximize { get; set; }
+
         public IReadOnlyList<IIndividual> Population { get { return _Population; } }
         List<IIndividual> _Population;
 
         public IReadOnlyList<IIndividual> Champions { get { return _Champions; } }
         List<IIndividual> _Champions;
 
-        public bool Maximize { get; set; }
+        /// <summary>
+        /// If provided, will
+        /// </summary>
+        public Func<IIndividual, IIndividual, float> Distance { get; set; }
 
         QuickTournament _Tournament;
         
@@ -93,6 +122,7 @@ namespace Blaze.Ai.Ages
         private int _GenerationCount;
         private int _NumberOfGenerations;
         private bool _Async;
+        List<EvaluatedIndividual> _InternalPop;
 
         #endregion
 
@@ -101,13 +131,20 @@ namespace Blaze.Ai.Ages
             _GenerationCount = 0;
             while (_GenerationCount < _NumberOfGenerations)
             {
-                if (_Compare != null)
-                    TournamentGeneration();
-                else
-                    IndividualPerformanceGeneration();
+                Selection();
+
                 Reap();
-                _Champions.Add(_Population[0]);
+
+                Suvive();
             }
+        }
+
+        private void Selection()
+        {
+            if (_Compare != null)
+                TournamentGeneration();
+            else
+                IndividualPerformanceGeneration();
         }
 
         private void IndividualPerformanceGeneration()
@@ -126,7 +163,14 @@ namespace Blaze.Ai.Ages
             _Population = orderedIndividuals
                 .Select(i => i.Individual)
                 .ToList();
-            
+        }
+
+        private void Sow(Generate generator, int popSize)
+        {
+            _Population = Enumerable
+                .Range(0, popSize)
+                .Select(i => generator())
+                .ToList();
         }
 
         //Executes one generation
@@ -173,6 +217,32 @@ namespace Blaze.Ai.Ages
             }
         }
 
+        private void NichePenalty()
+        {
+            if (Distance == null)
+                return;
+            float[] penalties = new float[_Population.Count];
+
+            for (int i = 0; i < _Population.Count; ++i)
+            {
+                for(int j = 1; j < _Population.Count - 1; ++j)
+                {
+                    if (i == j)
+                        continue;
+                    float d = Distance(_Population[i], _Population[j]);
+
+                    float partialPenalty = (_Population.Count - i) / (d*d);
+                    penalties[j] += partialPenalty;
+
+                }
+            }
+        }
+
+        private void Suvive()
+        {
+            _Champions.Add(_Population[0]);
+        }
+
         private void PrintGen()
         {
             StringBuilder gen = new StringBuilder();
@@ -180,9 +250,14 @@ namespace Blaze.Ai.Ages
             {
                 gen.AppendLine(string.Format("{0}:{1}", ind.Name, ind.ToString()));
             }
-            //Console.WriteLine(gen.ToString());
+
             System.IO.File.WriteAllText(string.Format("Generation{0}.txt", _GenerationCount), gen.ToString());
         }
 
+        public struct EvaluatedIndividual
+        {
+            public IIndividual Individual;
+            public float Score;
+        }
     }
 }

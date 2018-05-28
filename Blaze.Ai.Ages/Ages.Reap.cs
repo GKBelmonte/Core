@@ -106,7 +106,7 @@ namespace Blaze.Ai.Ages
             //Fresh individuals for the failing percent
             for (var ii = elimateIndex; ii < pop.Count; ++ii)
             {
-                newPop.Add(_Generate(null));
+                newPop.Add(_Generate());
             }
 
             _Population = newPop;
@@ -133,6 +133,5 @@ namespace Blaze.Ai.Ages
         public int SurvivalRatio { get; }
 
         public int CrossOverRatio { get; }
-
     }
 }

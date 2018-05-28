@@ -13,7 +13,8 @@
             x:Name="_cartesianChart" 
             Series="{Binding SeriesCollection}" 
             LegendLocation="Right" 
-            Height="375">
+            Height="375"
+            DisableAnimations="True">
             <lvc:CartesianChart.AxisY >
                 <lvc:Axis Title="Score" ></lvc:Axis>
             </lvc:CartesianChart.AxisY>

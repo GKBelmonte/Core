@@ -47,7 +47,7 @@ namespace Blaze.Games.Gotcha.GA
                 1000,
                 new CompareEvaluate(Evaluate),
                 GotchaIndividual.GarboCrossoverOperator,
-                (r) => new GotchaIndividual(),
+                () => new GotchaIndividual(),
                 pop);
 
             myGA.GoThroughGenerationsSync();

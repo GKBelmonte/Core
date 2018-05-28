@@ -1,4 +1,5 @@
-﻿using Blaze.Core.Log;
+﻿using Blaze.Ai.Ages.Basic;
+using Blaze.Core.Log;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NUnit.Framework;
 using System;
@@ -12,140 +13,7 @@ namespace Blaze.Ai.Ages.Tests
     [TestClass]
     public class TestGA
     {
-        public class PolynomialIndividual : IIndividual
-        {
-            public double[] Factors { get; }
-            public PolynomialIndividual() : this(6) { }
-
-            public PolynomialIndividual(int order)
-            {
-                Name = IndividualTools.CreateName();
-                Factors = new double[order];
-                for (int i = 0; i < Factors.Length; ++i)
-                {
-                    Factors[i] = Utils.GausianNoise(5);
-                }
-            }
-
-            public PolynomialIndividual(PolynomialIndividual other) 
-            {
-                Name = IndividualTools.CreateName();
-                Factors = new double[other.Factors.Length];
-                for (int i = 0; i < Factors.Length; ++i)
-                    Factors[i] = other.Factors[i];
-            }
-
-            public string Name { get; }
-
-            public float MseScore { get; private set; }
-
-            private void Normalize()
-            {
-                double min = Factors[0], max = Factors[0];
-                for (int i = 1; i < Factors.Length; ++i)
-                {
-                    if (Factors[i] > max)
-                        max = Factors[i];
-                    if (Factors[i] < min)
-                        min = Factors[i];
-                }
-
-                double diff = max - min;
-                double epsilon = 0.00001;
-                if (Math.Abs(diff - epsilon) <  epsilon)
-                {
-                    diff = 1;
-                }
-
-                for (int i = 0; i < Factors.Length; ++i)
-                {
-                    double f = Factors[i];
-                    Factors[i] = (f - min) / diff;
-                }
-            }
-
-            public IIndividual Mutate(float probability, float sigma)
-            {
-                var newInd = new PolynomialIndividual(this);
-                for (int i = 0; i < Factors.Length; ++i)
-                {
-                    if (Utils.ProbabilityPass(probability))
-                        newInd.Factors[i] += Utils.GausianNoise(sigma);
-                }
-                return newInd;
-            }
-
-            public IIndividual Regenerate()
-            {
-                var ind = new PolynomialIndividual(Factors.Length);
-                for (int i = 0; i < Factors.Length; ++i)
-                {
-                    ind.Factors[i] = Utils.GausianNoise(5);
-                }
-                return ind;
-            }
-
-            public static IIndividual CrossOver(List<IIndividual> parents)
-            {
-                var parent = (PolynomialIndividual)parents[0];
-                var newInd = new PolynomialIndividual(parent.Factors.Length);
-                for (var ii = 0; ii < newInd.Factors.Length; ++ii)
-                {
-                    //33% chance of taking single random parent gene, 66% chance of taking average of all parents
-                    var dice = Utils.RandomInt(0, 3);
-                    if (dice < 1)
-                    {
-                        //Take average of parents respective alleles
-                        double tot = 0.0f;
-                        for (var kk = 0; kk < parents.Count; ++kk)
-                        {
-                            var par = (PolynomialIndividual)parents[kk];
-                            tot += par.Factors[kk];
-                        }
-                        tot = tot / parents.Count;
-                        newInd.Factors[ii] = tot;
-                    }
-                    else //Take single parent gene randomly
-                    {
-                        var par = (PolynomialIndividual)parents[Utils.RandomInt(0, parents.Count)];
-                        newInd.Factors[ii] = par.Factors[ii];
-                    }
-                }
-
-                return newInd;
-            }
-
-            public float Eval(double[][] powsOfXforAllX, double[] expectedVals)
-            {
-                Debug.Assert(expectedVals.Length == powsOfXforAllX.Length);
-                double mse = 0;
-                for (int i = 0; i < expectedVals.Length; ++i)
-                {
-                    double[] powersOfX = powsOfXforAllX[i];
-                    double polynomialEval = 0;
-                    for (int j = 0; j < powersOfX.Length; ++j)
-                    {
-                        polynomialEval += powersOfX[j] * Factors[j];
-                    }
-
-                    double diff = (polynomialEval - expectedVals[i]);
-
-                    mse += diff * diff;
-                }
-
-                mse = mse / expectedVals.Length;
-                MseScore = (float)mse;
-                return (float)mse;
-            }
-
-            public override string ToString()
-            {
-                return string.Join(",", Factors.Select(f => f.ToString("0.000")));
-            }
-        }
-
         ILogger Log = new ConsoleLogger();
-
 
         //[Test]
         [TestMethod]
@@ -171,7 +39,7 @@ namespace Blaze.Ai.Ages.Tests
 
             var pop = Enumerable
                 .Range(0, populationSize)
-                .Select(i => new PolynomialIndividual(polynomialOrder))
+                .Select(i => new CartesianIndividual(polynomialOrder))
                 .Cast<IIndividual>()
                 .ToList();
 
@@ -198,9 +66,9 @@ namespace Blaze.Ai.Ages.Tests
                 .ToArray();
 
             var ages = new Ages(genCount,
-                new Evaluate((i) => ((PolynomialIndividual)i).Eval(allPowsOfX, expectedValues)),
-                PolynomialIndividual.CrossOver,
-                new Generate((r) => new PolynomialIndividual(polynomialOrder)),
+                new Evaluate((i) => ((CartesianIndividual)i).PolynomialEval(allPowsOfX, expectedValues)),
+                CartesianIndividual.CrossOver,
+                new Generate(() => new CartesianIndividual(polynomialOrder)),
                 pop);
 
             ages.GoThroughGenerationsSync();
