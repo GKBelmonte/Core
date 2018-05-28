@@ -302,6 +302,26 @@ namespace Blaze.Cryptography.Tests
         }
 
         [TestMethod]
+        public void HillCypherBasicTest()
+        {
+            var hill = new HillCypher();
+            hill.Alphabet = "0123456789".ToCharArray();
+            string text = "0123";
+            string cypherText = hill.Encrypt(text, "K");
+            string decypherText = hill.Decrypt(cypherText, "K");
+            Log.Info($"Plain Text: {text}");
+            Log.Info($"Cypher Text: {cypherText}");
+            Log.Info($"Decypher Text: {decypherText}");
+            Assert.AreEqual(text, decypherText);
+        }
+
+        [TestMethod]
+        public void HillCypherTest()
+        {
+            SimpleTest(typeof(HillCypher), TestType.Full);
+        }
+        
+        [TestMethod]
         public void BasicMazeCypher()
         {
             var c = new MazeCypher();
@@ -327,27 +347,6 @@ namespace Blaze.Cryptography.Tests
 
                 Assert.AreEqual(plainStr, decypherStr);
             }
-        }
-        
-        [TestMethod]
-        public void HillCypherBasicTest()
-        {
-            var hill = new HillCypher();
-            hill.Alphabet = "0123456789".ToCharArray();
-            string text = "0123";
-            string cypherText = hill.Encrypt(text, "K");
-            string decypherText = hill.Decrypt(cypherText, "K");
-            Log.Info($"Plain Text: {text}");
-            Log.Info($"Cypher Text: {cypherText}");
-            Log.Info($"Decypher Text: {decypherText}");
-
-            Assert.AreEqual(text, decypherText);
-        }
-
-        [TestMethod]
-        public void HillCypherTest()
-        {
-            SimpleTest(typeof(HillCypher), TestType.Full);
         }
 
         [TestMethod]
