@@ -318,6 +318,34 @@ namespace Blaze.Cryptography.Tests
         {
             SimpleTest(typeof(HillCypher), TestType.Full);
         }
+        
+        [TestMethod]
+        public void BasicMazeCypher()
+        {
+            var c = new MazeCypher();
+
+            var testInfos = new[]
+            {
+                new {Str = "HELLO, WORLD", Col = 4 } ,
+                new {Str = "A MAZE IS A COLLECTION OF PATHS, TYPICALLY FROM A START TO N END", Col = 8 } ,
+            };
+            foreach (var testInfo in testInfos)
+            {
+                string plainStr = testInfo.Str;
+                byte[] plainBytes = plainStr.ToByteArray();
+                var keystream = new Blaze.Cryptography.Rng.Marsaglia.MSSRMRng(8);
+                Maze m;
+                byte[] cypherBytes = c.Encrypt(plainBytes, testInfo.Col, keystream, out m);
+                string cypherStr = cypherBytes.ToTextString();
+                Log.Info(cypherStr);
+                Log.Info(m);
+                keystream = new Blaze.Cryptography.Rng.Marsaglia.MSSRMRng(8);
+                byte[] decypher = c.Decrypt(cypherBytes, testInfo.Col, keystream);
+                string decypherStr = decypher.ToTextString();
+
+                Assert.AreEqual(plainStr, decypherStr);
+            }
+        }
 
         [TestMethod]
         public void NullCypher()

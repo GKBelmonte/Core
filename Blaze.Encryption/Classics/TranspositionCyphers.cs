@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Blaze.Core.Extensions;
+using Blaze.Core.Collections;
 
 namespace Blaze.Cryptography.Classics
 {
@@ -26,7 +27,7 @@ namespace Blaze.Cryptography.Classics
             return cypher;
         }
 
-        public byte[] Encrypt(byte[] plain, int columnCount)
+        public virtual byte[] Encrypt(byte[] plain, int columnCount)
         {
             int[] plainIx = ByteToIndices(plain);
 
@@ -59,7 +60,7 @@ namespace Blaze.Cryptography.Classics
             return plain;
         }
 
-        public byte[] Decrypt(byte[] cypher, int columnCount)
+        public virtual byte[] Decrypt(byte[] cypher, int columnCount)
         {
             int[] cypherIx = ByteToIndices(cypher);
 
@@ -383,7 +384,10 @@ namespace Blaze.Cryptography.Classics
         }
     }
 
-
+    /// <summary>
+    /// If transposition cyphers are all about moving plain text characters around
+    /// shuffling them in a determinstic manner is the best you can get
+    /// </summary>
     public class ShuffleCypher : TranspositionCypher
     {
         public override byte[] Encrypt(byte[] plain, byte[] key)
@@ -425,6 +429,251 @@ namespace Blaze.Cryptography.Classics
             }
 
             return IndicesToBytes(plainIxs);
+        }
+    }
+
+    public class Maze : Array2D<Maze.Cell>
+    {
+        protected Maze(int rows, int cols) : base(rows, cols) { }
+
+        public enum Cell : byte
+        {
+            OpenLeft = 1 << 0,
+            OpenTop = 1 << 1,
+            OpenRight = 1 << 2,
+            OpenBot = 1 << 3,
+            Visited = 1 << 4
+        }
+
+        public static Maze MakeMaze(int rows, int cols, IRng rng, out List<Tuple<int, int>> visitOrder, bool printSteps = false)
+        {
+            var arr = new Maze(rows + 2, cols + 2);
+
+            //visit first and last row
+            for (int i = 0; i < arr.RowSize; ++i)
+            {
+                arr[0, i] = Cell.Visited;
+                arr[arr.RowCount - 1, i] = Cell.Visited;
+            }
+
+            //visit first and last column
+            for (int i = 0; i < arr.ColumnSize; ++i)
+            {
+                arr[i, 0] = Cell.Visited;
+                arr[i, arr.ColumnCount - 1] = Cell.Visited;
+            }
+            visitOrder = new List<Tuple<int, int>>();
+
+            DfsMaze(arr, 1, 1, rng, visitOrder, printSteps);
+
+            visitOrder = visitOrder
+                .Select(s => new Tuple<int, int>(s.Item1 - 1, s.Item2 - 1))
+                .ToList();
+
+            var res = new Maze(rows, cols);
+
+            for (int i = 0; i < rows; ++i)
+                for (int j = 0; j < cols; ++j)
+                    res[i, j] = arr[i + 1, j + 1];
+
+            if (printSteps)
+                Console.WriteLine(res);
+
+            return res;
+        }
+
+        private static void DfsMaze(
+            Maze cells,
+            int i,
+            int j,
+            IRng rng,
+            List<Tuple<int, int>> visitOrder, bool
+            print)
+        {
+            if (print)
+                Console.WriteLine(cells);
+
+            visitOrder.Add(new Tuple<int, int>(i, j));
+            List<Tuple<int, int, Cell>> neighs = GetUnvistedNeighbours(cells, i, j);
+            cells[i, j] |= Cell.Visited;
+            while (neighs.Any())
+            {
+                var pickedNeigh = neighs[rng.Next(0, neighs.Count)];
+                int x = pickedNeigh.Item1, y = pickedNeigh.Item2;
+                cells[i, j] |= pickedNeigh.Item3;
+                cells[x, y] |= GetOpposite(pickedNeigh.Item3);
+
+                DfsMaze(cells, x, y, rng, visitOrder, print);
+                neighs = GetUnvistedNeighbours(cells, i, j);
+            }
+        }
+
+        public override string ToString()
+        {
+            var builder = new StringBuilder();
+            builder.Append("╔");
+            for (int j = 1; j < ColumnCount; ++j)
+            {
+                builder.Append("═");
+                builder.Append("╦");
+            }
+            builder.Append("═");
+            builder.Append("╗");
+            builder.AppendLine();
+
+            for (int j = 0; j < ColumnCount; ++j)
+            {
+                var cell = this[0, j];
+                if (cell.HasFlag(Cell.OpenLeft))
+                    builder.Append(" ");
+                else
+                    builder.Append("║");
+                builder.Append(" ");
+            }
+
+            builder.Append("║");
+            builder.AppendLine();
+
+            for (int i = 1; i < RowCount; ++i)
+            {
+                builder.Append("╠");
+                for (int j = 0; j < ColumnCount; ++j)
+                {
+                    var cell = this[i, j];
+                    if (!cell.HasFlag(Cell.OpenTop))
+                        builder.Append("═");
+                    else
+                        builder.Append(" ");
+                    builder.Append("╬");
+                }
+
+                builder.AppendLine();
+
+                for (int j = 0; j < ColumnCount; ++j)
+                {
+                    var cell = this[i, j];
+                    if (cell.HasFlag(Cell.OpenLeft))
+                        builder.Append(" ");
+                    else
+                        builder.Append("║");
+                    builder.Append(" ");
+                }
+                builder.Append("║");
+                builder.AppendLine();
+            }
+
+            builder.Append("╚");
+            for (int j = 1; j < ColumnCount; ++j)
+            {
+                builder.Append("═");
+                builder.Append("╩");
+            }
+            builder.Append("═");
+            builder.Append("╝");
+            builder.AppendLine();
+            return builder.ToString();
+        }
+
+        private static List<Tuple<int, int, Cell>> GetUnvistedNeighbours(Array2D<Cell> cells, int i, int j)
+        {
+            //get unvisited neighbors
+            var neigh = new List<Tuple<int, int, Cell>>();
+
+            if (!cells[i - 1, j].HasFlag(Cell.Visited))
+                neigh.Add(new Tuple<int, int, Cell>(i - 1, j, Cell.OpenTop));
+            if (!cells[i + 1, j].HasFlag(Cell.Visited))
+                neigh.Add(new Tuple<int, int, Cell>(i + 1, j, Cell.OpenBot));
+            if (!cells[i, j - 1].HasFlag(Cell.Visited))
+                neigh.Add(new Tuple<int, int, Cell>(i, j - 1, Cell.OpenLeft));
+            if (!cells[i, j + 1].HasFlag(Cell.Visited))
+                neigh.Add(new Tuple<int, int, Cell>(i, j + 1, Cell.OpenRight));
+
+            return neigh;
+        }
+
+        private static Cell GetOpposite(Cell orig)
+        {
+            switch (orig)
+            {
+                case Cell.OpenLeft:
+                    return Cell.OpenRight;
+                case Cell.OpenTop:
+                    return Cell.OpenBot;
+                case Cell.OpenRight:
+                    return Cell.OpenLeft;
+                case Cell.OpenBot:
+                    return Cell.OpenTop;
+            }
+            throw new InvalidOperationException();
+        }
+    }
+
+    public class MazeCypher : TranspositionCypher
+    {
+
+        public override byte[] Encrypt(byte[] plain, int columnCount)
+        {
+            IRng rng = plain.KeyToRand();
+            return Encrypt(plain, columnCount, rng);
+        }
+
+        public byte[] Encrypt(byte[] plain, int columnCount, IRng rng)
+        { Maze _; return Encrypt(plain, columnCount, rng, out _); }
+
+        public byte[] Encrypt(byte[] plain, int columnCount, IRng rng, out Maze maze)
+        {
+            int rowCount = plain.Length / columnCount;
+            if (plain.Length % columnCount != 0)
+                throw new InvalidOperationException();
+
+            List<Tuple<int, int>> order;
+            maze = Maze.MakeMaze(rowCount, columnCount, rng, out order);
+
+            byte[] cypher = new byte[plain.Length];
+            for (int i = 0; i < plain.Length; ++i)
+            {
+                var pos = order[i];
+                var newIx = pos.Item1 * columnCount + pos.Item2;
+                cypher[newIx] = plain[i];
+            }
+
+            return cypher;
+        }
+
+        public byte[] Decrypt(byte[] cypher, int columnCount, IRng rng)
+        {
+            int rowCount = cypher.Length / columnCount;
+            if (cypher.Length % columnCount != 0)
+                throw new InvalidOperationException();
+
+            List<Tuple<int, int>> order;
+            var maze = Maze.MakeMaze(rowCount, columnCount, rng, out order);
+
+            byte[] plain = new byte[cypher.Length];
+            for (int i = 0; i < cypher.Length; ++i)
+            {
+                var pos = order[i];
+                var newIx = pos.Item1 * columnCount + pos.Item2;
+                plain[i] = cypher[newIx];
+            }
+
+            return plain;
+        }
+
+        //public override byte[] Encrypt(byte[] plain, byte[] key)
+        //{
+        //    var getCol
+        //}
+
+        //public override byte[] Decrypt(byte[] cypher, byte[] key)
+        //{
+        //    return base.Decrypt(cypher, key);
+        //}
+
+        protected override byte[] Encrypt(byte[] plain, byte[] key, Op op)
+        {
+            //not needed
+            throw new NotImplementedException();
         }
     }
 }
