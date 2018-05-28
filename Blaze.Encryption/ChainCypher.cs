@@ -98,14 +98,14 @@ namespace Blaze.Cryptography
         public byte[] Encrypt(byte[] plain, IRng key)
         {
             throw new NotSupportedException();
-            byte[] currentPass = new byte[plain.Length];
-            plain.CopyTo(currentPass, 0);
-            for (int i = 0; i < _cyphers.Count; ++i)
-            {
-                currentPass = _cyphers[i].Encrypt(currentPass, key);
-            }
+            //byte[] currentPass = new byte[plain.Length];
+            //plain.CopyTo(currentPass, 0);
+            //for (int i = 0; i < _cyphers.Count; ++i)
+            //{
+            //    currentPass = _cyphers[i].Encrypt(currentPass, key);
+            //}
 
-            return currentPass;
+            //return currentPass;
         }
 
         public byte[] Decrypt(byte[] cypher, IRng key)
