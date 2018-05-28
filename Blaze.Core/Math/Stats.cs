@@ -10,6 +10,7 @@ namespace Blaze.Core.Math
     {
         public static double ChiSquared(IList<double> frequencies, int numberOfObs, IList<double> expectedFrequency = null )
         {
+            // Number of cases normally denoted as n = ocurrances.Count
             int possibleOutcomes = frequencies.Count;
             //If null, assume uniform distribution
             if (expectedFrequency == null)
@@ -28,10 +29,17 @@ namespace Blaze.Core.Math
             return chiSquared;
         }
 
+        /// <summary>
+        /// Measure of distribution of the values.
+        /// Zero would mean perfect (uniform) distribution
+        /// </summary>
         public static double ChiSquared(IList<int> ocurrances, List<int> expectedOccurances = null)
         {
             //Find population size based on sum of occurances
+            // Normally denoted as N
             int numberOfObs = ocurrances.Sum();
+            // Number of cases normally denoted as n = ocurrances.Count
+
             //derive frequency
             IList<double> freq = ocurrances.Select(o => (double)o / numberOfObs).ToList();
             //if expected obs is given, calculate expected freq, else pass null.
@@ -39,6 +47,27 @@ namespace Blaze.Core.Math
             if (expectedOccurances != null)
                 expectedFreq = expectedOccurances.Select(eo => (double)eo / numberOfObs).ToList();
             return ChiSquared(freq, numberOfObs, expectedFreq);
+        }
+
+        public static double GTest(IReadOnlyList<int> occurrances, IReadOnlyList<int> expectedOccurances = null)
+        {
+            // number of observations (normally N)
+            int numberOfObservations = occurrances.Sum();
+            // number of cases (normally n)
+            int numberOfCases = occurrances.Count;
+
+            //If null, assume uniform distribution 
+            if (expectedOccurances == null)
+                expectedOccurances = occurrances.Select(i => numberOfObservations/numberOfCases).ToList();
+
+            if (occurrances.Count != expectedOccurances.Count)
+                throw new ArgumentException($"{nameof(expectedOccurances)} should have the same count as {nameof(occurrances)}");
+
+            double sum = occurrances
+                .Zip(expectedOccurances,
+                    (O_i, E_i) => O_i * System.Math.Log( (O_i == 0 ? 0.1 : O_i) / E_i) )
+                .Sum();
+            return 2 * sum;
         }
     }
 }

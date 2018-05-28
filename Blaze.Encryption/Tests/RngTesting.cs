@@ -46,7 +46,7 @@ namespace Blaze.Cryptography
                 for (int i = 0; i < 16; ++i)
                 {
                     rng.NextBytes(bytes);
-                    results[i] = (float)Stats.ChiSquared(EncryptionTesting.GetBlockCount(bytes));
+                    results[i] = (float)Stats.GTest(EncryptionTesting.GetBlockCount(bytes));
                 }
 
                 seedResult[j] = results.Average();
