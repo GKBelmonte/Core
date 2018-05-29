@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using Blaze.Core.Maths;
 
 namespace Blaze.Ai.Ages
 {
@@ -94,7 +95,6 @@ namespace Blaze.Ai.Ages
             _Eval = evaluate;
             _Generate = generator;
             _Crossover = crossoverOp;
-            _Async = false;
             _Champions = new List<IIndividual>(_NumberOfGenerations);
             VariationSettings = new VariationSettings(6, 4, 2);
         }
@@ -121,9 +121,9 @@ namespace Blaze.Ai.Ages
         private Generate _Generate;
         private int _GenerationCount;
         private int _NumberOfGenerations;
-        private bool _Async;
-        List<EvaluatedIndividual> _InternalPop;
 
+        private float? _ScoreStandardDev;
+        List<float> _Scores;
         #endregion
 
         public void GoThroughGenerationsSync()
@@ -135,7 +135,7 @@ namespace Blaze.Ai.Ages
 
                 Reap();
 
-                Suvive();
+                Survive();
             }
         }
 
@@ -157,11 +157,24 @@ namespace Blaze.Ai.Ages
                 ? ratedIndividuals.OrderByDescending(i => i.Score).ToList()
                 : ratedIndividuals.OrderBy(i => i.Score).ToList();
 
+            int eliminateIndex = (int)Math.Floor((_Population.Count * (1 - EliminatedPercent)));
+
+            _ScoreStandardDev = (float)orderedIndividuals
+                .Select(i => i.Score)
+                .Take(eliminateIndex + 1)
+                .Cast<double>()
+                .ToList()
+                .StdDevP();
+
             Console.WriteLine($"Generation {_GenerationCount} Complete");
 
             _GenerationCount += 1;
             _Population = orderedIndividuals
                 .Select(i => i.Individual)
+                .ToList();
+
+            _Scores = orderedIndividuals
+                .Select(i => i.Score)
                 .ToList();
         }
 
@@ -174,11 +187,15 @@ namespace Blaze.Ai.Ages
         }
 
         //Executes one generation
-        private void OneGenerationAsync()
-        {
-            _Tournament = new QuickTournament(_Population, _Compare, new TournamentComplete(OnTournamentCompletion));
-            _Tournament.Start();
-        }
+        //FIX! This was done when in web i ran the generation in a web 
+        // worker cause it took so long
+        // Instead, use multiple threading 
+        // (after the first pivot I can parallelize tournaments)
+        //private void OneGenerationAsync()
+        //{
+        //    _Tournament = new QuickTournament(_Population, _Compare, new TournamentComplete(OnTournamentCompletion));
+        //    _Tournament.Start();
+        //}
 
         private void TournamentGeneration()
         {
@@ -186,41 +203,20 @@ namespace Blaze.Ai.Ages
             _Tournament = new QuickTournament(
                 _Population, 
                 _Compare, 
-                new TournamentComplete(OnTournamentCompletion));
+                new TournamentComplete( (pop) =>
+                {
+                    _GenerationCount += 1;
+                    _Tournament = null;
+                    _Population = pop;
+                }));
             _Tournament.Start();
-        }
-
-        private void OnTournamentCompletion(List<IIndividual> population)
-        {
-            _GenerationCount += 1;
-            _Population = population;
-            Console.WriteLine("Generation Complete");
-            Console.WriteLine("Number of matches: " + _Tournament.CompCount);
-            Console.WriteLine("Number of Draws: " + _Tournament.DrawCount);
-
-            _Tournament = null;//kill the old evaluator
-
-            //Reap
-            Reap();
-
-            if (_Async)
-            {
-                if (_GenerationCount <= _NumberOfGenerations)
-                {
-                    Thread t = new Thread(new ThreadStart(OneGenerationAsync));
-                    t.Start();
-                }
-                else
-                {
-                    Console.WriteLine(_GenerationCount + " generations completed");
-                }
-            }
         }
 
         private void NichePenalty()
         {
-            if (Distance == null)
+            if (Distance == null && _ScoreStandardDev.HasValue)
                 return;
+
             float[] penalties = new float[_Population.Count];
 
             for (int i = 0; i < _Population.Count; ++i)
@@ -232,13 +228,20 @@ namespace Blaze.Ai.Ages
                     float d = Distance(_Population[i], _Population[j]);
 
                     float partialPenalty = (_Population.Count - i) / (d*d);
-                    penalties[j] += partialPenalty;
-
+                    penalties[j] += partialPenalty * (float)_ScoreStandardDev.Value / 10;
                 }
             }
+
+            var scoredInds = _Population
+                .Zip(_Scores, (i, s) => new
+                {
+                    Individual = i,
+                    Score = s
+                })
+                .ToList();
         }
 
-        private void Suvive()
+        private void Survive()
         {
             _Champions.Add(_Population[0]);
         }

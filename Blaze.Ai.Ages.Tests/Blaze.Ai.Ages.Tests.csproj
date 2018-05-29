@@ -6,8 +6,8 @@
     <ProjectGuid>{99015117-4A10-40DD-BB44-23B83FBC8C84}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Blaze.Ai.Reaper.Tests</RootNamespace>
-    <AssemblyName>Blaze.Ai.Reaper.Tests</AssemblyName>
+    <RootNamespace>Blaze.Ai.Ages.Tests</RootNamespace>
+    <AssemblyName>Blaze.Ai.Ages.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -43,6 +43,7 @@
   <ItemGroup>
     <Compile Include="TestGA.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TestEvals.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="MSTest.TestAdapter">

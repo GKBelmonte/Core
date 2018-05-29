@@ -38,6 +38,10 @@ namespace Blaze.Ai.Ages
             }
         }
 
+        private int EliminateIndexBegin => (int)Math.Floor((_Population.Count * (1 - EliminatedPercent)));
+
+        private int EliteIndexEnd => (int)Math.Floor((_Population.Count * ElitismPercent));
+
         private float _mutationProbability;
         public float MutationProbability
         {
@@ -60,17 +64,14 @@ namespace Blaze.Ai.Ages
             var pop = _Population;
             var newPop = new List<IIndividual>(pop.Count);
 
-            int elimateIndex = (int)Math.Floor((pop.Count * (1 - EliminatedPercent)));
-            int eliteIndex = (int)Math.Floor((pop.Count * ElitismPercent));
-
             //Elite:
-            for (var ii = 0; ii < eliteIndex; ++ii)
+            for (var ii = 0; ii < EliteIndexEnd; ++ii)
             {
                 newPop.Add(pop[ii]);
             }
 
             //Changed individuals
-            for (int ii = eliteIndex; ii < elimateIndex; ++ii)
+            for (int ii = EliteIndexEnd; ii < EliminateIndexBegin; ++ii)
             {
                 int dice = Utils.RandomInt(0, 12);
                 if (dice < VariationSettings.SurvivalRatio)
@@ -80,7 +81,7 @@ namespace Blaze.Ai.Ages
                 else if (dice < VariationSettings.SurvivalRatio + VariationSettings.MutationRatio)
                 {
                     //Mutated
-                    newPop.Add(pop[Utils.RandomInt(0, elimateIndex)].Mutate(MutationProbability, 5f));
+                    newPop.Add(pop[Utils.RandomInt(0, EliminateIndexBegin)].Mutate(MutationProbability, 5f));
                 }
                 else
                 {
@@ -90,7 +91,7 @@ namespace Blaze.Ai.Ages
                     while (parents.Count < numOfParents)
                     {
                         //Pick a random surviving parent
-                        var index = Utils.RandomInt(0, elimateIndex);
+                        var index = Utils.RandomInt(0, EliminateIndexBegin);
                         //Select him probabilistically based on rank (index)
                         float prob = ((float)(pop.Count - index)) / pop.Count;//Probability
                         if (Utils.ProbabilityPass(prob))
@@ -104,7 +105,7 @@ namespace Blaze.Ai.Ages
             }
 
             //Fresh individuals for the failing percent
-            for (var ii = elimateIndex; ii < pop.Count; ++ii)
+            for (var ii = EliminateIndexBegin; ii < pop.Count; ++ii)
             {
                 newPop.Add(_Generate());
             }

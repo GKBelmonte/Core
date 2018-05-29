@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Blaze.Ai.Ages
 {
-    class QuickTournament
+    public class QuickTournament
     {
         //What happens is that the Evaluator has two call-backs
         // evaluator: call this to tell the Fighter what to evaluate
@@ -60,10 +60,13 @@ namespace Blaze.Ai.Ages
         List<QuickSortPair> _queue;
         int _queueIndex;
 
-        public QuickTournament(List<IIndividual> arr, CompareEvaluate evaluator, TournamentComplete master)
+        public QuickTournament(
+            IReadOnlyList<IIndividual> arr, 
+            CompareEvaluate evaluator, 
+            TournamentComplete master)
         {
             //std vals
-            _individuals = arr;
+            _individuals = arr.ToList();
             _begin = 0;
             _end = _individuals.Count - 1;
 
@@ -183,22 +186,12 @@ namespace Blaze.Ai.Ages
                 Console.WriteLine("Evaluation already complete");
         }
 
-
-
-        //Start the evaluator by calling the call-back with the required parameters
-        //Two objects two compare and the object to call-back the score from
-        //Evaluator.prototype.Start = function()
-        //{
-        //  Executing = true;
-        //  Continue(Arr[pointing],pivotVal, this);
-        //}
-
         public void Start()
         {
             _executing = true;
             while (!_done)
             {
-                var score = Compare(_individuals[_pivotIndex], _pivotIndividual);
+                float score = Compare(_individuals[_pivotIndex], _pivotIndividual);
                 Evaluate(score);
             }
         }
@@ -214,20 +207,3 @@ namespace Blaze.Ai.Ages
     }//endclass
 
 }
-
-
-
-//Integer test of Evaluator
-//var TestEval = false;
-//var ex;
-//if(TestEval)
-//{
-//  var Arr = new Array(); for(var ii = 0; ii < 64; ++ ii) { Arr.push(HelperFunctions.RandomInt(0,100)) }
-//  evalu = function(a, b, call)
-//  { //Firefox bug in setTimeout = Error: useless setTimeout call (missing quotes around argument?)
-//    if( a > b) {setTimeout(call.Execute(1),00); }
-//    else { setTimeout(call.Execute(0),00); }
-//  }
-//  console.log(Arr);
-//  ex = new Evaluator(Arr,evalu,function(event){console.log("Done") ; console.log(event);} );
-//}

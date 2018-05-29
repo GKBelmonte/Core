@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Blaze.Core.Math
+namespace Blaze.Core.Maths
 {
     public class Utils
     {
