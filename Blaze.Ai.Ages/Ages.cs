@@ -225,21 +225,27 @@ namespace Blaze.Ai.Ages
             int elimIndex = EliminateIndexBegin;
 
             //punish all individuals similar to the best individual within a radius
-            var distances = new List<float>(_Population.Count);
+            var niches = new List<Niche>(_Population.Count);
+
             for (int i = 0; i < elimIndex - 1; ++i)
             {
                 int j = i + 1;
+                var reference = _Population[i].Individual;
 
                 float d = 0;
+                var niche = new Niche(reference);
+
                 //Punish all individuals too similiar to ith
-                while (j < elimIndex && (d = Distance(_Population[i].Individual, _Population[j].Individual)) <= _NicheRadius)
+                while (j < elimIndex && (d = Distance(reference, _Population[j].Individual)) <= _NicheRadius)
                 {
                     //At distance 1, the penalty is one-tenth a standard deviation
                     //At distance 0.316, the penalty is a whole-standard deviation
                     float partialPenalty = scoreStdDev / 10 / (d * d);
                     penalties[j] += partialPenalty;
+                    niche.Members.Add(_Population[j].Individual);
                     j++;
                 }
+                niche.MaxRadius = d;
 
                 //punish everyone else in the niche against each other
                 //The more you repeat the worse
@@ -253,11 +259,11 @@ namespace Blaze.Ai.Ages
                     }
                 }
 
-                distances.Add(d);
                 // Either this individual was far or out-of bounds
                 // Either way, I want to start from j next, 
                 // (increment will happen right after)
                 i = j - 1;
+                niches.Add(niche);
             }
 
             // niche count = |distances|
@@ -286,10 +292,10 @@ namespace Blaze.Ai.Ages
             // where f(n) is the factor to apply to the radius and n is the number of niches
             // By playing around, I found that f(n, p) = 1/2 * n ^( 1/ lg_4 (p) )
             //  f(n, p) = 1/2 * n ^ ( ln(p) / ln(2*2) )
-            double actualNicheCount = distances.Count;
+            double nicheAverageDensity = niches.Average(n => n.Members.Count);
 
-            //double adjustFactor = _RadiusAdjustMinFactor * Math.Pow(actualNicheCount, _RadiusAdjustPower);
-            //_NicheRadius = (float)(_NicheRadius * adjustFactor);
+            double adjustFactor = _RadiusAdjustMinFactor * Math.Pow(nicheAverageDensity, _RadiusAdjustPower);
+            _NicheRadius = (float)(_NicheRadius / adjustFactor);
 
             if (Maximize)
             {
@@ -334,6 +340,21 @@ namespace Blaze.Ai.Ages
             public override string ToString()
             {
                 return $"Individual: {Individual}, Score: {Score}";
+            }
+        }
+
+
+        //Cheap cluster?
+        private class Niche
+        {
+            public IIndividual Reference { get; }
+            public List<IIndividual> Members { get; }
+            public double MaxRadius { get; set; }
+            public Niche(IIndividual referece)
+            {
+                Reference = referece;
+                Members = new List<IIndividual>();
+                Members.Add(Reference);
             }
         }
     }
