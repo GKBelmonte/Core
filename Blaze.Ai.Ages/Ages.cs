@@ -123,14 +123,19 @@ namespace Blaze.Ai.Ages
         private Generate _Generate;
         private int _GenerationCount;
         private int _NumberOfGenerations;
+
+        private double _RadiusAdjustMaxFactor = 2;
+        private double _RadiusAdjustMinFactor;
+        private double _RadiusAdjustPower;
+        private float _NicheRadius = 0.01f;
         #endregion
 
         public void GoThroughGenerationsSync()
         {
-            _GenerationCount = 0;
+            Begin();
             while (_GenerationCount < _NumberOfGenerations)
             {
-                Compete();
+                Fight();
 
                 NichePenalty();
 
@@ -140,7 +145,14 @@ namespace Blaze.Ai.Ages
             }
         }
 
-        private void Compete()
+        private void Begin()
+        {
+            _GenerationCount = 0;
+            _RadiusAdjustPower = Math.Log(_RadiusAdjustMaxFactor*_RadiusAdjustMaxFactor) / Math.Log(EliminateIndexBegin);
+            _RadiusAdjustMinFactor = 1 / _RadiusAdjustMaxFactor;
+        }
+
+        private void Fight()
         {
             if (_Compare != null)
                 Tournament();
@@ -212,31 +224,60 @@ namespace Blaze.Ai.Ages
 
             int elimIndex = EliminateIndexBegin;
 
+            //punish all individuals similar to the best individual within a radius
+            var distances = new List<float>(_Population.Count);
             for (int i = 0; i < elimIndex - 1; ++i)
             {
-                for(int j = i + 1; j < elimIndex; ++j)
-                {
-                    if (i == j)
-                        continue;
-                    float d = Distance(_Population[i].Individual, _Population[j].Individual);
+                int j = i + 1;
 
-                    //Making the penalty proportional to your rank can
-                    // encourage newer geners, but it might
-                    // also hurt the best genes a lot.
-                    //  The better you are, the worse the penalty of being close 
-                    //      float partialPenaltyFromI = (_Population.Count - i) / (d * d);
-                    //      float partialPenaltyFromJ = (_Population.Count - j) / (d * d);
-                    
+                float d = 0;
+                //Punish all individuals too similiar to ith
+                while (j < elimIndex && (d = Distance(_Population[i].Individual, _Population[j].Individual)) <= _NicheRadius)
+                {
                     //At distance 1, the penalty is one-tenth a standard deviation
                     //At distance 0.316, the penalty is a whole-standard deviation
-                    float partialPenalty = scoreStdDev / 10 / _Population.Count / (d * d);
+                    float partialPenalty = scoreStdDev / 10 / (d * d);
                     penalties[j] += partialPenalty;
-                    penalties[i] += partialPenalty;
+                    j++;
                 }
+
+                distances.Add(d);
+                // Either this individual was far or out-of bounds
+                // Either way, I want to start from j next, 
+                // (increment will happen right after)
+                i = j - 1;
             }
 
-            // should we exclude the champ??
-            // penalties[0] = 0;
+            // niche count = |distances|
+
+            // If the number of distances is high either
+            //  * My pop is diverse (Yay!)
+            //  * My radius is too small
+
+            // If the number of distances is small, either
+            //  * My pop is super nichey
+            //  * My radius is too large
+
+            // Worst case on large radius, 1 distance, every is within the radius
+            // Worst case on small radius, |pop| distances, everyone is their own niche
+            // Obvious middle case, |pop|/2 distances, every pair is a niche (probably still small radius)
+            // Probably the best then is to have sqrt(|pop|) niches with sqrt(|pop|) individs
+            // This guarantees the most individuals and the most niches
+
+            // if the number of niches is at max, we should half the radius
+            // if the number of niches is at min, we should double it
+            // if the number of niches is just right, not change it
+            // So I want a f(n) such that
+            //  f(1) = 2,
+            //  f(sqrt(|pop|)) = 1
+            //  f(|pop|) = 1/2
+            // where f(n) is the factor to apply to the radius and n is the number of niches
+            // By playing around, I found that f(n, p) = 1/2 * n ^( 1/ lg_4 (p) )
+            //  f(n, p) = 1/2 * n ^ ( ln(p) / ln(2*2) )
+            double actualNicheCount = distances.Count;
+
+            double adjustFactor = _RadiusAdjustMinFactor * Math.Pow(actualNicheCount, _RadiusAdjustPower);
+            _NicheRadius = (float)(_NicheRadius * adjustFactor);
 
             if (Maximize)
             {

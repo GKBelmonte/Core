@@ -59,6 +59,8 @@ namespace Blaze.Ai.Ages.Viewer
                 CartesianIndividual.CrossOver,
                 new Generate(() => new CartesianIndividual(polynomialOrder)),
                 pop);
+
+            Ages.Distance = (l, r) => CartesianIndividual.Distance((CartesianIndividual)l, (CartesianIndividual)r);
         }
 
         public CartesianIndividual Generation()

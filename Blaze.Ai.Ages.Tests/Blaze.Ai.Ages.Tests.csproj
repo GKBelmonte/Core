@@ -44,6 +44,7 @@
     <Compile Include="TestGA.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestEvals.cs" />
+    <Compile Include="TestUtils.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="MSTest.TestAdapter">
