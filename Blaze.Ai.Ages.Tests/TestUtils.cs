@@ -23,16 +23,17 @@ namespace Blaze.Ai.Ages.Tests
             // This is heuristically true, I just played with regressions until i found
             // the formula
 
-            // f(n,p,m) = (1/m) * n * x ^ (1 / Log(p, m*m))
+            // f(n,p,m) = (1/m) * n  ^ (1 / Log(p, m*m))
             // Satisfies
             // f(p,p,m) = m
             // f(1,p,m) = 1/m
             // f(sqrt(p), p, m ) = 1
+            // f(n,p,m) = (1/m) * n^(ln(m*m) / ln(p))
 
             double multiplier = 2;
 
             Func<double, double, double> radiusModifier = (nicheCount, popCount)
-                => 1 / multiplier * Math.Pow(nicheCount, 1 / Math.Log(popCount, multiplier * multiplier));
+                => 1 / multiplier * Math.Pow(nicheCount, Math.Log(multiplier * multiplier) / Math.Log(popCount));
 
             double epsilon = 0.001;
             double[] expectedResults = {0.5, 1, 2};

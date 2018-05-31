@@ -127,7 +127,7 @@ namespace Blaze.Ai.Ages
         private double _RadiusAdjustMaxFactor = 2;
         private double _RadiusAdjustMinFactor;
         private double _RadiusAdjustPower;
-        private float _NicheRadius = 0.01f;
+        private float _NicheRadius = 0.03f;
         #endregion
 
         public void GoThroughGenerationsSync()
@@ -241,6 +241,18 @@ namespace Blaze.Ai.Ages
                     j++;
                 }
 
+                //punish everyone else in the niche against each other
+                //The more you repeat the worse
+                for (int k = i + 1; k < j - 1; ++k)
+                {
+                    for (int w = k + 1; w < j; ++w)
+                    {
+                        float d2 = Distance(_Population[k].Individual, _Population[w].Individual);
+                        float partialPenalty = scoreStdDev / 10 / (d2 * d2);
+                        penalties[w] += partialPenalty;
+                    }
+                }
+
                 distances.Add(d);
                 // Either this individual was far or out-of bounds
                 // Either way, I want to start from j next, 
@@ -276,8 +288,8 @@ namespace Blaze.Ai.Ages
             //  f(n, p) = 1/2 * n ^ ( ln(p) / ln(2*2) )
             double actualNicheCount = distances.Count;
 
-            double adjustFactor = _RadiusAdjustMinFactor * Math.Pow(actualNicheCount, _RadiusAdjustPower);
-            _NicheRadius = (float)(_NicheRadius * adjustFactor);
+            //double adjustFactor = _RadiusAdjustMinFactor * Math.Pow(actualNicheCount, _RadiusAdjustPower);
+            //_NicheRadius = (float)(_NicheRadius * adjustFactor);
 
             if (Maximize)
             {
