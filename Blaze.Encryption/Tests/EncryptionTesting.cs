@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Blaze.Core.Math;
+using Blaze.Core.Maths;
 using Blaze.Core.Extensions;
 using Blaze.Cryptography.Rng;
 

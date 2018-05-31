@@ -88,25 +88,27 @@ namespace Blaze.Ai.Ages
             EliminatedPercent = 0.2f;
             ElitismPercent = 0.1f;
             _NumberOfGenerations = numberOfGenerations;
-            _Population = population;
+            _Population = population
+                .Select(i => i.ToEI())
+                .ToList();
             _Tournament = null;
             _GenerationCount = 0;
             _Compare = compareTwo;
             _Eval = evaluate;
             _Generate = generator;
             _Crossover = crossoverOp;
-            _Champions = new List<IIndividual>(_NumberOfGenerations);
+            _Champions = new List<EvaluatedIndividual>(_NumberOfGenerations);
             VariationSettings = new VariationSettings(6, 4, 2);
         }
 
         #region Properties and Members
         public bool Maximize { get; set; }
 
-        public IReadOnlyList<IIndividual> Population { get { return _Population; } }
-        List<IIndividual> _Population;
+        public IReadOnlyList<EvaluatedIndividual> Population { get { return _Population; } }
+        List<EvaluatedIndividual> _Population;
 
-        public IReadOnlyList<IIndividual> Champions { get { return _Champions; } }
-        List<IIndividual> _Champions;
+        public IReadOnlyList<EvaluatedIndividual> Champions { get { return _Champions; } }
+        List<EvaluatedIndividual> _Champions;
 
         /// <summary>
         /// If provided, will
@@ -121,9 +123,6 @@ namespace Blaze.Ai.Ages
         private Generate _Generate;
         private int _GenerationCount;
         private int _NumberOfGenerations;
-
-        private float? _ScoreStandardDev;
-        List<float> _Scores;
         #endregion
 
         public void GoThroughGenerationsSync()
@@ -131,7 +130,9 @@ namespace Blaze.Ai.Ages
             _GenerationCount = 0;
             while (_GenerationCount < _NumberOfGenerations)
             {
-                Selection();
+                Compete();
+
+                NichePenalty();
 
                 Reap();
 
@@ -139,50 +140,32 @@ namespace Blaze.Ai.Ages
             }
         }
 
-        private void Selection()
+        private void Compete()
         {
             if (_Compare != null)
-                TournamentGeneration();
+                Tournament();
             else
-                IndividualPerformanceGeneration();
+                IndividualPerformance();
         }
 
-        private void IndividualPerformanceGeneration()
+        private void IndividualPerformance()
         {
-            var ratedIndividuals = _Population
-                .Select(i => new { Score = _Eval(i), Individual = i })
-                .ToList();
+            _Population.ForEach(ei => ei.Score = _Eval(ei.Individual));
 
-            var orderedIndividuals = Maximize 
-                ? ratedIndividuals.OrderByDescending(i => i.Score).ToList()
-                : ratedIndividuals.OrderBy(i => i.Score).ToList();
-
-            int eliminateIndex = (int)Math.Floor((_Population.Count * (1 - EliminatedPercent)));
-
-            _ScoreStandardDev = (float)orderedIndividuals
-                .Select(i => i.Score)
-                .Take(eliminateIndex + 1)
-                .Cast<double>()
-                .ToList()
-                .StdDevP();
+            _Population = Maximize 
+                ? _Population.OrderByDescending(i => i.Score).ToList()
+                : _Population.OrderBy(i => i.Score).ToList();
 
             Console.WriteLine($"Generation {_GenerationCount} Complete");
 
             _GenerationCount += 1;
-            _Population = orderedIndividuals
-                .Select(i => i.Individual)
-                .ToList();
-
-            _Scores = orderedIndividuals
-                .Select(i => i.Score)
-                .ToList();
         }
 
         private void Sow(Generate generator, int popSize)
         {
             _Population = Enumerable
                 .Range(0, popSize)
-                .Select(i => generator())
+                .Select(i => generator().ToEI())
                 .ToList();
         }
 
@@ -197,48 +180,82 @@ namespace Blaze.Ai.Ages
         //    _Tournament.Start();
         //}
 
-        private void TournamentGeneration()
+        private void Tournament()
         {
             PrintGen();
             _Tournament = new QuickTournament(
-                _Population, 
+                _Population.Select(ei => ei.Individual).ToList(), 
                 _Compare, 
                 new TournamentComplete( (pop) =>
                 {
                     _GenerationCount += 1;
                     _Tournament = null;
-                    _Population = pop;
+                    _Population = pop
+                        .Select(i => i.ToEI())
+                        .ToList();
                 }));
             _Tournament.Start();
         }
 
         private void NichePenalty()
         {
-            if (Distance == null && _ScoreStandardDev.HasValue)
+            if (Distance == null)
                 return;
+
+            float scoreStdDev = (float)_Population
+                .Select(i => (double)i.Score.Value)
+                .Take(EliminateIndexBegin)
+                .ToList()
+                .StdDevP();
 
             float[] penalties = new float[_Population.Count];
 
-            for (int i = 0; i < _Population.Count; ++i)
+            int elimIndex = EliminateIndexBegin;
+
+            for (int i = 0; i < elimIndex - 1; ++i)
             {
-                for(int j = 1; j < _Population.Count - 1; ++j)
+                for(int j = i + 1; j < elimIndex; ++j)
                 {
                     if (i == j)
                         continue;
-                    float d = Distance(_Population[i], _Population[j]);
+                    float d = Distance(_Population[i].Individual, _Population[j].Individual);
 
-                    float partialPenalty = (_Population.Count - i) / (d*d);
-                    penalties[j] += partialPenalty * (float)_ScoreStandardDev.Value / 10;
+                    //Making the penalty proportional to your rank can
+                    // encourage newer geners, but it might
+                    // also hurt the best genes a lot.
+                    //  The better you are, the worse the penalty of being close 
+                    //      float partialPenaltyFromI = (_Population.Count - i) / (d * d);
+                    //      float partialPenaltyFromJ = (_Population.Count - j) / (d * d);
+                    
+                    //At distance 1, the penalty is one-tenth a standard deviation
+                    //At distance 0.316, the penalty is a whole-standard deviation
+                    float partialPenalty = scoreStdDev / 10 / _Population.Count / (d * d);
+                    penalties[j] += partialPenalty;
+                    penalties[i] += partialPenalty;
                 }
             }
 
-            var scoredInds = _Population
-                .Zip(_Scores, (i, s) => new
-                {
-                    Individual = i,
-                    Score = s
-                })
-                .ToList();
+            // should we exclude the champ??
+            // penalties[0] = 0;
+
+            if (Maximize)
+            {
+                for (int i = 0; i < _Population.Count; ++i)
+                    _Population[i].Score -= penalties[i];
+
+                _Population = _Population
+                    .OrderByDescending(ei => ei.Score)
+                    .ToList();
+            }
+            else
+            {
+                for (int i = 0; i < _Population.Count; ++i)
+                    _Population[i].Score += penalties[i];
+
+                _Population = _Population
+                    .OrderBy(ei => ei.Score)
+                    .ToList();
+            }
         }
 
         private void Survive()
@@ -251,16 +268,20 @@ namespace Blaze.Ai.Ages
             StringBuilder gen = new StringBuilder();
             foreach (var ind in _Population)
             {
-                gen.AppendLine(string.Format("{0}:{1}", ind.Name, ind.ToString()));
+                gen.AppendLine(string.Format("{0}:{1}", ind.Individual.Name, ind.Individual.ToString()));
             }
 
             System.IO.File.WriteAllText(string.Format("Generation{0}.txt", _GenerationCount), gen.ToString());
         }
 
-        public struct EvaluatedIndividual
+        public class EvaluatedIndividual
         {
             public IIndividual Individual;
-            public float Score;
+            public float? Score;
+            public override string ToString()
+            {
+                return $"Individual: {Individual}, Score: {Score}";
+            }
         }
     }
 }

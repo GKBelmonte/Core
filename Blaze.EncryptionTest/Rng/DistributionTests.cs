@@ -6,7 +6,7 @@ using Blaze.Cryptography.Rng.Marsaglia;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Blaze.Cryptography.Rng;
 using Blaze.Core.Log;
-using Blaze.Core.Math;
+using Blaze.Core.Maths;
 
 namespace Blaze.Cryptography.Tests.Rng
 {

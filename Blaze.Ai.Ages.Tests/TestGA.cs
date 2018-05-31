@@ -65,11 +65,15 @@ namespace Blaze.Ai.Ages.Tests
                 .Select(i => func(i))
                 .ToArray();
 
+            Utils.SetRandomSeed(0);
+
             var ages = new Ages(genCount,
                 new Evaluate((i) => ((CartesianIndividual)i).PolynomialEval(allPowsOfX, expectedValues)),
                 CartesianIndividual.CrossOver,
                 new Generate(() => new CartesianIndividual(polynomialOrder)),
                 pop);
+
+            ages.Distance = (l,r) => CartesianIndividual.Distance((CartesianIndividual)l, (CartesianIndividual)r);
 
             ages.GoThroughGenerationsSync();
 

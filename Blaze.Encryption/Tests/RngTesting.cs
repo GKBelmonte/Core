@@ -1,4 +1,4 @@
-﻿using Blaze.Core.Math;
+﻿using Blaze.Core.Maths;
 using Blaze.Cryptography.Rng;
 using System;
 using System.Collections.Generic;

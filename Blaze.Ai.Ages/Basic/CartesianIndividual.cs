@@ -102,6 +102,22 @@ namespace Blaze.Ai.Ages.Basic
             return newInd;
         }
 
+
+        public static float Distance(CartesianIndividual a, CartesianIndividual b)
+        {
+            double res = 0;
+            for (int i = 0; i < a.Values.Length && i < b.Values.Length; ++i)
+            {
+                double a_i = i < a.Values.Length ? a.Values[i] : 0;
+                double b_i = i < b.Values.Length ? b.Values[i] : 0;
+                double diff = b_i - a_i;
+                res += diff * diff;
+            }
+            //not technically mandatory
+            res = Math.Sqrt(res);
+            return (float)res;
+        }
+
         public override string ToString()
         {
             return string.Join("\t", Values.Select(f => f.ToString("0.000")));

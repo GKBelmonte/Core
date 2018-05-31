@@ -17,7 +17,7 @@ namespace Blaze.Cryptography
             get { return base.Alphabet; }
             set
             {
-                if (!Blaze.Core.Math.Utils.IsPerfectSquare(value.Count))
+                if (!Blaze.Core.Maths.Utils.IsPerfectSquare(value.Count))
                     throw new InvalidOperationException($"{nameof(BifidCypher)} alphabet size must be a perfect square");
                 base.Alphabet = value;
             }
@@ -132,7 +132,7 @@ namespace Blaze.Cryptography
 
         public byte[] EncryptClassic(byte[] plain, byte[] polybiusSquareBytes)
         {
-            if (!Core.Math.Utils.IsPerfectSquare(polybiusSquareBytes.Length))
+            if (!Core.Maths.Utils.IsPerfectSquare(polybiusSquareBytes.Length))
                 throw new ArgumentException($"{nameof(polybiusSquareBytes)} must be a perfect square");
             //kinda backwards...
             Alphabet = polybiusSquareBytes.Select(b => (char)b).ToList();
@@ -142,7 +142,7 @@ namespace Blaze.Cryptography
 
         public byte[] DecrpytClassic(byte[] plain, byte[] polybiusSquareBytes)
         {
-            if (!Core.Math.Utils.IsPerfectSquare(polybiusSquareBytes.Length))
+            if (!Core.Maths.Utils.IsPerfectSquare(polybiusSquareBytes.Length))
                 throw new ArgumentException($"{nameof(polybiusSquareBytes)} must be a perfect square");
             //kinda backwards...
             Alphabet = polybiusSquareBytes.Select(b => (char)b).ToList();

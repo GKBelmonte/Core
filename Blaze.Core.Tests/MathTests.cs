@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using Blaze.Core.Math;
+using Blaze.Core.Maths;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Blaze.Core.Tests

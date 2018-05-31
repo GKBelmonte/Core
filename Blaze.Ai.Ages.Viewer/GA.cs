@@ -64,7 +64,7 @@ namespace Blaze.Ai.Ages.Viewer
         public CartesianIndividual Generation()
         {
             Ages.GoThroughGenerationsSync();
-            var champ = (CartesianIndividual)Ages.Champions.Last();
+            var champ = (CartesianIndividual)Ages.Champions.Last().Individual;
             return champ;
         }
 

@@ -56,9 +56,9 @@ namespace Blaze.Ai.Ages.Viewer
         private void PrintGen()
         {
             StringBuilder gen = new StringBuilder();
-            foreach (var ind in _series.GA.Ages.Population)
+            foreach (Ages.EvaluatedIndividual ei in _series.GA.Ages.Population)
             {
-                gen.AppendLine(string.Format("{0}\t{1}", ind.Name, ind.ToString()));
+                gen.AppendLine(string.Format("{0}\t{1}", ei.Individual.Name, ei.Individual));
             }
             //Console.WriteLine(gen.ToString());
             System.IO.File.WriteAllText(string.Format("Generation{0}.txt", 0), gen.ToString());

@@ -43,5 +43,10 @@ namespace Blaze.Ai.Ages
         {
             rand = new Random(seed);
         }
+
+        internal static Ages.EvaluatedIndividual ToEI(this IIndividual individual)
+        {
+            return new Ages.EvaluatedIndividual { Individual = individual };
+        }
     }
 }

@@ -62,7 +62,7 @@ namespace Blaze.Ai.Ages
         private void Reap()
         {
             var pop = _Population;
-            var newPop = new List<IIndividual>(pop.Count);
+            var newPop = new List<EvaluatedIndividual>(pop.Count);
 
             //Elite:
             for (var ii = 0; ii < EliteIndexEnd; ++ii)
@@ -81,7 +81,10 @@ namespace Blaze.Ai.Ages
                 else if (dice < VariationSettings.SurvivalRatio + VariationSettings.MutationRatio)
                 {
                     //Mutated
-                    newPop.Add(pop[Utils.RandomInt(0, EliminateIndexBegin)].Mutate(MutationProbability, 5f));
+                    IIndividual newInd = pop[Utils.RandomInt(0, EliminateIndexBegin)]
+                        .Individual
+                        .Mutate(MutationProbability, 5f);
+                    newPop.Add(newInd.ToEI());
                 }
                 else
                 {
@@ -96,18 +99,18 @@ namespace Blaze.Ai.Ages
                         float prob = ((float)(pop.Count - index)) / pop.Count;//Probability
                         if (Utils.ProbabilityPass(prob))
                         {
-                            parents.Add(pop[index]);
+                            parents.Add(pop[index].Individual);
                         }
                     }
                     //Add the crossed individual
-                    newPop.Add(_Crossover(parents));
+                    newPop.Add(_Crossover(parents).ToEI());
                 }
             }
 
             //Fresh individuals for the failing percent
             for (var ii = EliminateIndexBegin; ii < pop.Count; ++ii)
             {
-                newPop.Add(_Generate());
+                newPop.Add(_Generate().ToEI());
             }
 
             _Population = newPop;
