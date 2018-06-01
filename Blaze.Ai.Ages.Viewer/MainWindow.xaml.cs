@@ -37,7 +37,7 @@ namespace Blaze.Ai.Ages.Viewer
 
             _timer = new DispatcherTimer()
             {
-                Interval = TimeSpan.FromMilliseconds(500),
+                Interval = TimeSpan.FromMilliseconds(1000),
             };
             _timer.Tick += Timer_Tick;
         }
@@ -49,7 +49,32 @@ namespace Blaze.Ai.Ages.Viewer
             float mse = champ.Score.Value * 1000;
             double logmse = Math.Log10(mse);
             _series.Score.Values.Add(logmse);
-            _timer.Start();
+            for(int i = 0; i < champ.Values.Length && i < _series.Champs.Length; ++i)
+                _series.Champs[i].Values.Add(champ.Values[i]);
+
+            var newPop = new ChartValues<ScatterPoint>();
+            foreach (var ei in _series.GA.Ages.Population)
+            {
+                CartesianIndividual i = (CartesianIndividual)ei.Individual;
+                if (i == champ)
+                {
+                    newPop.Add(new ScatterPoint(i.Values[0], i.Values[1], 1));
+                    _series.Champ.Values.Add(new ObservablePoint(i.Values[0], i.Values[1]));
+                }
+                else
+                    newPop.Add(new ScatterPoint(i.Values[0], i.Values[1], 0.1));
+
+            }
+            _series.Pop.Values = newPop;
+
+            _series.Actual.Values = new ChartValues<ObservablePoint>(
+                _series.GA.ExpectedValsX.Zip(
+                    Helpers.EvaluatePolynomial(champ, _series.GA.PowsOfXForAllX), 
+                    (x, y) => new ObservablePoint(x, y)));
+
+            _series.R.Values.Add((double)_series.GA.Ages.NicheRadius);
+            if(_series.GA.Ages.Champions.Count != 100)
+                _timer.Start();
         }
 
 
@@ -86,31 +111,154 @@ namespace Blaze.Ai.Ages.Viewer
         {
             public Series()
             {
+
+                GA = new GA();
+
                 var mapper = Mappers.Xy<ObservablePoint>()
                     .X(p => p.X)
                     .Y(p => Math.Log10(p.Y));
 
-                SeriesCollection = new SeriesCollection()
+                Score = new LineSeries
                 {
-                    new LineSeries
-                    {
-                        Title = "Score",
-                        Values = new ChartValues<double> { },
-                        Fill = Brushes.Transparent,
-                    }
+                    Title = "Score",
+                    Values = new ChartValues<double> { },
+                    Fill = Brushes.Transparent,
                 };
+
+
+                Champs = new LineSeries[GA.PolynomialOrder];
+                for (int i = 0; i < GA.PolynomialOrder; ++i)
+                {
+                    Champs[i] = new LineSeries()
+                    {
+                        Title = $"I_{i}",
+                        Values = new ChartValues<double>(),
+                        StrokeThickness = 1
+                    };
+                }
+
+                R = new LineSeries()
+                {
+                    Title = "R",
+                    Values = new ChartValues<double>(),
+                };
+
+                Actual = new LineSeries()
+                {
+                    Title = "Actual",
+                    Values = new ChartValues<ObservablePoint>(),
+                    PointGeometry = DefaultGeometries.None
+                };
+
+                Expected = new LineSeries()
+                {
+                    Title = "Expected",
+                    Values = new ChartValues<ObservablePoint>(),
+                    PointGeometry = DefaultGeometries.None
+                };
+                Expected.Values.AddRange(GA.ExpectedValsX.Zip(GA.ExpectedValsY, (x, y) => new ObservablePoint(x, y)));
+
+                Pop = new ScatterSeries()
+                {
+                    Title = "Pop",
+                    Values = new ChartValues<ScatterPoint>(),
+                    PointGeometry = DefaultGeometries.Circle,
+                    StrokeThickness = 1,
+                    Fill = Brushes.Blue,
+                    Stroke = Brushes.Blue,
+                    MaxPointShapeDiameter = 8,
+                    MinPointShapeDiameter = 2
+                };
+
+                ActualPop = new HeatSeries()
+                {
+                    Values = new ChartValues<HeatPoint>(),
+                    GradientStopCollection = new GradientStopCollection()
+                    {
+                        new GradientStop(Color.FromArgb(0x99, 0xEE, 0x11, 0x11), 0),
+                        new GradientStop(Color.FromArgb(0x99, 0xBB, 0x11, 0x44), 0.25),
+                        new GradientStop(Color.FromArgb(0x99, 0x88, 0x11, 0x77), 0.5),
+                        new GradientStop(Color.FromArgb(0x99, 0x55, 0x11, 0xAA), 0.75),
+                        new GradientStop(Color.FromArgb(0x99, 0x22, 0x11, 0xDD), 1),
+                    },
+                    DataLabels = false,
+                    DrawsHeatRange = false,
+                     
+                };
+
+                int f = 4;
+                ActualPop.Values.AddRange(Enumerable
+                    .Range(-10/f, 21/f)
+                    .Select(x =>
+                        {
+                            return Enumerable.Range(-10/f, 21/f)
+                                .Select((y) =>
+                                {
+                                    var ind = new CartesianIndividual(2);
+                                    ind.Values[0] = x*f;
+                                    ind.Values[1] = y*f;
+                                    return new HeatPoint(f * x, f * y, ind.PolynomialEval(GA.PowsOfXForAllX, GA.ExpectedValsY));
+                                });
+                        })
+                    .SelectMany(hp => hp)
+                    .ToList());
+
+                Champ = new LineSeries()
+                {
+                    Title = "Champ",
+                    Values = new ChartValues<ObservablePoint>(),
+                    PointGeometry = DefaultGeometries.None,
+                    //PointForeground = Brushes.Red,
+                    Stroke = Brushes.Red,
+                    Fill = Brushes.Transparent,
+                    LineSmoothness = 0
+                };
+
+                ScoreCollection = new SeriesCollection() { Score };
+
+                PopCollection = new SeriesCollection { Pop, Champ, };
+
+                ChampionCollection = new SeriesCollection();
+                ChampionCollection.AddRange(Champs);
+
+                RadiusCollection = new SeriesCollection { R };
+
+                PhenomeCollection = new SeriesCollection { Expected, Actual };
 
                 Formatter = y => Math.Pow(y, 10).ToString("N");
 
-                GA = new GA();
                 _actionText = "Start";
             }
 
             public GA GA { get; }
 
-            public SeriesCollection SeriesCollection { get; set; }
+            public LineSeries Score { get; private set; }
 
-            public LineSeries Score => (LineSeries)SeriesCollection[0];
+            public LineSeries[] Champs { get; private set; } = new LineSeries[4];
+
+            public LineSeries R { get; private set; }
+
+            public LineSeries Expected { get; private set; }
+
+            public LineSeries Actual { get; private set; }
+
+            public ScatterSeries Pop { get; set; }
+
+            public HeatSeries ActualPop { get; set; }
+
+            public LineSeries Champ { get; set; }
+
+            public SeriesCollection ScoreCollection { get; set; }
+
+            public SeriesCollection ChampionCollection { get; set; }
+
+            public SeriesCollection PopCollection { get; set; }
+
+            public SeriesCollection RadiusCollection { get; set; }
+
+            public SeriesCollection PhenomeCollection { get; set; }
+
+
 
             public Func<double, string> Formatter { get; set; }
 

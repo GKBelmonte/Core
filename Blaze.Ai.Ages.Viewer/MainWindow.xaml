@@ -6,23 +6,82 @@
         xmlns:local="clr-namespace:Blaze.Ai.Ages.Viewer"
         mc:Ignorable="d"
         xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" 
+        Height="550" 
+        Width="925">
 
     <StackPanel >
-        <lvc:CartesianChart 
-            x:Name="_cartesianChart" 
-            Series="{Binding SeriesCollection}" 
-            LegendLocation="Right" 
-            Height="375"
-            DisableAnimations="True">
-            <lvc:CartesianChart.AxisY >
-                <lvc:Axis Title="Score" ></lvc:Axis>
-            </lvc:CartesianChart.AxisY>
-            <lvc:CartesianChart.AxisX>
-                <lvc:Axis Title="Gen" ></lvc:Axis>
-            </lvc:CartesianChart.AxisX>
-        </lvc:CartesianChart>
-
+        <StackPanel Orientation="Horizontal">
+            <lvc:CartesianChart 
+                x:Name="_cartesianChart" 
+                Series="{Binding ScoreCollection}" 
+                LegendLocation="None"
+                Height="500"
+                DisableAnimations="True" 
+                Width="300">
+                <lvc:CartesianChart.AxisY >
+                    <lvc:Axis Title="Score" ></lvc:Axis>
+                </lvc:CartesianChart.AxisY>
+                <lvc:CartesianChart.AxisX>
+                    <lvc:Axis Title="Gen" ></lvc:Axis>
+                </lvc:CartesianChart.AxisX>
+            </lvc:CartesianChart>
+            <StackPanel Width="300">
+                <lvc:CartesianChart 
+                    x:Name="_bestXYChart" 
+                    Series="{Binding ChampionCollection}" 
+                    LegendLocation="None"
+                    
+                    DisableAnimations="True" Height="250">
+                    <lvc:CartesianChart.AxisY >
+                        <lvc:Axis Title="X,Y" ></lvc:Axis>
+                    </lvc:CartesianChart.AxisY>
+                    <lvc:CartesianChart.AxisX>
+                        <lvc:Axis Title="Gen" ></lvc:Axis>
+                    </lvc:CartesianChart.AxisX>
+                </lvc:CartesianChart>
+                <lvc:CartesianChart 
+                    x:Name="_XYPopChart" 
+                    Series="{Binding PopCollection}" 
+                    LegendLocation="None"
+                    DisableAnimations="True" Height="250">
+                    <lvc:CartesianChart.AxisY >
+                        <lvc:Axis Title="Y" MaxValue="10" MinValue="-10">
+                        </lvc:Axis>
+                    </lvc:CartesianChart.AxisY>
+                    <lvc:CartesianChart.AxisX >
+                        <lvc:Axis Title="X" MaxValue="10" MinValue="-10">
+                        </lvc:Axis>
+                    </lvc:CartesianChart.AxisX>
+                </lvc:CartesianChart>
+            </StackPanel>
+            <StackPanel Width="300">
+                <lvc:CartesianChart 
+                    x:Name="_radiusChart" 
+                    Series="{Binding RadiusCollection}" 
+                    LegendLocation="None"
+                    DisableAnimations="True" Height="250">
+                    <lvc:CartesianChart.AxisY >
+                        <lvc:Axis Title="R" ></lvc:Axis>
+                    </lvc:CartesianChart.AxisY>
+                    <lvc:CartesianChart.AxisX>
+                        <lvc:Axis Title="Gen" ></lvc:Axis>
+                    </lvc:CartesianChart.AxisX>
+                </lvc:CartesianChart>
+                <lvc:CartesianChart 
+                    x:Name="_PhenomeVTargetChart" 
+                    Series="{Binding PhenomeCollection}" 
+                    LegendLocation="None"
+                    DisableAnimations="True" Height="250">
+                    <lvc:CartesianChart.AxisY >
+                        <lvc:Axis Title="f(i)" ></lvc:Axis>
+                    </lvc:CartesianChart.AxisY>
+                    <lvc:CartesianChart.AxisX>
+                        <lvc:Axis Title="i" ></lvc:Axis>
+                    </lvc:CartesianChart.AxisX>
+                </lvc:CartesianChart>
+            </StackPanel>
+        </StackPanel>
         <Button x:Name="_buttonStartPause" Click="_buttonStartPause_Click" Content="Start"></Button>
 
     </StackPanel>

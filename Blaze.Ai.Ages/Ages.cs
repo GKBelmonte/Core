@@ -127,6 +127,8 @@ namespace Blaze.Ai.Ages
         private double _RadiusAdjustMaxFactor = 2;
         private double _RadiusAdjustMinFactor;
         private double _RadiusAdjustPower;
+
+        public float NicheRadius { get { return _NicheRadius; } }
         private float _NicheRadius = 0.03f;
         #endregion
 

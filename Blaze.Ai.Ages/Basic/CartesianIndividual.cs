@@ -10,7 +10,7 @@ namespace Blaze.Ai.Ages.Basic
     {
         public double[] Values { get; }
 
-        public CartesianIndividual() : this(6,6) { }
+        public CartesianIndividual() : this(6, 6) { }
 
         public CartesianIndividual(int order) : this(order, 6) { }
 
@@ -120,7 +120,7 @@ namespace Blaze.Ai.Ages.Basic
 
         public override string ToString()
         {
-            return string.Join("\t", Values.Select(f => f.ToString("0.000")));
+            return string.Join("\t", Values.Select(f => f.ToString("0.000").PadRight(7)));
         }
     }
 }

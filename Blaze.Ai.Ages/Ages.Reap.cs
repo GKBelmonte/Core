@@ -110,7 +110,14 @@ namespace Blaze.Ai.Ages
             //Fresh individuals for the failing percent
             for (var ii = EliminateIndexBegin; ii < pop.Count; ++ii)
             {
-                newPop.Add(_Generate().ToEI());
+                if(Utils.RandomInt(0,2) == 0)
+                    newPop.Add(_Generate().ToEI());
+                else
+                    newPop.Add(
+                        pop[Utils.RandomInt(0,EliteIndexEnd)]
+                            .Individual
+                            .Mutate(MutationProbability,5f)
+                            .ToEI());
             }
 
             _Population = newPop;
