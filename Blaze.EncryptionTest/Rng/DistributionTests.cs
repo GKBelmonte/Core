@@ -39,6 +39,12 @@ namespace Blaze.Cryptography.Tests.Rng
         }
 
         [TestMethod]
+        public void RC4Distribution()
+        {
+            Utils.ExecuteTester<RC4Rng>(TestRngDistribution<RC4Rng>);
+        }
+
+        [TestMethod]
         public void SWBDistribution()
         {
             Utils.ExecuteTester<SubstractWithBorrowRng>(TestRngDistribution<SubstractWithBorrowRng>);
@@ -89,6 +95,7 @@ namespace Blaze.Cryptography.Tests.Rng
             LIB4Distribution();
             MwcDistribution();
             NullDistribution();
+            RC4Distribution();
             SHR3Distribution();
             SWBDistribution();
             SysDistribution();

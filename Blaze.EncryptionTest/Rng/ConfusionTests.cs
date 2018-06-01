@@ -44,6 +44,12 @@ namespace Blaze.Cryptography.Tests.Rng
         }
 
         [TestMethod]
+        public void RC4Confusion()
+        {
+            Utils.ExecuteTester<RC4Rng>(TestRngConfusion<RC4Rng>);
+        }
+
+        [TestMethod]
         public void SHR3Confusion()
         {
             Utils.ExecuteTester<ShiftRegisterRng>(TestRngConfusion<ShiftRegisterRng>);
@@ -88,6 +94,7 @@ namespace Blaze.Cryptography.Tests.Rng
             LIB4Confusion();
             MwcConfusion();
             NullConfusion();
+            RC4Confusion();
             SHR3Confusion();
             SWBConfusion();
             SysConfusion();

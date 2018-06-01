@@ -36,6 +36,12 @@ namespace Blaze.Cryptography.Tests.Rng
         }
 
         [TestMethod]
+        public void RC4Range()
+        {
+            Utils.ExecuteTester<RC4Rng>(TestRngRange);
+        }
+
+        [TestMethod]
         public void SWBRange()
         {
             Utils.ExecuteTester<SubstractWithBorrowRng>(TestRngRange);

@@ -42,6 +42,12 @@ namespace Blaze.Cryptography.Tests.Rng
         }
 
         [TestMethod]
+        public void RC4Determinism()
+        {
+            Utils.ExecuteTester<RC4Rng>(TestRngDeterminism);
+        }
+
+        [TestMethod]
         public void SHR3Determinism()
         {
             Utils.ExecuteTester<ShiftRegisterRng>(TestRngDeterminism);
