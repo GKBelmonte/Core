@@ -23,11 +23,9 @@ namespace Blaze.Ai.Ages.Tests
                 Val = d;
             }
 
-
-
             public string Name => "";
 
-            public IIndividual Mutate(float probability, float sigma)
+            public IIndividual Mutate(float probability, float sigma, Random r)
             {
                 throw new NotImplementedException();
             }

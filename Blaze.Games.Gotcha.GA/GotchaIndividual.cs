@@ -69,15 +69,15 @@ namespace Blaze.Games.Gotcha.GA
             }
         }
 
-        public IIndividual Mutate(float probability, float sigma)
+        public IIndividual Mutate(float probability, float sigma, Random rng)
         {
             var newInd = new GotchaIndividual(this);
             for (var ii = 0; ii < 4; ++ii)
             {
                 for (var jj = 0; jj < 4; ++jj)
                 {
-                    if (Utils.ProbabilityPass(probability))
-                        newInd.mGradient[ii][jj] = (float)(mGradient[ii][jj] + Utils.GausianNoise(sigma));
+                    if (rng.ProbabilityPass(probability))
+                        newInd.mGradient[ii][jj] = (float)(mGradient[ii][jj] + rng.GausianNoise(sigma));
                 }
             }
             return newInd;
@@ -89,7 +89,7 @@ namespace Blaze.Games.Gotcha.GA
         }
 
         static public CrossOver GarboCrossoverOperator { get { return new CrossOver(CrossOver); } }
-        public static IIndividual CrossOver(List<IIndividual > parents)
+        public static IIndividual CrossOver(List<IIndividual > parents, Random r)
         {
             var newInd = new GotchaIndividual();
             for (var ii = 0; ii < 4; ++ii)

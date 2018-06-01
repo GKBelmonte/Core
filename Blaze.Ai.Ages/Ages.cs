@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using Blaze.Ai.Ages.Strats;
 using Blaze.Core.Maths;
 
 namespace Blaze.Ai.Ages
@@ -40,8 +41,7 @@ namespace Blaze.Ai.Ages
                 crossoverOp,
                 generator,
                 null);
-
-            Sow(generator, popSize);
+            _PopSize = popSize;
         }
 
         public Ages(
@@ -72,8 +72,7 @@ namespace Blaze.Ai.Ages
                 crossOverOp, 
                 generator, 
                 null);
-
-            Sow(generator, popSize);
+            _PopSize = popSize;
         }
 
         private void Init(
@@ -88,9 +87,13 @@ namespace Blaze.Ai.Ages
             EliminatedPercent = 0.2f;
             ElitismPercent = 0.1f;
             _NumberOfGenerations = numberOfGenerations;
-            _Population = population
-                .Select(i => i.ToEI())
-                .ToList();
+            if (population != null)
+            {
+                _Population = population
+                    .Select(i => i.ToEI())
+                    .ToList();
+                _PopSize = population.Count;
+            }
             _Tournament = null;
             _GenerationCount = 0;
             _Compare = compareTwo;
@@ -99,6 +102,7 @@ namespace Blaze.Ai.Ages
             _Crossover = crossoverOp;
             _Champions = new List<EvaluatedIndividual>(_NumberOfGenerations);
             VariationSettings = new VariationSettings(6, 4, 2);
+            _Rng = new Random();
         }
 
         #region Properties and Members
@@ -110,10 +114,7 @@ namespace Blaze.Ai.Ages
         public IReadOnlyList<EvaluatedIndividual> Champions { get { return _Champions; } }
         List<EvaluatedIndividual> _Champions;
 
-        /// <summary>
-        /// If provided, will
-        /// </summary>
-        public Func<IIndividual, IIndividual, float> Distance { get; set; }
+        public NicheStrategy NicheStrat { get; set; }
 
         QuickTournament _Tournament;
         
@@ -124,18 +125,23 @@ namespace Blaze.Ai.Ages
         private int _GenerationCount;
         private int _NumberOfGenerations;
 
-        private double _RadiusAdjustMaxFactor = 2;
-        private double _RadiusAdjustMinFactor;
-        private double _RadiusAdjustPower;
+        private int _PopSize;
 
-        public float NicheRadius { get { return _NicheRadius; } }
-        private float _NicheRadius = 0.03f;
+        private Random _Rng;
         #endregion
 
-        public void GoThroughGenerationsSync()
+        public void SetRandomSeed(int seed)
         {
+            _Rng = new Random(seed);
+        }
+
+        public void GoThroughGenerations()
+        {
+            Sow();
             Begin();
-            while (_GenerationCount < _NumberOfGenerations)
+
+            int genCount = 0;
+            while (genCount++ < _NumberOfGenerations)
             {
                 Fight();
 
@@ -145,13 +151,13 @@ namespace Blaze.Ai.Ages
 
                 Survive();
             }
+
+            _GenerationCount += genCount;
         }
 
         private void Begin()
         {
-            _GenerationCount = 0;
-            _RadiusAdjustPower = Math.Log(_RadiusAdjustMaxFactor*_RadiusAdjustMaxFactor) / Math.Log(EliminateIndexBegin);
-            _RadiusAdjustMinFactor = 1 / _RadiusAdjustMaxFactor;
+            
         }
 
         private void Fight()
@@ -171,15 +177,15 @@ namespace Blaze.Ai.Ages
                 : _Population.OrderBy(i => i.Score).ToList();
 
             Console.WriteLine($"Generation {_GenerationCount} Complete");
-
-            _GenerationCount += 1;
         }
 
-        private void Sow(Generate generator, int popSize)
+        private void Sow()
         {
+            if (_Population != null)
+                return;
             _Population = Enumerable
-                .Range(0, popSize)
-                .Select(i => generator().ToEI())
+                .Range(0, _PopSize)
+                .Select(i => _Generate(_Rng).ToEI())
                 .ToList();
         }
 
@@ -202,7 +208,6 @@ namespace Blaze.Ai.Ages
                 _Compare, 
                 new TournamentComplete( (pop) =>
                 {
-                    _GenerationCount += 1;
                     _Tournament = null;
                     _Population = pop
                         .Select(i => i.ToEI())
@@ -213,91 +218,10 @@ namespace Blaze.Ai.Ages
 
         private void NichePenalty()
         {
-            if (Distance == null)
+            if (NicheStrat == null)
                 return;
 
-            float scoreStdDev = (float)_Population
-                .Select(i => (double)i.Score.Value)
-                .Take(EliminateIndexBegin)
-                .ToList()
-                .StdDevP();
-
-            float[] penalties = new float[_Population.Count];
-
-            int elimIndex = EliminateIndexBegin;
-
-            //punish all individuals similar to the best individual within a radius
-            var niches = new List<Niche>(_Population.Count);
-
-            for (int i = 0; i < elimIndex - 1; ++i)
-            {
-                int j = i + 1;
-                var reference = _Population[i].Individual;
-
-                float d = 0;
-                var niche = new Niche(reference);
-
-                //Punish all individuals too similiar to ith
-                while (j < elimIndex && (d = Distance(reference, _Population[j].Individual)) <= _NicheRadius)
-                {
-                    //At distance 1, the penalty is one-tenth a standard deviation
-                    //At distance 0.316, the penalty is a whole-standard deviation
-                    float partialPenalty = scoreStdDev / 10 / (d * d);
-                    penalties[j] += partialPenalty;
-                    niche.Members.Add(_Population[j].Individual);
-                    j++;
-                }
-                niche.MaxRadius = d;
-
-                //punish everyone else in the niche against each other
-                //The more you repeat the worse
-                for (int k = i + 1; k < j - 1; ++k)
-                {
-                    for (int w = k + 1; w < j; ++w)
-                    {
-                        float d2 = Distance(_Population[k].Individual, _Population[w].Individual);
-                        float partialPenalty = scoreStdDev / 10 / (d2 * d2);
-                        penalties[w] += partialPenalty;
-                    }
-                }
-
-                // Either this individual was far or out-of bounds
-                // Either way, I want to start from j next, 
-                // (increment will happen right after)
-                i = j - 1;
-                niches.Add(niche);
-            }
-
-            // niche count = |distances|
-
-            // If the number of distances is high either
-            //  * My pop is diverse (Yay!)
-            //  * My radius is too small
-
-            // If the number of distances is small, either
-            //  * My pop is super nichey
-            //  * My radius is too large
-
-            // Worst case on large radius, 1 distance, every is within the radius
-            // Worst case on small radius, |pop| distances, everyone is their own niche
-            // Obvious middle case, |pop|/2 distances, every pair is a niche (probably still small radius)
-            // Probably the best then is to have sqrt(|pop|) niches with sqrt(|pop|) individs
-            // This guarantees the most individuals and the most niches
-
-            // if the number of niches is at max, we should half the radius
-            // if the number of niches is at min, we should double it
-            // if the number of niches is just right, not change it
-            // So I want a f(n) such that
-            //  f(1) = 2,
-            //  f(sqrt(|pop|)) = 1
-            //  f(|pop|) = 1/2
-            // where f(n) is the factor to apply to the radius and n is the number of niches
-            // By playing around, I found that f(n, p) = 1/2 * n ^( 1/ lg_4 (p) )
-            //  f(n, p) = 1/2 * n ^ ( ln(p) / ln(2*2) )
-            double nicheAverageDensity = niches.Average(n => n.Members.Count);
-
-            double adjustFactor = _RadiusAdjustMinFactor * Math.Pow(nicheAverageDensity, _RadiusAdjustPower);
-            _NicheRadius = (float)(_NicheRadius / adjustFactor);
+            IReadOnlyList<float> penalties = NicheStrat.NichePenalties(_Population);
 
             if (Maximize)
             {
@@ -344,7 +268,6 @@ namespace Blaze.Ai.Ages
                 return $"Individual: {Individual}, Score: {Score}";
             }
         }
-
 
         //Cheap cluster?
         private class Niche

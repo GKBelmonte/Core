@@ -47,10 +47,10 @@ namespace Blaze.Games.Gotcha.GA
                 1000,
                 new CompareEvaluate(Evaluate),
                 GotchaIndividual.GarboCrossoverOperator,
-                () => new GotchaIndividual(),
+                (r) => new GotchaIndividual(),
                 pop);
 
-            myGA.GoThroughGenerationsSync();
+            myGA.GoThroughGenerations();
 
             Console.ReadKey();
         }

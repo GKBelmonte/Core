@@ -45,38 +45,64 @@ namespace Blaze.Ai.Ages.Viewer
         private void Timer_Tick(object sender, EventArgs e)
         {
             _timer.Stop();
+
+            Task.Run(() => Work());
+        }
+
+        private List<CartesianIndividual> _champs = new List<CartesianIndividual>(200);
+
+        private void Work()
+        {
             CartesianIndividual champ = _series.GA.Generation();
             float mse = champ.Score.Value * 1000;
             double logmse = Math.Log10(mse);
-            _series.Score.Values.Add(logmse);
-            for(int i = 0; i < champ.Values.Length && i < _series.Champs.Length; ++i)
-                _series.Champs[i].Values.Add(champ.Values[i]);
+
+            _champs.Add(champ);
 
             var newPop = new ChartValues<ScatterPoint>();
             foreach (var ei in _series.GA.Ages.Population)
             {
                 CartesianIndividual i = (CartesianIndividual)ei.Individual;
                 if (i == champ)
-                {
                     newPop.Add(new ScatterPoint(i.Values[0], i.Values[1], 1));
-                    _series.Champ.Values.Add(new ObservablePoint(i.Values[0], i.Values[1]));
-                }
                 else
                     newPop.Add(new ScatterPoint(i.Values[0], i.Values[1], 0.1));
-
             }
-            _series.Pop.Values = newPop;
 
-            _series.Actual.Values = new ChartValues<ObservablePoint>(
-                _series.GA.ExpectedValsX.Zip(
-                    Helpers.EvaluatePolynomial(champ, _series.GA.PowsOfXForAllX), 
-                    (x, y) => new ObservablePoint(x, y)));
+            bool isNewChamp = _champs.Count == 1 
+                || CartesianIndividual.Distance((CartesianIndividual)_champs[_champs.Count - 2], champ) > 0.001;
 
-            _series.R.Values.Add((double)_series.GA.Ages.NicheRadius);
-            if(_series.GA.Ages.Champions.Count != 100)
+            ChartValues<ObservablePoint> actualValues = null;
+            if (isNewChamp)
+            {
+                actualValues = new ChartValues<ObservablePoint>(
+                    _series.GA.ExpectedValsX.Zip(
+                        Helpers.EvaluatePolynomial(champ, _series.GA.PowsOfXForAllX),
+                        (x, y) => new ObservablePoint(x, y)));
+            }
+
+            Dispatcher.Invoke(() =>
+            {
+                _series.Score.Values.Add(logmse);
+
+                var nicheDensity = _series.GA.Ages.NicheStrat as Strats.NicheDensityStrategy;
+
+                _series.R.Values.Add((double)(nicheDensity?.NicheRadius ?? 0));
+
+                _series.Pop.Values = newPop;
+
+                if (isNewChamp)
+                {
+                    _series.Actual.Values = actualValues;
+                    _series.Champ.Values.Add(new ObservablePoint(champ.Values[0], champ.Values[1]));
+                }
+
+                for (int i = 0; i < champ.Values.Length && i < _series.Champs.Length; ++i)
+                    _series.Champs[i].Values.Add(champ.Values[i]);
+
                 _timer.Start();
+            });
         }
-
 
         private void PrintGen()
         {
@@ -133,7 +159,8 @@ namespace Blaze.Ai.Ages.Viewer
                     {
                         Title = $"I_{i}",
                         Values = new ChartValues<double>(),
-                        StrokeThickness = 1
+                        StrokeThickness = 1,
+                        PointGeometry = DefaultGeometries.None
                     };
                 }
 

@@ -10,17 +10,18 @@ namespace Blaze.Ai.Ages.Basic
     {
         public double[] Values { get; }
 
-        public CartesianIndividual() : this(6, 6) { }
+        public CartesianIndividual(Random r = null) : this(6, 6, r) { }
 
-        public CartesianIndividual(int order) : this(order, 6) { }
+        public CartesianIndividual(int order, Random r = null) : this(order, 6, r) { }
 
-        public CartesianIndividual(int order, int sigma)
+        public CartesianIndividual(int order, int sigma, Random r)
         {
+            r = r ?? Utils.ThreadRandom;
             Name = IndividualTools.CreateName();
             Values = new double[order];
             for (int i = 0; i < Values.Length; ++i)
             {
-                Values[i] = Utils.GausianNoise(sigma);
+                Values[i] = r.GausianNoise(sigma);
             }
         }
 
@@ -61,25 +62,25 @@ namespace Blaze.Ai.Ages.Basic
             }
         }
 
-        public IIndividual Mutate(float probability, float sigma)
+        public IIndividual Mutate(float probability, float sigma, Random r)
         {
             var newInd = new CartesianIndividual(this);
             for (int i = 0; i < Values.Length; ++i)
             {
-                if (Utils.ProbabilityPass(probability))
-                    newInd.Values[i] += Utils.GausianNoise(sigma);
+                if (r.ProbabilityPass(probability))
+                    newInd.Values[i] += r.GausianNoise(sigma);
             }
             return newInd;
         }
 
-        public static IIndividual CrossOver(List<IIndividual> parents)
+        public static IIndividual CrossOver(List<IIndividual> parents, Random r)
         {
             var parent = (CartesianIndividual)parents[0];
             var newInd = new CartesianIndividual(parent.Values.Length);
             for (var ii = 0; ii < newInd.Values.Length; ++ii)
             {
                 //33% chance of taking single random parent gene, 66% chance of taking average of all parents
-                var dice = Utils.RandomInt(0, 3);
+                var dice = r.Next(0, 3);
                 if (dice < 1)
                 {
                     //Take average of parents respective alleles
@@ -94,7 +95,7 @@ namespace Blaze.Ai.Ages.Basic
                 }
                 else //Take single parent gene randomly
                 {
-                    var par = (CartesianIndividual)parents[Utils.RandomInt(0, parents.Count)];
+                    var par = (CartesianIndividual)parents[r.Next(0, parents.Count)];
                     newInd.Values[ii] = par.Values[ii];
                 }
             }

@@ -38,9 +38,9 @@ namespace Blaze.Ai.Ages
             }
         }
 
-        private int EliminateIndexBegin => (int)Math.Floor((_Population.Count * (1 - EliminatedPercent)));
+        public int EliminateIndexBegin => (int)Math.Floor((_Population.Count * (1 - EliminatedPercent)));
 
-        private int EliteIndexEnd => (int)Math.Floor((_Population.Count * ElitismPercent));
+        public int EliteIndexEnd => (int)Math.Floor((_Population.Count * ElitismPercent));
 
         private float _mutationProbability;
         public float MutationProbability
@@ -73,7 +73,7 @@ namespace Blaze.Ai.Ages
             //Changed individuals
             for (int ii = EliteIndexEnd; ii < EliminateIndexBegin; ++ii)
             {
-                int dice = Utils.RandomInt(0, 12);
+                int dice = _Rng.Next(0, 12);
                 if (dice < VariationSettings.SurvivalRatio)
                 {
                     newPop.Add(pop[ii]); //Individual survived by chance
@@ -81,42 +81,42 @@ namespace Blaze.Ai.Ages
                 else if (dice < VariationSettings.SurvivalRatio + VariationSettings.MutationRatio)
                 {
                     //Mutated
-                    IIndividual newInd = pop[Utils.RandomInt(0, EliminateIndexBegin)]
+                    IIndividual newInd = pop[_Rng.Next(0, EliminateIndexBegin)]
                         .Individual
-                        .Mutate(MutationProbability, 5f);
+                        .Mutate(MutationProbability, 5f, _Rng);
                     newPop.Add(newInd.ToEI());
                 }
                 else
                 {
                     //Crossover
                     var parents = new List<IIndividual>(5);
-                    var numOfParents = Utils.RandomInt(2, 5); //pick 2,3 or 4 parents
+                    var numOfParents = _Rng.Next(2, 5); //pick 2,3 or 4 parents
                     while (parents.Count < numOfParents)
                     {
                         //Pick a random surviving parent
-                        var index = Utils.RandomInt(0, EliminateIndexBegin);
+                        var index = _Rng.Next(0, EliminateIndexBegin);
                         //Select him probabilistically based on rank (index)
                         float prob = ((float)(pop.Count - index)) / pop.Count;//Probability
-                        if (Utils.ProbabilityPass(prob))
+                        if (_Rng.ProbabilityPass(prob))
                         {
                             parents.Add(pop[index].Individual);
                         }
                     }
                     //Add the crossed individual
-                    newPop.Add(_Crossover(parents).ToEI());
+                    newPop.Add(_Crossover(parents, _Rng).ToEI());
                 }
             }
 
             //Fresh individuals for the failing percent
             for (var ii = EliminateIndexBegin; ii < pop.Count; ++ii)
             {
-                if(Utils.RandomInt(0,2) == 0)
-                    newPop.Add(_Generate().ToEI());
+                if(_Rng.Next(0,2) == 0)
+                    newPop.Add(_Generate(_Rng).ToEI());
                 else
                     newPop.Add(
-                        pop[Utils.RandomInt(0,EliteIndexEnd)]
+                        pop[_Rng.Next(0,EliteIndexEnd)]
                             .Individual
-                            .Mutate(MutationProbability,5f)
+                            .Mutate(MutationProbability, 5f, _Rng)
                             .ToEI());
             }
 

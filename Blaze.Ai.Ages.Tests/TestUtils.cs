@@ -14,8 +14,6 @@ namespace Blaze.Ai.Ages.Tests
     {
         ILogger Log = new ConsoleLogger();
 
-        
-
         [TestMethod]
         public void TestRadiusModifierFactor()
         {

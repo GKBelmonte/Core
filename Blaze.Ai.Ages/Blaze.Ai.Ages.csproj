@@ -51,6 +51,7 @@
     <Compile Include="IIndividual.cs" />
     <Compile Include="QuickTournament.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Strats\NicheStrategies.cs" />
     <Compile Include="Utils.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -58,6 +59,9 @@
       <Project>{9ded0638-86eb-49e3-b3d6-d819f4bd194f}</Project>
       <Name>Blaze.Core</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Meta\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

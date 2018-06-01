@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Blaze.Ai.Ages.Strats;
 
 namespace Blaze.Ai.Ages.Viewer
 {
@@ -34,8 +35,8 @@ namespace Blaze.Ai.Ages.Viewer
             PolynomialOrder = 6;
             int populationSize = 150;
             int sampleCount = 1000;
-            int genCount = 500;
-            double step = 0.01;
+            int genCount = 25;
+            double step = 0.02;
 
             var pop = Enumerable
                 .Range(0, populationSize)
@@ -73,15 +74,17 @@ namespace Blaze.Ai.Ages.Viewer
                 new Evaluate((i) => ((CartesianIndividual)i).PolynomialEval(allPowsOfX, expectedValues)),
                 //new Evaluate((i)=> (float)Helpers.EvaluateAckley(((CartesianIndividual)i))),
                 CartesianIndividual.CrossOver,
-                new Generate(() => new CartesianIndividual(PolynomialOrder)),
+                new Generate((r) => new CartesianIndividual(PolynomialOrder, r)),
                 pop);
 
-            Ages.Distance = (l, r) => CartesianIndividual.Distance((CartesianIndividual)l, (CartesianIndividual)r);
+            Ages.NicheStrat = new NicheDensityStrategy(
+                Ages,
+                (l, r) => CartesianIndividual.Distance((CartesianIndividual)l, (CartesianIndividual)r));
         }
 
         public CartesianIndividual Generation()
         {
-            Ages.GoThroughGenerationsSync();
+            Ages.GoThroughGenerations();
             var champ = (CartesianIndividual)Ages.Champions.Last().Individual;
             return champ;
         }

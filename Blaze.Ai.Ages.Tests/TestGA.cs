@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using Blaze.Ai.Ages.Strats;
 
 namespace Blaze.Ai.Ages.Tests
 {
@@ -70,12 +71,14 @@ namespace Blaze.Ai.Ages.Tests
             var ages = new Ages(genCount,
                 new Evaluate((i) => ((CartesianIndividual)i).PolynomialEval(allPowsOfX, expectedValues)),
                 CartesianIndividual.CrossOver,
-                new Generate(() => new CartesianIndividual(polynomialOrder)),
+                new Generate((r) => new CartesianIndividual(polynomialOrder, r)),
                 pop);
 
-            ages.Distance = (l,r) => CartesianIndividual.Distance((CartesianIndividual)l, (CartesianIndividual)r);
+            ages.NicheStrat = new NicheDensityStrategy(
+                ages, 
+                (l, r) => CartesianIndividual.Distance((CartesianIndividual)l, (CartesianIndividual)r));
 
-            ages.GoThroughGenerationsSync();
+            ages.GoThroughGenerations();
 
             for (int i = 0; i < 4; ++i)
             {

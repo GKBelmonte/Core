@@ -5,7 +5,12 @@ using System.Text;
 
 namespace Blaze.Ai.Ages
 {
-    public delegate IIndividual CrossOver(List<IIndividual > parents);
+    /// <summary>
+    /// Creates a new individual from the parents
+    /// </summary>
+    /// <param name="r">The GA's random generator. Should not be omitted to have deterministic runs</param>
+    public delegate IIndividual CrossOver(List<IIndividual> parents, Random r);
+    
     /// <summary>
     /// Is A > B ? by how much? (+, o.w. - ) 
     /// </summary>
@@ -19,5 +24,15 @@ namespace Blaze.Ai.Ages
     public delegate float Evaluate(IIndividual pers);
     public delegate void TournamentComplete(List<IIndividual> sortedPop);
 
-    public delegate IIndividual Generate();
+    /// <summary>
+    /// Generates a fresh new individual
+    /// </summary>
+    /// <param name="r">The GA's random generator. Should not be omitted to have deterministic runs</param>
+    /// <returns></returns>
+    public delegate IIndividual Generate(Random r);
+
+    /// <summary>
+    /// Calculates the difference in the genome of the individuals
+    /// </summary>
+    public delegate double Distance(IIndividual l, IIndividual r);
 }
