@@ -309,13 +309,21 @@ namespace Blaze.Cryptography.Tests
             //Its not a pow 2 alphabet, so xor does not work
             cypher.ForwardOp = (a, b) => a + b;
             cypher.ReverseOp = (a, b) => a - b;
+
             string text = "0123";
             string cypherText = cypher.Encrypt(text, "K");
             string decypherText = cypher.Decrypt(cypherText, "K");
             Log.Info($"Plain Text: {text}");
             Log.Info($"Cypher Text: {cypherText}");
             Log.Info($"Decypher Text: {decypherText}");
+
             Assert.AreEqual(text, decypherText);
+
+            string newCypherText = cypher.Encrypt(text, "K");
+            string newDecypherText = cypher.Decrypt(cypherText, "K");
+
+            Assert.AreEqual(text, newDecypherText);
+            Assert.AreNotEqual(cypherText, newCypherText);
         }
 
         [TestMethod]

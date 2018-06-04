@@ -95,8 +95,7 @@ namespace Blaze.Cryptography
 
         public override byte[] Encrypt(byte[] plain, byte[] key)
         {
-            byte[] keyHash = key.GetMD5Hash();
-            var rand = keyHash.KeyToRand();
+            var rand = key.KeyToRand();
 
             InitializeBijection(rand);
             _Encrypt.ForwardOp = Forward;
@@ -106,8 +105,7 @@ namespace Blaze.Cryptography
 
         public override byte[] Decrypt(byte[] cypher, byte[] key)
         {
-            byte[] keyHash = key.GetMD5Hash();
-            var rand = keyHash.KeyToRand();
+            var rand = key.KeyToRand();
 
             InitializeBijection(rand);
             _Encrypt.ForwardOp = Forward;
@@ -157,8 +155,7 @@ namespace Blaze.Cryptography
 
         public string GetBijectionString(string key)
         {
-            byte[] keyHash = key.ToByteArray().GetMD5Hash();
-            IRng rand = keyHash.KeyToRand();
+            IRng rand = key.ToByteArray().KeyToRand();
             InitializeBijection(rand);
             var res = new StringBuilder();
 

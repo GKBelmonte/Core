@@ -43,7 +43,6 @@ namespace Some.Tests
             r.NextBytes(randBytes);
             string randText = randBytes.ToTextString();
 
-
             var tests = new[]
             {
                 new { Name = "Windows",     Text = plainEolWindows,   Plain = true, Eol = EndOfLine.Mixed },
@@ -82,7 +81,7 @@ namespace Some.Tests
         public void TestEncodeBytes()
         {
             byte[] test = { 0x01, 0xFF, 0x07, 100 };
-            var encoded = SaltedCypher.EncodeBytes(test, 10).ToList();
+            var encoded = CryptoUtils.EncodeBytes(test, 10).ToList();
             int[] expected = 
             {
                 4, 0,
@@ -109,7 +108,7 @@ namespace Some.Tests
             };
             byte[] expected = { 0x01, 0xFF, 0x07, 100 };
             int skipCount;
-            var decoded = SaltedCypher.DecodeBytes(test, 10, out skipCount).ToList();
+            var decoded = CryptoUtils.DecodeBytes(test, 10, out skipCount).ToList();
 
             Assert.AreEqual(expected.Length, decoded.Count);
             for (int i = 0; i < expected.Length; ++i)

@@ -132,8 +132,8 @@ namespace Blaze.Cryptography
         /// </summary>
         private List<byte[]> GetPepperedKeys(byte[] key)
         {
-            byte[] hashedKey = key.GetMD5Hash();
-            IRng random = hashedKey.KeyToRand();
+            byte[] hashedKey = key.GetSHA256Hash();
+            IRng random = key.KeyToRand();
             byte[] discard = new byte[random.Next(100, 111)];
             random.NextBytes(discard);
 

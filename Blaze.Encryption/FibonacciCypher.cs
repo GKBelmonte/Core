@@ -17,8 +17,7 @@ namespace Blaze.Cryptography
 
         public override byte[] Encrypt(byte[] plain, byte[] key)
         {
-            byte[] keyHash = key.GetMD5Hash();
-            int seed = keyHash.ToInt32();
+            int seed = key.ToInt32();
 
             int[] p = BytesToIndices(plain);
             int[] c = new int[plain.Length];
@@ -31,8 +30,7 @@ namespace Blaze.Cryptography
 
         public override byte[] Decrypt(byte[] cypher, byte[] key)
         {
-            byte[] keyHash = key.GetMD5Hash();
-            int seed = keyHash.ToInt32();
+            int seed = key.ToInt32();
 
             var c = BytesToIndices(cypher);
             var p = new int[cypher.Length];

@@ -52,6 +52,7 @@
     <Compile Include="Rng\RngHelpers.cs" />
     <Compile Include="Rng\TriviumRng.cs" />
     <Compile Include="SaltedCypher.cs" />
+    <Compile Include="Shaker.cs" />
     <Compile Include="StringCypherExtensions.cs" />
     <Compile Include="ChainCypher.cs" />
     <Compile Include="EncryptExtensions.cs" />
@@ -67,6 +68,8 @@
     <Compile Include="Rng\SysRng.cs" />
     <Compile Include="Classics\SubstitutionCyphers.cs" />
     <Compile Include="Tests\RngTesting.cs" />
+    <Compile Include="TriviumCypher.cs" />
+    <Compile Include="Utils.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Blaze.Core\Blaze.Core.csproj">
