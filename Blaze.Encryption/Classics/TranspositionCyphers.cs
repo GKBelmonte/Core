@@ -29,7 +29,7 @@ namespace Blaze.Cryptography.Classics
 
         public virtual byte[] Encrypt(byte[] plain, int columnCount)
         {
-            int[] plainIx = ByteToIndices(plain);
+            int[] plainIx = BytesToIndices(plain);
 
             int[] cypher = Encrypt(plainIx, columnCount);
 
@@ -62,7 +62,7 @@ namespace Blaze.Cryptography.Classics
 
         public virtual byte[] Decrypt(byte[] cypher, int columnCount)
         {
-            int[] cypherIx = ByteToIndices(cypher);
+            int[] cypherIx = BytesToIndices(cypher);
 
             int[] plainIx = Decrypt(cypherIx, columnCount);
 
@@ -195,7 +195,7 @@ namespace Blaze.Cryptography.Classics
             int columnCount = GetColumnCount(cypher.Length - fillCount, rng);
 
             //TODO: Return List so I can remove fill
-            int[] cypherIx = ByteToIndices(cypher);
+            int[] cypherIx = BytesToIndices(cypher);
 
             //aovid extra allocation to bytes before i remove fill
             int[] plainIx = Decrypt(cypherIx, columnCount);
@@ -244,7 +244,7 @@ namespace Blaze.Cryptography.Classics
         {
             int columnCount = key.Length;
 
-            int[] plainIx = ByteToIndices(plain);
+            int[] plainIx = BytesToIndices(plain);
 
             List<int> columnOrder = GetColumnOrderFromKey(key);
 
@@ -267,7 +267,7 @@ namespace Blaze.Cryptography.Classics
 
         public byte[] Encrypt(byte[] plain, IReadOnlyList<int> columnOrder)
         {
-            int[] plainIx = ByteToIndices(plain);
+            int[] plainIx = BytesToIndices(plain);
 
             List<int> cypherIx = Encrypt(plainIx, columnOrder);
 
@@ -300,7 +300,7 @@ namespace Blaze.Cryptography.Classics
         {
             int columnCount = key.Length;
 
-            int[] cypherIx = ByteToIndices(cypher);
+            int[] cypherIx = BytesToIndices(cypher);
 
             List<int> columnOrder = GetColumnOrderFromKey(key);
 
@@ -323,7 +323,7 @@ namespace Blaze.Cryptography.Classics
 
         public byte[] Decrypt(byte[] cypherTxt, IReadOnlyList<int> columnOrder)
         {
-            int[] cypherIx = ByteToIndices(cypherTxt);
+            int[] cypherIx = BytesToIndices(cypherTxt);
 
             List<int> plainIx = Decrypt(cypherIx, columnOrder);
 
@@ -356,7 +356,7 @@ namespace Blaze.Cryptography.Classics
 
         private List<int> GetColumnOrderFromKey(byte[] key)
         {
-            int[] keyIx = ByteToIndices(key);
+            int[] keyIx = BytesToIndices(key);
             var order = Enumerable.Range(0, key.Length).ToList();
             //all unique indices that appear in key in order
             var ixsInKey = keyIx.Distinct().OrderBy(ix => ix);
@@ -393,7 +393,7 @@ namespace Blaze.Cryptography.Classics
         public override byte[] Encrypt(byte[] plain, byte[] key)
         {
             IRng rng = key.KeyToRand();
-            int[] plainIxs = ByteToIndices(plain);
+            int[] plainIxs = BytesToIndices(plain);
             var transform = Enumerable
                 .Range(0, plainIxs.Length - 1)
                 .Select(i => new { old = plain.Length - i - 1, @new = rng.Next(plain.Length - i) })
@@ -413,7 +413,7 @@ namespace Blaze.Cryptography.Classics
         public override byte[] Decrypt(byte[] cypher, byte[] key)
         {
             IRng rng = key.KeyToRand();
-            int[] cypherIxs = ByteToIndices(cypher);
+            int[] cypherIxs = BytesToIndices(cypher);
             var transform = Enumerable
                 .Range(0, cypherIxs.Length - 1)
                 .Select(i => new { old = cypher.Length - i - 1, @new = rng.Next(cypher.Length - i) })

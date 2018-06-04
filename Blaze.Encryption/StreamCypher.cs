@@ -18,8 +18,7 @@ namespace Blaze.Cryptography
 
         protected override byte[] Encrypt(byte[] plain, byte[] key, Op op)
         {
-            byte[] keyHash = key.GetMD5Hash();
-            IRng rand = keyHash.KeyToRand();
+            IRng rand = key.KeyToRand();
 
             byte[] cypher = Encrypt(plain, rand, op);
 
@@ -30,7 +29,7 @@ namespace Blaze.Cryptography
         {
             var cypher = new byte[plain.Length];
 
-            var p = ByteToIndices(plain);
+            var p = BytesToIndices(plain);
 
             for (var ii = 0; ii < plain.Length; ++ii)
             {

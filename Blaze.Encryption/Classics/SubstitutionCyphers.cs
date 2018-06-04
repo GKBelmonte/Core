@@ -36,8 +36,8 @@ namespace Blaze.Cryptography.Classics
             byte[] cypher = new byte[plain.Length];
             int inx = -1;
 
-            int[] keyIndices = ByteToIndices(key);
-            int[] textIndices = ByteToIndices(plain);
+            int[] keyIndices = BytesToIndices(key);
+            int[] textIndices = BytesToIndices(plain);
 
             while (++inx < cypher.Length)
             {

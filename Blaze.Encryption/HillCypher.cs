@@ -50,7 +50,7 @@ namespace Blaze.Cryptography
             //    _matrixDimension = 16;
             _matrixSize = _matrixDimension * _matrixDimension;
             //fix this
-            List<int> plainIxs = ByteToIndices(plain).ToList();
+            List<int> plainIxs = BytesToIndices(plain).ToList();
 
             //calculate fill
             int fill = _matrixDimension - plain.Length % _matrixDimension;
@@ -110,7 +110,7 @@ namespace Blaze.Cryptography
 
         public override byte[] Decrypt(byte[] cypher, byte[] key)
         {
-            int[] cypherIxs = ByteToIndices(cypher);
+            int[] cypherIxs = BytesToIndices(cypher);
             int fill = DecodeFill(cypherIxs, Alphabet.Count);
 
             int originalPlainLength = cypher.Length - 4 - fill;
@@ -213,9 +213,9 @@ namespace Blaze.Cryptography
         }
 
         /// <summary>
-        /// Encodes the number 'fill' in a base 'numBase' with
-        /// Usefull if let's the alphabet size is 32, in which case
-        /// fill bigger than 32 cannot be represented in the alphabet.
+        /// Encodes the number 'fill' in a base 'numBase'
+        /// Useful if the alphabet size is less than 32, in which case
+        /// a 'fill' bigger than 32 cannot be represented in the alphabet.
         /// Biggest possible describable fill will be b^(4) - 1
         /// (could be b^(b-1) - 1 if we prepend the fill-length, but
         /// in practice b > 26, making it useless)

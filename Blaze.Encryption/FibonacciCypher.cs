@@ -20,7 +20,7 @@ namespace Blaze.Cryptography
             byte[] keyHash = key.GetMD5Hash();
             int seed = keyHash.ToInt32();
 
-            int[] p = ByteToIndices(plain);
+            int[] p = BytesToIndices(plain);
             int[] c = new int[plain.Length];
 
             ForwardPass(seed, p, c);
@@ -34,7 +34,7 @@ namespace Blaze.Cryptography
             byte[] keyHash = key.GetMD5Hash();
             int seed = keyHash.ToInt32();
 
-            var c = ByteToIndices(cypher);
+            var c = BytesToIndices(cypher);
             var p = new int[cypher.Length];
 
             BackwardsPass(seed, c, p);

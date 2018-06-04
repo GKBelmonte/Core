@@ -62,8 +62,8 @@ namespace Blaze.Cryptography
             return Decrypt(cypher, keyGen, ReverseOp);
         }
 
-        public Op ForwardOp { get; set; }
-        public Op ReverseOp { get; set; }
+        public virtual Op ForwardOp { get; set; }
+        public virtual Op ReverseOp { get; set; }
 
         /// <summary>
         /// An alphabet is a set of characters whose representation
@@ -83,9 +83,9 @@ namespace Blaze.Cryptography
             {
                 _alphabet = value.ToArray();
                 _map = new Map<int, byte>();
-                for (var ii = 0; ii < Alphabet.Count; ++ii)
+                for (var ii = 0; ii < _alphabet.Count; ++ii)
                 {
-                    byte b = (byte)Alphabet[ii];
+                    byte b = (byte)_alphabet[ii];
                     _map.Add(ii, b);
                 }
             }
@@ -106,7 +106,7 @@ namespace Blaze.Cryptography
             return _map.Reverse[nomnom];
         }
 
-        protected int[] ByteToIndices(IList<byte> buff)
+        protected int[] BytesToIndices(IReadOnlyList<byte> buff)
         {
             var keyIndices = new int[buff.Count];
             for (var ii = 0; ii < buff.Count; ++ii)
@@ -120,7 +120,7 @@ namespace Blaze.Cryptography
             return _map.Forward[inx.UMod(_map.Count)];
         }
 
-        protected byte[] IndicesToBytes(IList<int> indices)
+        protected byte[] IndicesToBytes(IReadOnlyList<int> indices)
         {
             var bytes = new byte[indices.Count];
             for (var ii = 0; ii < indices.Count; ++ii)

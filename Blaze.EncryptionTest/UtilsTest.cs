@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Blaze.Core.Log;
 using Blaze.Core.Extensions;
+using System.Linq;
 
 namespace Blaze.Cryptography.Tests
 {
@@ -75,6 +76,45 @@ namespace Some.Tests
             }
 
             Assert.IsTrue(success, $"Following tests failed: {string.Join(",", errs)}");
+        }
+
+        [TestMethod]
+        public void TestEncodeBytes()
+        {
+            byte[] test = { 0x01, 0xFF, 0x07, 100 };
+            var encoded = SaltedCypher.EncodeBytes(test, 10).ToList();
+            int[] expected = 
+            {
+                4, 0,
+                1, 0, 0,
+                5, 5, 2,
+                7, 0, 0,
+                0, 0, 1
+            };
+            Assert.AreEqual(expected.Length, encoded.Count);
+            for (int i = 0; i < expected.Length; ++i)
+                Assert.AreEqual(expected[i], encoded[i]);
+        }
+
+        [TestMethod]
+        public void TestDecodeBytes()
+        {
+            int[] test =
+            {
+                4, 0,
+                1, 0, 0,
+                5, 5, 2,
+                7, 0, 0,
+                0, 0, 1
+            };
+            byte[] expected = { 0x01, 0xFF, 0x07, 100 };
+            int skipCount;
+            var decoded = SaltedCypher.DecodeBytes(test, 10, out skipCount).ToList();
+
+            Assert.AreEqual(expected.Length, decoded.Count);
+            for (int i = 0; i < expected.Length; ++i)
+                Assert.AreEqual(expected[i], decoded[i]);
+            Assert.AreEqual(test.Length, skipCount);
         }
     }
 }

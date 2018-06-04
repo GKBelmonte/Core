@@ -49,8 +49,8 @@ namespace Blaze.Cryptography.Classics
         protected override byte[] Encrypt(byte[] plain, byte[] key, Op forwardOp)
         {
             InitRabulaRectaInternal();
-            int[] plainIx = ByteToIndices(plain);
-            int[] keyIx = ByteToIndices(key);
+            int[] plainIx = BytesToIndices(plain);
+            int[] keyIx = BytesToIndices(key);
             int[] cypherIx = new int[plain.Length];
 
             int i;
@@ -66,8 +66,8 @@ namespace Blaze.Cryptography.Classics
         protected override byte[] Decrypt(byte[] cypher, byte[] key, Op forwardOp)
         {
             InitRabulaRectaInternal();
-            int[] cypherIx = ByteToIndices(cypher);
-            int[] keyIx = ByteToIndices(key);
+            int[] cypherIx = BytesToIndices(cypher);
+            int[] keyIx = BytesToIndices(key);
             int[] plainIx = new int[cypher.Length];
 
             int i;

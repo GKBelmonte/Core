@@ -60,7 +60,7 @@ namespace Blaze.Cryptography
         {
             Dictionary<int, Tuple<int, int>> lookup = GetPolybiusLookup(polybiusSquare);
 
-            int[] plainIxs = ByteToIndices(plain);
+            int[] plainIxs = BytesToIndices(plain);
 
             var polySub = new List<int>(plainIxs.Length * 2);
             foreach (int ix in plainIxs)
@@ -94,7 +94,7 @@ namespace Blaze.Cryptography
         {
             Dictionary<int, Tuple<int, int>> lookup = GetPolybiusLookup(polybiusSquare);
 
-            int[] cypherIxs = ByteToIndices(cypher);
+            int[] cypherIxs = BytesToIndices(cypher);
 
             var polySub = new List<int>(cypherIxs.Length * 2);
             foreach (int ix in cypherIxs)
@@ -121,7 +121,7 @@ namespace Blaze.Cryptography
             int sqrtSize = (int)Math.Sqrt(polybiusSquareBytes.Length);
             Array2D<int> polybiusSquare = new Array2D<int>(sqrtSize, sqrtSize);
 
-            var polybiusSquareIxs = ByteToIndices(polybiusSquareBytes); 
+            var polybiusSquareIxs = BytesToIndices(polybiusSquareBytes); 
 
             for (int i = 0; i < sqrtSize; ++i)
                 for (int j = 0; j < sqrtSize; ++j)

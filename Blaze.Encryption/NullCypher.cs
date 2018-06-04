@@ -11,7 +11,7 @@ namespace Blaze.Cryptography
     {
         protected override byte[] Encrypt(byte[] plain, byte[] key, Op op)
         {
-            var pIx = ByteToIndices(plain);
+            var pIx = BytesToIndices(plain);
             var cx = pIx
                 .Select(px => op(px, 0))
                 .ToArray();

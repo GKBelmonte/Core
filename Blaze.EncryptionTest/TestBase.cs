@@ -20,13 +20,30 @@ namespace Blaze.Cryptography.Tests
             var res = new ListConstruct<EncryptTest>
             {
                 { new NullCypher(), "Null Cypher" },
-                { new Rot13(), "Rot 13", AlphabeticCypher.GetSimpleAlphabet(true, false, false), ROT13_TEXTS },
+
+                { new AutokeyCypher(), "AutoKey Cypher", TestType.All },
+
+                { new BifidCypher(), "Bifid Cypher", TestType.Full | TestType.Xor },
+
                 { new CaesarCypher(), "Caesar Cypher"},
                 { new Vigenere(), "Vigenere Cypher"},
+
+                { new HillCypher(), "Hill Cypher", TestType.All },
+
+                { new Rot13(), "Rot 13", AlphabeticCypher.GetSimpleAlphabet(true, false, false), ROT13_TEXTS },
+
+                { new ShuffleCypher(), "Shuffle Cypher", TestType.All },
                 { new StreamCypher(), "Stream Cypher" },
+
+                { new SaltedCypher(new StreamCypher()), "Salted Cypher", TestType.All },
+
+                { new TranspositionCypher(), "Transposition Cypher" , TestType.All },
+                { new ColumnarTranspositionCypher(), "Columnar Transposition Cypher" , TestType.All },
+
                 { new FibonacciCypher(), "Fibonacci Cypher" },
                 { new FibonacciCypherV2(), "Fibonacci Cypher V2" },
                 { new FibonacciCypherV3(), "Fibonacci Cypher V3" },
+
                 { new RandomBijection(new NullCypher()), "RBIJ on Null", TestType.NotXor},
                 { new RandomBijection(new Vigenere()) , "RBIJ on Vigenere", TestType.NotXor},
                 { new RandomBijection(new FibonacciCypher()) , "RBIJ on Fibonacci", TestType.NotXor},
@@ -40,12 +57,7 @@ namespace Blaze.Cryptography.Tests
                     "Chain1",
                     TestType.Full
                 },
-                { new TranspositionCypher(), "Transposition Cypher" , TestType.All },
-                { new ColumnarTranspositionCypher(), "Columnar Transposition Cypher" , TestType.All },
-                { new AutokeyCypher(), "AutoKey Cypher", TestType.All },
-                { new BifidCypher(), "Bifid Cypher", TestType.Full | TestType.Xor },
-                { new HillCypher(), "Hill Cypher", TestType.All },
-                { new ShuffleCypher(), "Shuffle Cypher", TestType.All }
+
             };
             return res;
         }
