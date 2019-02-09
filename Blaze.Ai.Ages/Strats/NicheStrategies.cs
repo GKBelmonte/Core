@@ -51,27 +51,31 @@ namespace Blaze.Ai.Ages.Strats
                 / Math.Log(_parent.EliminateIndexBegin);
 
             _RadiusAdjustMinFactor = 1 / _RadiusAdjustMaxFactor;
+            NicheRadius = 1;
         }
 
         public override IReadOnlyList<float> NichePenalties(IReadOnlyList<Ages.EvaluatedIndividual> population)
         {
             float[] penalties = new float[population.Count];
 
-            float scoreStdDev = (float)population
-                .Select(i => (double)i.Score.Value)
-                .Take(_parent.EliminateIndexBegin)
-                .ToList()
-                .StdDevP();
-
             int elimIndex = _parent.EliminateIndexBegin;
 
-            //punish all individuals similar to the best individual within a radius
+            //std dev does not work for identical pops, it'll be 0
+            //float scoreStdDev = (float)population
+            //    .Select(i => (double)i.Score.Value)
+            //    //Grab only those that survive
+            //    .Take(elimIndex)
+            //    .ToList()
+            //    .StdDevP();
+
+            //punish all surviving individuals similar to the best individual within a radius
             var niches = new List<Niche>(population.Count);
 
             for (int i = 0; i < elimIndex - 1; ++i)
             {
                 int j = i + 1;
                 var reference = population[i].Individual;
+                float refScore = population[i].NormalizedScore.Value; 
 
                 double d = 0;
                 var niche = new Niche(reference);
@@ -81,24 +85,29 @@ namespace Blaze.Ai.Ages.Strats
                 {
                     //At distance 1, the penalty is one-tenth a standard deviation
                     //At distance 0.316, the penalty is a whole-standard deviation
-                    double partialPenalty = scoreStdDev / 10 / (d * d);
-                    penalties[j] += (float)partialPenalty;
+                    //=> The closer you are, the larger your penalty, proportional to the distribution
+                    //double partialPenalty = scoreStdDev / 10 / (d * d);
+                    //(does not work a distance of 0 incurs no penalty (NaN) or if the pop is perfect stdDev=0)
+
+                    double penalty = refScore / ((100 * refScore) / NicheRadius * d + 1);
+
+                    penalties[j] += (float)penalty;
                     niche.Members.Add(population[j].Individual);
                     j++;
                 }
-                niche.MaxRadius = d;
 
+                niche.MaxRadius = d;
                 //punish everyone else in the niche against each other
                 //The more you repeat the worse
-                for (int k = i + 1; k < j - 1; ++k)
-                {
-                    for (int w = k + 1; w < j; ++w)
-                    {
-                        double d2 = _distance(population[k].Individual, population[w].Individual);
-                        double partialPenalty = scoreStdDev / 10 / (d2 * d2);
-                        penalties[w] += (float)partialPenalty;
-                    }
-                }
+                //for (int k = i + 1; k < j - 1; ++k)
+                //{
+                //    for (int w = k + 1; w < j; ++w)
+                //    {
+                //        double d2 = _distance(population[k].Individual, population[w].Individual);
+                //        double partialPenalty = scoreStdDev / 10 / (d2 * d2);
+                //        penalties[w] += (float)partialPenalty;
+                //    }
+                //}
 
                 // Either this individual was far or out-of bounds
                 // Either way, I want to start from j next, 
@@ -131,10 +140,20 @@ namespace Blaze.Ai.Ages.Strats
             //  f(sqrt(|pop|)) = 1
             //  f(|pop|) = 1/2
             // where f(n) is the factor to apply to the radius and n is the number of niches
-            // By playing around, I found that f(n, p) = 1/2 * n ^( 1/ lg_4 (p) )
-            //  f(n, p) = 1/2 * n ^ ( ln(p) / ln(2*2) )
-            double nicheAverageDensity = niches.Average(n => n.Members.Count);
+            // By playing around, I found that f(n, p) = 1/2 * n ^( 1/ lg_4 (Pop) )
+            //  f(n, p) = 1/2 * n ^ ( ln(P) / ln(2*2) )
+            // (more generally, for a factor other than 2 (or 1/2), F)
+            //  f(n) = 1/F * n ^ (ln(F^2) / ln(P) )
+            // where n is actual density
+            //       F is max adjustment factor (F = 2 in the example of doubling radius)
+            //       P is population size
 
+            double nicheAverageDensity = niches.Average(n => n.Members.Count);
+            
+            // TODO: This might encourage the right average density / number of niches
+            // but not the right individual density.
+            // e.g.: 100 pop, 10 pop/ niche => 91 in 1 niche, 9 in each other niche (10 niches)
+            // Average works out, but Niche Std Dev is huge. I want sqrt(pop) = niche count AND stdev(niche.pop) = 0
             double adjustFactor = _RadiusAdjustMinFactor * Math.Pow(nicheAverageDensity, _RadiusAdjustPower);
             NicheRadius = (float)(NicheRadius / adjustFactor);
             return penalties;

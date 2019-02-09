@@ -15,6 +15,8 @@ namespace Blaze.Ai.Ages.Viewer
         {
             //Func = (x) => x*x + x + 1;
             Func = (x) => Math.Sin(x);
+            //Func = (x) => 6*x + 3.3;
+            //Func = (x) => 5 * x * x + 3 * x + 1;
             Test_PolynomialGA(Func);
         }
 
@@ -32,21 +34,22 @@ namespace Blaze.Ai.Ages.Viewer
         private void Test_PolynomialGA(Func<double, double> func)
         {
             Utils.SetRandomSeed(0);
-            PolynomialOrder = 6;
-            int populationSize = 150;
+            PolynomialOrder = 5;
+            int populationSize = 100;
             int sampleCount = 1000;
-            int genCount = 25;
+            int genCount = 1;
             double step = 0.02;
+            double offset = sampleCount * step / 2;
 
             var pop = Enumerable
                 .Range(0, populationSize)
-                .Select(i => new CartesianIndividual(PolynomialOrder))
+                .Select(i => new CartesianIndividual(PolynomialOrder, 1, null))
                 .Cast<IIndividual>()
                 .ToList();
 
             double[] xRange = Enumerable
                 .Range(0, sampleCount)
-                .Select(i => i * step)
+                .Select(i => i * step - offset)
                 .ToArray();
 
             double[][] allPowsOfX = new double[sampleCount][];
@@ -76,16 +79,17 @@ namespace Blaze.Ai.Ages.Viewer
                 CartesianIndividual.CrossOver,
                 new Generate((r) => new CartesianIndividual(PolynomialOrder, r)),
                 pop);
+            
 
             Ages.NicheStrat = new NicheDensityStrategy(
                 Ages,
                 (l, r) => CartesianIndividual.Distance((CartesianIndividual)l, (CartesianIndividual)r));
         }
 
-        public CartesianIndividual Generation()
+        public Ages.EvaluatedIndividual Generation()
         {
             Ages.GoThroughGenerations();
-            var champ = (CartesianIndividual)Ages.Champions.Last().Individual;
+            Ages.EvaluatedIndividual champ = Ages.Champions.Last();
             return champ;
         }
 

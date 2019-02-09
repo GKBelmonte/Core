@@ -37,7 +37,7 @@ namespace Blaze.Ai.Ages.Viewer
 
             _timer = new DispatcherTimer()
             {
-                Interval = TimeSpan.FromMilliseconds(1000),
+                Interval = TimeSpan.FromMilliseconds(500),
             };
             _timer.Tick += Timer_Tick;
         }
@@ -49,35 +49,36 @@ namespace Blaze.Ai.Ages.Viewer
             Task.Run(() => Work());
         }
 
-        private List<CartesianIndividual> _champs = new List<CartesianIndividual>(200);
+        private List<Ages.EvaluatedIndividual> _champs = new List<Ages.EvaluatedIndividual>(200);
 
         private void Work()
         {
-            CartesianIndividual champ = _series.GA.Generation();
+            Ages.EvaluatedIndividual champ = _series.GA.Generation();
+            CartesianIndividual champVals = (CartesianIndividual)champ.Individual;
             float mse = champ.Score.Value * 1000;
-            double logmse = Math.Log10(mse);
+            double logmse = mse;
 
             _champs.Add(champ);
 
             var newPop = new ChartValues<ScatterPoint>();
             foreach (var ei in _series.GA.Ages.Population)
             {
-                CartesianIndividual i = (CartesianIndividual)ei.Individual;
-                if (i == champ)
-                    newPop.Add(new ScatterPoint(i.Values[0], i.Values[1], 1));
+                CartesianIndividual cartesian = (CartesianIndividual)ei.Individual;
+                if (ei == champ)
+                    newPop.Add(new ScatterPoint(cartesian.Values[0], cartesian.Values[1], 1));
                 else
-                    newPop.Add(new ScatterPoint(i.Values[0], i.Values[1], 0.1));
+                    newPop.Add(new ScatterPoint(cartesian.Values[0], cartesian.Values[1], 0.1));
             }
 
             bool isNewChamp = _champs.Count == 1 
-                || CartesianIndividual.Distance((CartesianIndividual)_champs[_champs.Count - 2], champ) > 0.001;
+                || CartesianIndividual.Distance((CartesianIndividual)_champs[_champs.Count - 2].Individual, champVals) > 0.001;
 
             ChartValues<ObservablePoint> actualValues = null;
             if (isNewChamp)
             {
                 actualValues = new ChartValues<ObservablePoint>(
                     _series.GA.ExpectedValsX.Zip(
-                        Helpers.EvaluatePolynomial(champ, _series.GA.PowsOfXForAllX),
+                        Helpers.EvaluatePolynomial(champVals, _series.GA.PowsOfXForAllX),
                         (x, y) => new ObservablePoint(x, y)));
             }
 
@@ -94,11 +95,11 @@ namespace Blaze.Ai.Ages.Viewer
                 if (isNewChamp)
                 {
                     _series.Actual.Values = actualValues;
-                    _series.Champ.Values.Add(new ObservablePoint(champ.Values[0], champ.Values[1]));
+                    _series.Champ.Values.Add(new ObservablePoint(champVals.Values[0], champVals.Values[1]));
                 }
 
-                for (int i = 0; i < champ.Values.Length && i < _series.Champs.Length; ++i)
-                    _series.Champs[i].Values.Add(champ.Values[i]);
+                for (int i = 0; i < champVals.Values.Length && i < _series.Champs.Length; ++i)
+                    _series.Champs[i].Values.Add(champVals.Values[i]);
 
                 _timer.Start();
             });

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Blaze.Core.Extensions;
 using Blaze.Core.Log;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Blaze.Core.Maths;
 
 namespace Blaze.Ai.Ages.Tests
 {
@@ -44,6 +45,58 @@ namespace Blaze.Ai.Ages.Tests
                     Assert.IsTrue(Math.Abs(calculatedVal - expectedResults[i]) < epsilon);
                 }
             }
+        }
+
+        [TestMethod]
+        public void TestGaussianNoise()
+        {
+            const int sampleCount = 10000;// 00;
+            double[] samples = new double[sampleCount];
+            double[] sigmas = { 1, 2, 3, 5, 8, 13, 21, 34 };
+
+            double devTolerance = 0.05; //5%
+            double aveTolerance = 1; 
+
+            double[] stdevs = new double[sigmas.Length];
+            double[] aves = new double[sigmas.Length];
+            for (int j = 0; j < sigmas.Length; ++j)
+            {
+                double sigma = sigmas[j];
+                for (int i = 0; i < sampleCount;++i)
+                {
+                    samples[i] = Utils.GaussianNoise(sigmas[j]);
+                }
+
+                double ave = samples.Average();
+                double stdDev = samples.StdDevS();
+                double stdDevPop = samples.StdDevP();
+                stdevs[j] = stdDevPop;
+                aves[j] = ave;
+            }
+            var deviationError = sigmas
+                .Zip(stdevs, (actual, test) => new
+                {
+                    Sigma = actual,
+                    Test = test,
+                    Err = Math.Abs(actual - test) / actual
+                })
+                .Where(err => err.Err > devTolerance)
+                .Select(err => 
+                    $"The error for stddev '{err.Sigma}' is too large '{err.Err * 100:0.}%'. " 
+                    + $"Test: '{err.Test:0.}'. " 
+                    + $"Tol: '{devTolerance * 100:0.}%'")
+                .ToList(); ;
+
+            var avereageErrors = aves
+                .Where(av => Math.Abs(av) > aveTolerance)
+                .Select(av => $"The average '{av}' is too large. ")
+                .ToList();
+
+            if (avereageErrors.Any() || deviationError.Any())
+            {
+                Assert.Fail(string.Join("\n", deviationError.Concat(avereageErrors)));
+            }
+
         }
     }
 }

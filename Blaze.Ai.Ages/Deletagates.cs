@@ -35,4 +35,6 @@ namespace Blaze.Ai.Ages
     /// Calculates the difference in the genome of the individuals
     /// </summary>
     public delegate double Distance(IIndividual l, IIndividual r);
+
+    public delegate void Normalize(List<Ages.EvaluatedIndividual> sortedPop);
 }

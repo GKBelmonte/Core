@@ -38,18 +38,22 @@ namespace Blaze.Ai.Ages
         public static Random ThreadRandom { get { return rand.Value; } }
 
         //Given a standard deviation s, return a random value around 0 with that standard deviation
-        public static double GausianNoise(this Random r, double s) 
+        public static double GausianNoise(this Random r, double s, int sampleCount = 7) 
         {
-	        //5 random numbers from -1 to 1.
-	        var d0 = r.NextDouble()*2.0 - 1.0;
-	        var d1 = r.NextDouble()*2.0 - 1.0;
-	        var d2 = r.NextDouble()*2.0 - 1.0;
-	        var d3 = r.NextDouble()*2.0 - 1.0;
-	        var d4 = r.NextDouble()*2.0 - 1.0;
-	        return ((d0 + d1 + d2 + d3 + d4)*s);
+            //This factor is experimentally calculated for 
+            // tens of thosands of samples.
+            // It will most likely depend on the number 
+            // of uniform samples taken
+            const double correctionFactor = 2.0 / 3.0;
+            //7 random numbers from -1 to 1.
+            double accum = 0;
+            for (int i = 0; i < sampleCount; ++i)
+                accum += r.NextDouble() * 2.0 - 1.0;
+
+            return (accum * s * correctionFactor);
         }
 
-        public static double GausianNoise(double s)
+        public static double GaussianNoise(double s)
         {
             return ThreadRandom.GausianNoise(s);
         }

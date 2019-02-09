@@ -38,8 +38,20 @@ namespace Blaze.Ai.Ages
             }
         }
 
+        // E.G.: Elitism=Elimintaion=25%
+        //                              EliminateIndexBeg (6)
+        //                  EliteIndexEnd (1)
+        //                               ⇓                   ⇓
+        // Population (Maximizing): [23, 17, 13, 11, 7 , 3 , 2, 1]
+
+        /// <summary>
+        /// The first index of the population that will be eliminated no matter what
+        /// </summary>
         public int EliminateIndexBegin => (int)Math.Floor((_Population.Count * (1 - EliminatedPercent)));
 
+        /// <summary>
+        /// The last index of the population that will be kept no matter what
+        /// </summary>
         public int EliteIndexEnd => (int)Math.Floor((_Population.Count * ElitismPercent));
 
         private float _mutationProbability;
@@ -52,6 +64,19 @@ namespace Blaze.Ai.Ages
                 if (value < min || value > max)
                     throw new ArgumentOutOfRangeException($"Value must be within {min} and {max}");
                 _mutationProbability = value;
+            }
+        }
+
+        private float _mutationSigma;
+        public float MutationSigma
+        {
+            get { return _mutationSigma; }
+            set
+            {
+                const float min = 0, max = float.MaxValue;
+                if (value < min || value > max)
+                    throw new ArgumentOutOfRangeException($"Value must be within {min} and {max}");
+                _mutationSigma = value;
             }
         }
 
@@ -81,9 +106,10 @@ namespace Blaze.Ai.Ages
                 else if (dice < VariationSettings.SurvivalRatio + VariationSettings.MutationRatio)
                 {
                     //Mutated
-                    IIndividual newInd = pop[_Rng.Next(0, EliminateIndexBegin)]
+                    int mutatedIndex = _Rng.Next(0, EliminateIndexBegin);
+                    IIndividual newInd = pop[mutatedIndex]
                         .Individual
-                        .Mutate(MutationProbability, 5f, _Rng);
+                        .Mutate(MutationProbability, _mutationSigma, _Rng);
                     newPop.Add(newInd.ToEI());
                 }
                 else
@@ -110,14 +136,21 @@ namespace Blaze.Ai.Ages
             //Fresh individuals for the failing percent
             for (var ii = EliminateIndexBegin; ii < pop.Count; ++ii)
             {
-                if(_Rng.Next(0,2) == 0)
-                    newPop.Add(_Generate(_Rng).ToEI());
+                EvaluatedIndividual ei;
+                if (_Rng.Next(0, 2) == 0)
+                {
+                    ei = _Generate(_Rng).ToEI();
+                }
                 else
-                    newPop.Add(
-                        pop[_Rng.Next(0,EliteIndexEnd)]
+                {
+                    int index = _Rng.Next(0, EliteIndexEnd);
+                    ei =
+                        pop[index]
                             .Individual
-                            .Mutate(MutationProbability, 5f, _Rng)
-                            .ToEI());
+                            .Mutate(MutationProbability, _mutationSigma, _Rng)
+                            .ToEI();
+                }
+                newPop.Add(ei);
             }
 
             _Population = newPop;

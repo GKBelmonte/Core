@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Blaze.Ai.Ages.Strats;
 using Blaze.Core.Maths;
 
@@ -103,6 +104,9 @@ namespace Blaze.Ai.Ages
             _Champions = new List<EvaluatedIndividual>(_NumberOfGenerations);
             VariationSettings = new VariationSettings(6, 4, 2);
             _Rng = new Random();
+            _mutationProbability = 0.6f;
+            _mutationSigma = 1;
+            Threads = 4;
         }
 
         #region Properties and Members
@@ -116,6 +120,8 @@ namespace Blaze.Ai.Ages
 
         public NicheStrategy NicheStrat { get; set; }
 
+        public int Threads { get; set; }
+
         QuickTournament _Tournament;
         
         CrossOver _Crossover;
@@ -124,9 +130,8 @@ namespace Blaze.Ai.Ages
         private Generate _Generate;
         private int _GenerationCount;
         private int _NumberOfGenerations;
-
         private int _PopSize;
-
+        private int _Threads;
         private Random _Rng;
         #endregion
 
@@ -137,7 +142,9 @@ namespace Blaze.Ai.Ages
 
         public void GoThroughGenerations()
         {
+            //Cheap thread safety 
             Sow();
+
             Begin();
 
             int genCount = 0;
@@ -157,7 +164,7 @@ namespace Blaze.Ai.Ages
 
         private void Begin()
         {
-            
+            _Threads = Threads;
         }
 
         private void Fight()
@@ -170,12 +177,32 @@ namespace Blaze.Ai.Ages
 
         private void IndividualPerformance()
         {
-            _Population.ForEach(ei => ei.Score = _Eval(ei.Individual));
+            Action<EvaluatedIndividual> cheapEval =
+                ei => { if (!ei.Score.HasValue) { ei.Score = _Eval(ei.Individual); } };
 
-            _Population = Maximize 
-                ? _Population.OrderByDescending(i => i.Score).ToList()
-                : _Population.OrderBy(i => i.Score).ToList();
+            if (_Threads == 1)
+            {
+                _Population.ForEach(cheapEval);
+            }
+            else
+            {
+                Parallel.ForEach(
+                    _Population, 
+                    new ParallelOptions{  MaxDegreeOfParallelism = _Threads },
+                    cheapEval);
+            }
 
+            //Population is Ordered so that the first index is the best individual
+            _Population.Sort((l,r) => Compare(l,r, Maximize));
+
+
+            //Normalize score
+            float min = Maximize ? _Population.Last().Score.Value : _Population.First().Score.Value;
+            float max = Maximize ? _Population.First().Score.Value : _Population.Last().Score.Value;
+
+            _Population.ForEach(ei => ei.NormalizedScore = (ei.Score - min) / (max - min));
+            if (!Maximize)
+                _Population.ForEach(ei => ei.NormalizedScore = 1 - ei.NormalizedScore);
             Console.WriteLine($"Generation {_GenerationCount} Complete");
         }
 
@@ -222,25 +249,12 @@ namespace Blaze.Ai.Ages
                 return;
 
             IReadOnlyList<float> penalties = NicheStrat.NichePenalties(_Population);
+            //TODO: check if NicheStrat applies to normalized score?
 
-            if (Maximize)
-            {
-                for (int i = 0; i < _Population.Count; ++i)
-                    _Population[i].Score -= penalties[i];
+            for (int i = 0; i < _Population.Count; ++i)
+                _Population[i].NormalizedScore -= penalties[i];
 
-                _Population = _Population
-                    .OrderByDescending(ei => ei.Score)
-                    .ToList();
-            }
-            else
-            {
-                for (int i = 0; i < _Population.Count; ++i)
-                    _Population[i].Score += penalties[i];
-
-                _Population = _Population
-                    .OrderBy(ei => ei.Score)
-                    .ToList();
-            }
+            _Population.Sort((l, e) => CompareNormalized(l, e));
         }
 
         private void Survive()
@@ -259,13 +273,52 @@ namespace Blaze.Ai.Ages
             System.IO.File.WriteAllText(string.Format("Generation{0}.txt", _GenerationCount), gen.ToString());
         }
 
+        private static int Compare(
+            EvaluatedIndividual left,
+            EvaluatedIndividual right,
+            bool maximizing)
+        {
+            bool leftGreater = left.Score > right.Score;
+            if (leftGreater)
+            {
+                if (maximizing)
+                    return -1;
+                return 1;
+            }
+            else if (left.Score == right.Score)
+            {
+                return 0;
+            }
+
+            if (maximizing)
+                return 1;
+            return -1;
+        }
+
+        private static int CompareNormalized(
+            EvaluatedIndividual left,
+            EvaluatedIndividual right)
+        {
+            bool leftGreater = left.NormalizedScore > right.NormalizedScore;
+            if (leftGreater)
+                return -1;
+            
+            else if (left.NormalizedScore == right.NormalizedScore)
+                return 0;
+
+            return 1;
+        }
+
         public class EvaluatedIndividual
         {
             public IIndividual Individual;
             public float? Score;
+            // Always between 0 and 1
+            // Best score is always 1
+            public float? NormalizedScore;
             public override string ToString()
             {
-                return $"Individual: {Individual}, Score: {Score}";
+                return $"Score: {Score}, Norm: {NormalizedScore}, Individual: {Individual}";
             }
         }
 
@@ -282,5 +335,6 @@ namespace Blaze.Ai.Ages
                 Members.Add(Reference);
             }
         }
+
     }
 }

@@ -21,7 +21,7 @@ namespace Blaze.Games.Gotcha.GA
                 mGradient[ii] = new float[4];
                 for (var jj = 0; jj < 4; ++jj)
                 {
-                    mGradient[ii][jj] = (float)(Utils.GausianNoise(6)+6);
+                    mGradient[ii][jj] = (float)(Utils.GaussianNoise(6)+6);
                 }
             }
             mName = IndividualTools.CreateName();

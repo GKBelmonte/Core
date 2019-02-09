@@ -35,8 +35,6 @@ namespace Blaze.Ai.Ages.Basic
 
         public string Name { get; }
 
-        public float? Score { get; set; }
-
         private void Normalize()
         {
             double min = Values[0], max = Values[0];
@@ -62,7 +60,7 @@ namespace Blaze.Ai.Ages.Basic
             }
         }
 
-        public IIndividual Mutate(float probability, float sigma, Random r)
+        public virtual IIndividual Mutate(float probability, float sigma, Random r)
         {
             var newInd = new CartesianIndividual(this);
             for (int i = 0; i < Values.Length; ++i)
