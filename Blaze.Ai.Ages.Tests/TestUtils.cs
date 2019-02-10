@@ -98,5 +98,39 @@ namespace Blaze.Ai.Ages.Tests
             }
 
         }
+
+        [TestMethod]
+        public void TestPrintGaussianNoise()
+        {
+            const int sampleCount = 5000;// 00;
+            int[] internalSampleSet = { 1, 2, 3 };
+            double[] sigmas = { 3, 7, 13 };
+            const int headerSize = 2;
+            var build = new List<string>(sampleCount + headerSize);
+            build.AddRange(Enumerable.Range(0, sampleCount + headerSize).Select(_ => ""));
+
+            for (int k = 0; k < internalSampleSet.Length; ++k)
+            {
+                build[0] += $"Internal Sample: {internalSampleSet[k]},,,";
+
+                double[][] allSamples = new double[sigmas.Length][];
+
+                build[1] += string.Join(",", sigmas) + ",";
+
+                for (int j = 0; j < sigmas.Length; ++j)
+                {
+                    double[] samples = new double[sampleCount];
+                    double sigma = sigmas[j];
+                    for (int i = 0; i < sampleCount; ++i)
+                    {
+                        samples[i] = Utils.GaussianNoise(sigmas[j], internalSampleSet[k]);
+                        //lots of re allocs
+                        build[i + headerSize] += $"{samples[i]},";
+                    }
+                    allSamples[j] = samples;
+                }
+            }
+            System.IO.File.WriteAllLines("gaussian.csv", build);
+        }
     }
 }

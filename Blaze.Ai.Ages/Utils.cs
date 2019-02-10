@@ -8,6 +8,14 @@ namespace Blaze.Ai.Ages
 {
     public static class Utils
     {
+        private static double[] _GaussianNoiseCorrection;
+        static Utils()
+        {
+            _GaussianNoiseCorrection = new double[8];
+            for (int i = 1; i < _GaussianNoiseCorrection.Length; ++i)
+                _GaussianNoiseCorrection[i] = 7.0 / (4.0 * Math.Sqrt(i));
+        }
+
         public static int RandomInt (int p1, int p2)
         {
 	        return ThreadRandom.Next(p1,p2);
@@ -37,14 +45,31 @@ namespace Blaze.Ai.Ages
 
         public static Random ThreadRandom { get { return rand.Value; } }
 
-        //Given a standard deviation s, return a random value around 0 with that standard deviation
-        public static double GausianNoise(this Random r, double s, int sampleCount = 7) 
+        /// <summary>
+        /// Given a standard deviation s, return a random value around 0 with that standard deviation
+        /// normally distributed.
+        /// </summary>
+        /// <param name="s">The standard deviation for the random number</param>
+        /// <param name="sampleCount">The number of samples between 1 and 7 inclusive.
+        /// The more samples, the better the normal distribution, but the more expensive.
+        /// Using one sample will result in an uniform distribution. </param>
+        public static double GausianNoise(this Random r, double s, int sampleCount = 4) 
         {
+            if (sampleCount < 1 || sampleCount > 7)
+                throw new ArgumentOutOfRangeException(
+                    nameof(sampleCount), 
+                    "Value should be betwee 1 and 7 inclusive");
             //This factor is experimentally calculated for 
             // tens of thosands of samples.
             // It will most likely depend on the number 
             // of uniform samples taken
-            const double correctionFactor = 2.0 / 3.0;
+            /// Samples  Correction
+            /// 1        1/0.57         7/4
+            /// 3        1              1/1
+            /// 7        1/1.5          2/3
+            /// ... heuristically I get 7/ (4*srt(sc)) where sc is sample count
+
+            double correctionFactor = _GaussianNoiseCorrection[sampleCount];
             //7 random numbers from -1 to 1.
             double accum = 0;
             for (int i = 0; i < sampleCount; ++i)
@@ -53,9 +78,9 @@ namespace Blaze.Ai.Ages
             return (accum * s * correctionFactor);
         }
 
-        public static double GaussianNoise(double s)
+        public static double GaussianNoise(double s, int sampleCount = 4)
         {
-            return ThreadRandom.GausianNoise(s);
+            return ThreadRandom.GausianNoise(s, sampleCount);
         }
 
         public static void SetRandomSeed(int seed)
