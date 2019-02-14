@@ -17,8 +17,13 @@ namespace Blaze.Ai.Ages
 
     public static class IndividualTools
     {
+        public static bool NameIndividuals { get; set; }
+
         public static string CreateName(Random r = null)
         {
+            if (!NameIndividuals)
+                return string.Empty;
+
             r = r ?? Utils.ThreadRandom;
             var syllabels = new string[]
             {

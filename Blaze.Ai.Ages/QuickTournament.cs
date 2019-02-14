@@ -59,19 +59,22 @@ namespace Blaze.Ai.Ages
 
         List<QuickSortPair> _queue;
         int _queueIndex;
+        Random _Rng;
 
         public QuickTournament(
-            IReadOnlyList<IIndividual> arr, 
-            CompareEvaluate evaluator, 
-            TournamentComplete master)
+            IReadOnlyList<IIndividual> population, 
+            CompareEvaluate comparer, 
+            TournamentComplete callback,
+            Random rng = null)
         {
+            _Rng = rng ?? new Random();
             //std vals
-            _individuals = arr.ToList();
+            _individuals = population.ToList();
             _begin = 0;
             _end = _individuals.Count - 1;
 
             //piv vals
-            var pivot = Utils.RandomInt(0, _individuals.Count);
+            var pivot = _Rng.Next(0, _individuals.Count);
             _pivotIndividual = _individuals[pivot];
 
             _swap(_individuals, _end, pivot);
@@ -85,8 +88,8 @@ namespace Blaze.Ai.Ages
             _queue.Add(new QuickSortPair(0, _end));
 
             //callbacks
-            Compare = evaluator; //Roughly speakin is A > B 
-            OnCompleteCallBack = master;
+            Compare = comparer; //Roughly speakin is A > B 
+            OnCompleteCallBack = callback;
 
             //check var
             _done = false;
@@ -162,7 +165,7 @@ namespace Blaze.Ai.Ages
                         //Reset all values taking into consideration the queue
                         _begin = _queue[_queueIndex].Begin;
                         _end = _queue[_queueIndex].End;
-                        var pivot = Utils.RandomInt(_begin, _end + 1);
+                        var pivot = _Rng.Next(_begin, _end + 1);
                         _pivotIndividual = _individuals[pivot];
                         _swap(_individuals, _end, pivot);
                         _pivotIndex = _begin;

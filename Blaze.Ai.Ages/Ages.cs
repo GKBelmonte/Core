@@ -231,15 +231,16 @@ namespace Blaze.Ai.Ages
         {
             PrintGen();
             _Tournament = new QuickTournament(
-                _Population.Select(ei => ei.Individual).ToList(), 
-                _Compare, 
-                new TournamentComplete( (pop) =>
-                {
-                    _Tournament = null;
-                    _Population = pop
-                        .Select(i => i.ToEI())
-                        .ToList();
-                }));
+                population: _Population.Select(ei => ei.Individual).ToList(), 
+                comparer: _Compare, 
+                callback: new TournamentComplete( (pop) =>
+                    {
+                        _Tournament = null;
+                        _Population = pop
+                            .Select(i => i.ToEI())
+                            .ToList();
+                    }),
+                rng: _Rng);
             _Tournament.Start();
         }
 

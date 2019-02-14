@@ -16,9 +16,9 @@ namespace Blaze.Ai.Ages
                 _GaussianNoiseCorrection[i] = 7.0 / (4.0 * Math.Sqrt(i));
         }
 
-        public static int RandomInt (int p1, int p2)
+        public static bool ProbabilityPass(float p)
         {
-	        return ThreadRandom.Next(p1,p2);
+            return ThreadRandom.ProbabilityPass(p);
         }
 
         /// <summary>
@@ -27,11 +27,6 @@ namespace Blaze.Ai.Ages
         /// for one instance. 0 &lt;= p &lt; 1
         /// true if pass, false if fail
         /// </summary>
-        public static bool ProbabilityPass(float p)
-        {
-            return ThreadRandom.ProbabilityPass(p);
-        }
-
         public static bool ProbabilityPass(this Random r, float p)
         {
 	        var dice = r.NextDouble();
