@@ -43,12 +43,15 @@ namespace Blaze.Games.Gotcha.GA
                     pop.Add(new GotchaIndividual());
                 }
             }
+
             Ages myGA = new Ages(
                 1000,
                 new CompareEvaluate(Evaluate),
                 GotchaIndividual.GarboCrossoverOperator,
                 (r) => new GotchaIndividual(),
                 pop);
+
+            myGA.SetRandomSeed(0);
 
             myGA.GoThroughGenerations();
 

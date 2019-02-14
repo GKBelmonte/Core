@@ -34,19 +34,21 @@ namespace Blaze.Ai.Ages.Tests
         [TestMethod]
         public void TestQuickTournament()
         {
+            var random = new Random(0);
             var inds = Enumerable
                 .Range(0, 10)
                 .Select(i => new DInd(i))
                 .ToList();
 
-            inds.Shuffle(new Random(0));
+            inds.Shuffle(random);
 
             List<DInd> sortedInds = null;
 
             QuickTournament q = new QuickTournament(
                 inds,
                 (l, r) => (float)(((DInd)l).Val - ((DInd)r).Val),
-                (sinds) => sortedInds = sinds.Cast<DInd>().ToList() );
+                (sinds) => sortedInds = sinds.Cast<DInd>().ToList(),
+                random);
 
             q.Start();
 

@@ -28,6 +28,13 @@ namespace Blaze.Core.Extensions
             Shuffle(list, r);
         }
 
+        public static T PickRandom<T>(this IReadOnlyList<T> list, Random rng = null)
+        {
+            if (rng == null)
+                rng = new Random();
+            return list[rng.Next(0, list.Count)];
+        }
+
         public static void Add<T1, T2>(this IList<Tuple<T1, T2>> list, T1 a, T2 b)
         {
             list.Add(new Tuple<T1,T2>(a, b));

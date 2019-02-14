@@ -89,7 +89,7 @@ namespace Blaze.Games.Gotcha.GA
         }
 
         static public CrossOver GarboCrossoverOperator { get { return new CrossOver(CrossOver); } }
-        public static IIndividual CrossOver(List<IIndividual > parents, Random r)
+        public static IIndividual CrossOver(List<IIndividual > parents, Random random)
         {
             var newInd = new GotchaIndividual();
             for (var ii = 0; ii < 4; ++ii)
@@ -97,7 +97,7 @@ namespace Blaze.Games.Gotcha.GA
                 for (var jj = 0; jj < 4; ++jj)
                 {
                     //33% chance of taking single random parent gene, 66% chance of taking average of all parents
-                    var dice = Utils.RandomInt(0, 3);
+                    var dice = random.Next(0, 3);
                     if (dice < 1)
                     {
                         //Take average of parents respective alleles
@@ -112,7 +112,7 @@ namespace Blaze.Games.Gotcha.GA
                     }
                     else //Take single parent gene randomly
                     {
-                        newInd.mGradient[ii][jj] = ((GotchaIndividual)parents[Utils.RandomInt(0, parents.Count)]).mGradient[ii][jj];
+                        newInd.mGradient[ii][jj] = ((GotchaIndividual)parents[random.Next(0, parents.Count)]).mGradient[ii][jj];
                     }
                 }
             }

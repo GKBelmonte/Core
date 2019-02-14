@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Blaze.Core.Extensions;
 
 namespace Blaze.Ai.Ages.Basic
 {
@@ -12,13 +13,15 @@ namespace Blaze.Ai.Ages.Basic
 
         public CartesianIndividual(Random r = null) : this(6, 6, r) { }
 
-        public CartesianIndividual(int order, Random r = null) : this(order, 6, r) { }
+        public CartesianIndividual(int order, Random r = null, bool empty = false) : this(order, 6, r, empty) { }
 
-        public CartesianIndividual(int order, int sigma, Random r)
+        public CartesianIndividual(int order, int sigma, Random r, bool empty = false)
         {
             r = r ?? Utils.ThreadRandom;
             Name = IndividualTools.CreateName();
             Values = new double[order];
+            if (empty)
+                return;
             for (int i = 0; i < Values.Length; ++i)
             {
                 Values[i] = r.GausianNoise(sigma);
@@ -35,7 +38,7 @@ namespace Blaze.Ai.Ages.Basic
 
         public string Name { get; }
 
-        private void Normalize()
+        protected void Normalize()
         {
             double min = Values[0], max = Values[0];
             for (int i = 1; i < Values.Length; ++i)
@@ -47,7 +50,7 @@ namespace Blaze.Ai.Ages.Basic
             }
 
             double diff = max - min;
-            double epsilon = 0.00001;
+            const double epsilon = 0.00001;
             if (Math.Abs(diff - epsilon) < epsilon)
             {
                 diff = 1;
@@ -74,8 +77,16 @@ namespace Blaze.Ai.Ages.Basic
         public static IIndividual CrossOver(List<IIndividual> parents, Random r)
         {
             var parent = (CartesianIndividual)parents[0];
-            var newInd = new CartesianIndividual(parent.Values.Length);
-            for (var ii = 0; ii < newInd.Values.Length; ++ii)
+
+            int newLength =
+                parents
+                .Select(i => ((CartesianIndividual)i).Values.Length)
+                .ToList()
+                .PickRandom();
+
+            var newInd = new CartesianIndividual(newLength, r, empty: true);
+
+            for (var ii = 0; ii < newLength; ++ii)
             {
                 //33% chance of taking single random parent gene, 66% chance of taking average of all parents
                 var dice = r.Next(0, 3);
@@ -86,15 +97,21 @@ namespace Blaze.Ai.Ages.Basic
                     for (var kk = 0; kk < parents.Count; ++kk)
                     {
                         var par = (CartesianIndividual)parents[kk];
-                        tot += par.Values[ii];
+                        //TODO: is the absence of value zero?
+                        if(ii < par.Values.Length)
+                            tot += par.Values[ii];
                     }
+                    //TODO: is the absence of value zero?
                     tot = tot / parents.Count;
                     newInd.Values[ii] = tot;
                 }
                 else //Take single parent gene randomly
                 {
                     var par = (CartesianIndividual)parents[r.Next(0, parents.Count)];
-                    newInd.Values[ii] = par.Values[ii];
+                    //TODO: Is the absence of value zero?
+                    newInd.Values[ii] = ii < par.Values.Length 
+                        ? par.Values[ii] 
+                        : 0;
                 }
             }
 

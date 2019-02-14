@@ -37,10 +37,10 @@ namespace Blaze.Ai.Ages.Tests
             int populationSize = 500;
             int sampleCount = 100;
             int genCount = 5000;
-
+            Random rng = new Random(0);
             var pop = Enumerable
                 .Range(0, populationSize)
-                .Select(i => new CartesianIndividual(polynomialOrder))
+                .Select(i => new CartesianIndividual(polynomialOrder, rng))
                 .Cast<IIndividual>()
                 .ToList();
 

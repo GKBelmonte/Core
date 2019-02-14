@@ -33,17 +33,24 @@ namespace Blaze.Ai.Ages.Viewer
 
         private void Test_PolynomialGA(Func<double, double> func)
         {
-            Utils.SetRandomSeed(0);
+            int seed = 0;
+            Utils.SetRandomSeed(seed);
+            var rng = new Random(seed);
             PolynomialOrder = 5;
             int populationSize = 100;
+            //number of samples to use the in the polynomial approx
+            // to test the differnce
             int sampleCount = 1000;
-            int genCount = 1;
+            //Step between the samples
             double step = 0.02;
+            //Number of generations to bundle
+            int genCount = 1;
+            
             double offset = sampleCount * step / 2;
 
             var pop = Enumerable
                 .Range(0, populationSize)
-                .Select(i => new CartesianIndividual(PolynomialOrder, 1, null))
+                .Select(i => new CartesianIndividual(PolynomialOrder, 1, rng))
                 .Cast<IIndividual>()
                 .ToList();
 
@@ -79,7 +86,8 @@ namespace Blaze.Ai.Ages.Viewer
                 CartesianIndividual.CrossOver,
                 new Generate((r) => new CartesianIndividual(PolynomialOrder, r)),
                 pop);
-            
+
+            Ages.SetRandomSeed(seed);
 
             Ages.NicheStrat = new NicheDensityStrategy(
                 Ages,
