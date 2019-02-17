@@ -159,10 +159,9 @@ namespace Blaze.Ai.Ages
                 Reap();
 
                 Survive();
+
+                _GenerationCount += 1;
             }
-            
-            //-1 because off by one error
-            _GenerationCount += genCount - 1;
         }
 
         private void Begin()

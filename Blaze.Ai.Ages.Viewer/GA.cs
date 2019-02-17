@@ -35,7 +35,7 @@ namespace Blaze.Ai.Ages.Viewer
         private void Test_PolynomialGA(Func<double, double> func)
         {
             //Settings
-            bool adaptive = true;
+            bool adaptive = false;
             int seed = 0;
             Utils.SetRandomSeed(seed);
             var rng = new Random(seed);
@@ -47,9 +47,9 @@ namespace Blaze.Ai.Ages.Viewer
             //Step between the samples
             double step = 0.02;
             //Number of generations to bundle
-            int genBundleCount = 1;
+            int genBundleCount = 10;
             //Stop at Gen 
-            GenerationStop = 50;
+            GenerationStop = 500;
 
             //Get Data for tests
             double[] xRange, expectedValues;

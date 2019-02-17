@@ -23,6 +23,11 @@ namespace Blaze.Ai.Ages.Strats
         private Distance _distance { get; }
         private Ages _parent { get;  }
         public float NicheRadius { get; private set; }
+        /// <summary>
+        /// Roughly, the percent penalty to apply at a distance
+        /// of 1 Radius
+        /// </summary>
+        public double NichePenaltyFactor { get; set; }
 
         /// <summary>
         /// This factor is applied to the radius if the radius is creating max number of niches
@@ -52,6 +57,7 @@ namespace Blaze.Ai.Ages.Strats
 
             _RadiusAdjustMinFactor = 1 / _RadiusAdjustMaxFactor;
             NicheRadius = 1;
+            NichePenaltyFactor = 10;
         }
 
         public override IReadOnlyList<float> NichePenalties(IReadOnlyList<Ages.EvaluatedIndividual> population)
@@ -89,7 +95,9 @@ namespace Blaze.Ai.Ages.Strats
                     //double partialPenalty = scoreStdDev / 10 / (d * d);
                     //(does not work a distance of 0 incurs no penalty (NaN) or if the pop is perfect stdDev=0)
 
-                    double penalty = refScore / ((100 * refScore) / NicheRadius * d + 1);
+                    //the 100 corrects for the percent that we describe
+                    double percentPenalty = 100 / (d / NicheRadius * (100/NichePenaltyFactor)  + 1);
+                    double penalty = percentPenalty*refScore/ 100;
 
                     penalties[j] += (float)penalty;
                     niche.Members.Add(population[j].Individual);
