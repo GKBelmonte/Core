@@ -148,7 +148,12 @@ namespace Blaze.Ai.Ages.Strats
             //       F is max adjustment factor (F = 2 in the example of doubling radius)
             //       P is population size
 
+            int nicheCount = niches.Count;
             double nicheAverageDensity = niches.Average(n => n.Members.Count);
+            double nicheSizeStdDev = niches
+                .Select(n => (double)n.Members.Count)
+                .ToList()
+                .StdDevP();
             
             // TODO: This might encourage the right average density / number of niches
             // but not the right individual density.

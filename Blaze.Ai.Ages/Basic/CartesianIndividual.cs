@@ -11,8 +11,6 @@ namespace Blaze.Ai.Ages.Basic
     {
         public double[] Values { get; }
 
-        public CartesianIndividual(Random r = null) : this(6, 6, r) { }
-
         public CartesianIndividual(int order, Random r = null, bool empty = false) : this(order, 6, r, empty) { }
 
         public CartesianIndividual(int order, int sigma, Random r, bool empty = false)
@@ -118,7 +116,7 @@ namespace Blaze.Ai.Ages.Basic
             return newInd;
         }
 
-
+        //TODO: Fix for cartesian individuals of different sizes
         public static float Distance(CartesianIndividual a, CartesianIndividual b)
         {
             double res = 0;

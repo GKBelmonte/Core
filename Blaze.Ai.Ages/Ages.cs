@@ -122,6 +122,8 @@ namespace Blaze.Ai.Ages
 
         public int Threads { get; set; }
 
+        public int GenerationCount { get { return _GenerationCount; } }
+
         QuickTournament _Tournament;
         
         CrossOver _Crossover;
@@ -158,8 +160,9 @@ namespace Blaze.Ai.Ages
 
                 Survive();
             }
-
-            _GenerationCount += genCount;
+            
+            //-1 because off by one error
+            _GenerationCount += genCount - 1;
         }
 
         private void Begin()

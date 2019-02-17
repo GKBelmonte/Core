@@ -30,9 +30,12 @@ namespace Blaze.Ai.Ages.Viewer
         public double[][] PowsOfXForAllX { get; private set; }
 
         public int PolynomialOrder { get; private set; }
+        public int GenerationStop { get; private set; }
 
         private void Test_PolynomialGA(Func<double, double> func)
         {
+            //Settings
+            bool adaptive = true;
             int seed = 0;
             Utils.SetRandomSeed(seed);
             var rng = new Random(seed);
@@ -40,26 +43,72 @@ namespace Blaze.Ai.Ages.Viewer
             int populationSize = 100;
             //number of samples to use the in the polynomial approx
             // to test the differnce
-            int sampleCount = 1000;
+            double start = -10, end = 10;
             //Step between the samples
             double step = 0.02;
             //Number of generations to bundle
-            int genCount = 1;
-            
-            double offset = sampleCount * step / 2;
+            int genBundleCount = 1;
+            //Stop at Gen 
+            GenerationStop = 50;
 
-            var pop = Enumerable
+            //Get Data for tests
+            double[] xRange, expectedValues;
+            GetFofXForRange(func, -10, step, 10, out xRange, out expectedValues);
+
+            double[][] allPowsOfX = GetPowersOfX(xRange, PolynomialOrder);
+
+            ExpectedValsX = xRange;
+            ExpectedValsY = expectedValues;
+            PowsOfXForAllX = allPowsOfX;
+
+            //Create Delegates
+            Evaluate eval = (i) =>
+                ((CartesianIndividual)i).PolynomialEval(allPowsOfX, expectedValues);
+
+            CrossOver crossOver = adaptive
+                ? AdaptiveCartesianIndividual.CrossOver
+                : (CrossOver)CartesianIndividual.CrossOver;
+
+            Generate generate = adaptive
+                ? (Generate)((r) => new AdaptiveCartesianIndividual(PolynomialOrder, 1, r: r, emptySigma: true))
+                : (r) => new CartesianIndividual(PolynomialOrder, 1, r);
+
+            // Generate Population
+            List<IIndividual> pop;
+            pop = Enumerable
                 .Range(0, populationSize)
-                .Select(i => new CartesianIndividual(PolynomialOrder, 1, rng))
+                .Select(i => generate(rng))
                 .Cast<IIndividual>()
                 .ToList();
 
-            double[] xRange = Enumerable
+            Ages = new Ages(genBundleCount,
+                eval,
+                crossOver,
+                generate,
+                pop);
+
+            Ages.SetRandomSeed(seed);
+
+            Ages.NicheStrat = new NicheDensityStrategy(
+                Ages,
+                (l, r) => CartesianIndividual.Distance((CartesianIndividual)l, (CartesianIndividual)r));
+        }
+
+        private void GetFofXForRange(
+            Func<double, double> func, 
+            int sampleCount, 
+            double step, 
+            out double[] xRange, 
+            out double[][] allPowsOfX, 
+            out double[] expectedValues)
+        {
+            double offset = sampleCount * step / 2;
+
+            xRange = Enumerable
                 .Range(0, sampleCount)
                 .Select(i => i * step - offset)
                 .ToArray();
-
-            double[][] allPowsOfX = new double[sampleCount][];
+            allPowsOfX = new double[sampleCount][];
             for (int i = 0; i < allPowsOfX.Length; ++i)
             {
                 allPowsOfX[i] = new double[PolynomialOrder];
@@ -72,26 +121,51 @@ namespace Blaze.Ai.Ages.Viewer
                 }
             }
 
-            double[] expectedValues = xRange
+            expectedValues = xRange
                 .Select(i => func(i))
                 .ToArray();
+        }
 
-            ExpectedValsX = xRange;
-            ExpectedValsY = expectedValues;
-            PowsOfXForAllX = allPowsOfX;
+        private  static void GetFofXForRange(
+            Func<double, double> func,
+            double start,
+            double step,
+            double end,
+            out double[] xRange,
+            out double[] expectedValues)
+        {
+            int sampleCount = (int)((end - start) / step);
 
-            Ages = new Ages(genCount,
-                new Evaluate((i) => ((CartesianIndividual)i).PolynomialEval(allPowsOfX, expectedValues)),
-                //new Evaluate((i)=> (float)Helpers.EvaluateAckley(((CartesianIndividual)i))),
-                CartesianIndividual.CrossOver,
-                new Generate((r) => new CartesianIndividual(PolynomialOrder, r)),
-                pop);
+            xRange = Enumerable
+                .Range(0, sampleCount)
+                .Select(i => start + i * step)
+                .ToArray();
 
-            Ages.SetRandomSeed(seed);
+            expectedValues = xRange
+                .Select(i => func(i))
+                .ToArray();
+        }
 
-            Ages.NicheStrat = new NicheDensityStrategy(
-                Ages,
-                (l, r) => CartesianIndividual.Distance((CartesianIndividual)l, (CartesianIndividual)r));
+        /// <summary>
+        /// [10][2] represents x^2 for the 10th value of x
+        /// </summary>
+        private static double[][] GetPowersOfX(double[] xRange, int order)
+        {
+            int sampleCount = xRange.Length;
+            double[][] allPowsOfX = new double[sampleCount][];
+            for (int i = 0; i < allPowsOfX.Length; ++i)
+            {
+                allPowsOfX[i] = new double[order];
+
+                double powX = 1;
+                for (int j = 0; j < allPowsOfX[i].Length; ++j)
+                {
+                    allPowsOfX[i][j] = powX;
+                    powX *= xRange[i];
+                }
+            }
+
+            return allPowsOfX;
         }
 
         public Ages.EvaluatedIndividual Generation()

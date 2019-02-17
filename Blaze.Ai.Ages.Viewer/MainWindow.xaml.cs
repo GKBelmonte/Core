@@ -101,7 +101,8 @@ namespace Blaze.Ai.Ages.Viewer
                 for (int i = 0; i < champVals.Values.Length && i < _series.Champs.Length; ++i)
                     _series.Champs[i].Values.Add(champVals.Values[i]);
 
-                _timer.Start();
+                if(_series.GA.Ages.GenerationCount < _series.GA.GenerationStop)
+                    _timer.Start();
             });
         }
 
@@ -138,7 +139,6 @@ namespace Blaze.Ai.Ages.Viewer
         {
             public Series()
             {
-
                 GA = new GA();
 
                 var mapper = Mappers.Xy<ObservablePoint>()

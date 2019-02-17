@@ -45,6 +45,7 @@
   <ItemGroup>
     <Compile Include="Ages.cs" />
     <Compile Include="Ages.Reap.cs" />
+    <Compile Include="Basic\AdaptiveCartesianIndividual.cs" />
     <Compile Include="Basic\CartesianIndividual.cs" />
     <Compile Include="Basic\Helpers.cs" />
     <Compile Include="Deletagates.cs" />
