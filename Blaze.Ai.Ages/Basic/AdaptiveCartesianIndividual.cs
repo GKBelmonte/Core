@@ -81,7 +81,10 @@ namespace Blaze.Ai.Ages.Basic
             for (int i = 0; i < Sigmas.Length; ++i)
             {
                 if (r.ProbabilityPass((float)newInd.MutationProbability))
-                    newInd.Sigmas[i] += newInd.Sigmas[i] * (r.GausianNoise(Tau) + 1);
+                {
+                    double modFactor = r.GausianNoise(Tau) + 1;
+                    newInd.Sigmas[i] = newInd.Sigmas[i] * modFactor;
+                }
             }
 
             //Mutate actual values based on Sigmas

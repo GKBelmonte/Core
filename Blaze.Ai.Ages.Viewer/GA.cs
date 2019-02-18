@@ -53,7 +53,7 @@ namespace Blaze.Ai.Ages.Viewer
 
             //Get Data for tests
             double[] xRange, expectedValues;
-            GetFofXForRange(func, -10, step, 10, out xRange, out expectedValues);
+            GetFofXForRange(func, start, step, end, out xRange, out expectedValues);
 
             double[][] allPowsOfX = GetPowersOfX(xRange, PolynomialOrder);
 
