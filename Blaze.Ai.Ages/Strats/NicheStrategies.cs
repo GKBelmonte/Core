@@ -47,7 +47,16 @@ namespace Blaze.Ai.Ages.Strats
         /// </summary>
         private double _RadiusAdjustPower;
 
-        public NicheDensityStrategy(Ages parent, Distance distance)
+        /// History
+        public bool KeepHistory { get; }
+        private int _Generation;
+        private List<double> _HistoryRadius;
+        private List<double> _HistoryNicheCount;
+        private List<double> _HistoryNicheAverageDensity;
+        private List<double> _HistoryNicheStandardDeviation;
+        private List<Niche> _LatestNiches;
+
+        public NicheDensityStrategy(Ages parent, Distance distance, bool keepHistory = true)
         {
             _distance = distance;
             _parent = parent;
@@ -58,6 +67,16 @@ namespace Blaze.Ai.Ages.Strats
             _RadiusAdjustMinFactor = 1 / _RadiusAdjustMaxFactor;
             NicheRadius = 1;
             NichePenaltyFactor = 0.0010;
+
+            KeepHistory = keepHistory;
+            if (KeepHistory)
+            {
+                _Generation = 0;
+                _HistoryRadius = new List<double>();
+                _HistoryNicheCount = new List<double>();
+                _HistoryNicheAverageDensity = new List<double>();
+                _HistoryNicheStandardDeviation = new List<double>();
+            }
         }
 
         public override IReadOnlyList<float> NichePenalties(IReadOnlyList<Ages.EvaluatedIndividual> population)
@@ -83,12 +102,13 @@ namespace Blaze.Ai.Ages.Strats
                 var reference = population[i].Individual;
                 float refScore = population[i].NormalizedScore.Value; 
 
-                double d = 0;
+                double distance = 0;
+                double maxDistance = 0;
                 var niche = new Niche(reference);
 
                 //Punish all individuals too similiar to ith
                 //(we're assuming that it you're close to the ith so is your score (and we're sorted by score)
-                while (j < elimIndex && (d = _distance(reference, population[j].Individual)) <= NicheRadius)
+                while (j < elimIndex && (distance = _distance(reference, population[j].Individual)) <= NicheRadius)
                 {
                     //At distance 1, the penalty is one-tenth a standard deviation
                     //At distance 0.316, the penalty is a whole-standard deviation
@@ -100,20 +120,21 @@ namespace Blaze.Ai.Ages.Strats
                     bool old = false;
                     if (!old)
                     {
-                        percentPenalty = 100 / (d / NicheRadius * (100 / NichePenaltyFactor) + 1);
+                        percentPenalty = 100 / (distance / NicheRadius * (100 / NichePenaltyFactor) + 1);
                         penalty = percentPenalty * refScore / 100;
                     }
                     else
                     {
-                        penalty = refScore / (100 * refScore * d / NicheRadius + 1);
+                        penalty = refScore / (100 * refScore * distance / NicheRadius + 1);
                     }
 
                     penalties[j] += (float)penalty;
                     niche.Members.Add(population[j].Individual);
+                    maxDistance = distance;
                     j++;
                 }
 
-                niche.MaxRadius = d;
+                niche.MaxRadius = maxDistance;
                 //punish everyone else in the niche against each other
                 //The more you repeat the worse
                 //for (int k = i + 1; k < j - 1; ++k)
@@ -178,8 +199,21 @@ namespace Blaze.Ai.Ages.Strats
             // Average works out, but Niche Std Dev is huge. I want sqrt(pop) = niche count AND stdev(niche.pop) = 0
             double adjustFactor = _RadiusAdjustMinFactor * Math.Pow(nicheAverageDensity, _RadiusAdjustPower);
             NicheRadius = (float)(NicheRadius / adjustFactor);
+
+            if (KeepHistory)
+            {
+                _HistoryRadius.Add(NicheRadius);
+                _HistoryNicheCount.Add(nicheCount);
+                _HistoryNicheAverageDensity.Add(nicheAverageDensity);
+                _HistoryNicheStandardDeviation.Add(nicheSizeStdDev);
+                _LatestNiches = niches;
+                _Generation++;
+            }
+
             return penalties;
         }
+
+        //public List<List<double>> G
 
         //Cheap cluster?
         private class Niche

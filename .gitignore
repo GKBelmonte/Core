@@ -11,3 +11,6 @@ TestResults/**
 **project.lock**
 **.user
 .vs/
+**.nuget.props
+
+**.nuget.targets
