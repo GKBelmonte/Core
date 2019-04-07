@@ -89,30 +89,90 @@ namespace Blaze.Core.Tests
             public Bravo Four { get; set; }
         }
 
+        const string testCsvPath = @"E:\test\t.csv";
+
         [TestMethod]
-        public void TestCsv()
+        public void TestPrintSingleColumnCsv()
         {
-            Csv csv = new Csv(@"E:\test\t.csv");
-            csv.SaveObject(alphas[0], 0);
-            csv.SaveObject(alphas[1], 1);
+            Csv csv = new Csv(testCsvPath);
+            for (int i = 0; i < 9; ++i)
+            {
+                csv.SaveObject(i * i);
+            }
             csv.Save();
+
+            Csv loadCsv = new Csv(testCsvPath);
+            csv.Load();
+
         }
 
         [TestMethod]
-        public void TestTwoCollectionsCsv()
+        public void TestPrintDoubleColumnCsv()
         {
-            Csv csv = new Csv(@"E:\test\t.csv");
+            Csv csv = new Csv(testCsvPath);
+            for (int i = 0; i < 9; ++i)
+            {
+                csv.SaveObject(i, collectionId: "x");
+                csv.SaveObject(i * i, collectionId: "Squared");
+            }
+            csv.Save();
+        }
+
+        public class XYPoint
+        {
+            public double X { get; set; }
+            public double Y { get; set; }
+        }
+
+        [TestMethod]
+        public void TestPrintSimpleObjectCsv()
+        {
+            Csv csv = new Csv(testCsvPath);
+            for (int i = 0; i < 9; ++i)
+            {
+                csv.SaveObject(new XYPoint
+                    {
+                        X = i,
+                        Y = i*i
+                    }, 
+                    collectionId: "x");
+            }
+            csv.Save();
+
+            Csv loadCsv = new Csv(testCsvPath);
+            csv.Load();
+        }
+
+        [TestMethod]
+        public void TestPrintClassCsv()
+        {
+            Csv csv = new Csv(testCsvPath);
+            csv.SaveObject(alphas[0], 0);
+            csv.SaveObject(alphas[1], 1);
+            csv.Save();
+
+            Csv loadCsv = new Csv(testCsvPath);
+            csv.Load();
+        }
+
+        [TestMethod]
+        public void TestPrintTwoCollectionsCsv()
+        {
+            Csv csv = new Csv(testCsvPath);
             csv.SaveObject(alphas[0], 0);
             csv.SaveObject(alphas[1], 1);
             foreach (var b in bravos)
                 csv.SaveObject(b, collectionId: "BravoCollection");
             csv.Save();
+
+            Csv loadCsv = new Csv(testCsvPath);
+            csv.Load();
         }
 
         [TestMethod]
-        public void TestPoly()
+        public void TestPrintPolyCsv()
         {
-            Csv csv = new Csv(@"E:\test\t.csv");
+            Csv csv = new Csv(testCsvPath);
             var alphas2 = alphas.ToList();
             alphas2.AddRange(new[] 
             {
@@ -125,6 +185,60 @@ namespace Blaze.Core.Tests
             foreach (var b in bravos)
                 csv.SaveObject(b, collectionId: "BravoCollection");
             csv.Save();
+        }
+
+        [TestMethod]
+        public void TestSplitLine()
+        {
+            var testStrs = new[]
+            {
+                "a,b,c", //basic
+                "a,,c", //one empty entry
+                "\"One\",Two,Three", //One stringed entry
+                "a,b,\"1,2,3\"", //stringed entry at the end
+                "a,", //empty entry at end  a  null
+                "\"\"\"\"", //One quote
+                "\"\",\"\"", // two empty strings
+                "\"\"\",\"\"\"", // ","
+                "\"\"\"\",\"\"\",\"\"\",,", //  "   ","  null  null
+                "one,\"\"\"\"\",,\"\"\"\"\""  //one  "",,""
+            };
+
+            var expectedSplits = new[]
+            {
+                new[] { "a", "b", "c"},
+                new[] { "a", null, "c"},
+                new[] { "One", "Two", "Three"},
+                new[] { "a", "b", "1,2,3"},
+                new[] { "a", null},
+                new[] { "\"" },
+                new[] { "", "" },
+                new[] { "\",\"" },
+                new[] { "\"", "\",\"", null, null},
+                new[] { "one", "\"\",\"\""},
+            };
+            var splits = new List<List<string>>();
+            var failedTests = new List<int>();
+            for (int i = 0; i < testStrs.Length; ++i)
+            { 
+                string tst = testStrs[i];
+                List<string> split = Csv.CsvSplitLine(tst);
+                splits.Add(split);
+                bool success = split.Count == expectedSplits[i].Length;
+
+                for (int j = 0; j < split.Count && success; ++j)
+                    success &= split[j] == expectedSplits[i][j];
+            }
+            Assert.IsTrue(
+                !failedTests.Any(), 
+                $"Tests {string.Join(",", failedTests)} failed");
+        }
+
+        [TestMethod]
+        public void TestLoadCsv()
+        {
+            Csv csv = new Csv(testCsvPath);
+            csv.Load();
         }
     }
 }

@@ -6,7 +6,11 @@ using System.Threading.Tasks;
 
 namespace Blaze.Core
 {
-    class ReflectionUtils
+    public static class ReflectionUtils
     {
+        public static bool IsStruct(this Type self)
+        {
+            return self.IsValueType && !self.IsPrimitive;
+        }
     }
 }

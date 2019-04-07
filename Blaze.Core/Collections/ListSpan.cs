@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 
 namespace Blaze.Core.Collections
 {
+    /// <summary>
+    /// Memory-unintensive alternatives to subset of lists
+    /// </summary>
     public class ListSpan<T> : IReadOnlyList<T>
     {
         private IReadOnlyList<T> _source;
@@ -52,6 +55,17 @@ namespace Blaze.Core.Collections
             public T Current { get { return _span[_ix]; } }
 
             object IEnumerator.Current { get { return Current; } }
+        }
+    }
+
+    public static class ListSpanExtensions
+    {
+        /// <summary>
+        /// Memory-unintensive alternatives to subset of lists
+        /// </summary>
+        public static ListSpan<T> GetSpan<T>(this IReadOnlyList<T> self, int begin, int exclusiveEnd)
+        {
+            return new ListSpan<T>(self, begin, exclusiveEnd);
         }
     }
 }
