@@ -69,5 +69,14 @@ namespace Blaze.Core.Extensions
 
             return res;
         }
+
+        public static bool SequenceEqualWithNull<TSource>(this IEnumerable<TSource> first, IEnumerable<TSource> second)
+        {
+            if (first == second)
+                return true;
+            if (first == null)
+                return false;
+            return first.SequenceEqual(second);
+        }
     }
 }

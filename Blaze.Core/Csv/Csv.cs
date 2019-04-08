@@ -13,11 +13,15 @@ namespace Blaze.Core
 {
     public enum DataSourceResult
     {
+        Ok,
         Added,
         Updated,
         Modified,
         Failed,
-        Deleted
+        Deleted,
+        CollectionNotFound,
+        ObjectNotFound,
+        ObjectWrongType
     }
 
     public class Csv
@@ -238,28 +242,87 @@ namespace Blaze.Core
             return split;
         }
 
+        public T GetObject<T>(object key, object collectionKey = null)
+        {
+            TryGetObject<T>(key, out T res, collectionKey);
+            return res;
+        }
+
+        public object GetObject(Type type, object key, object collectionKey = null)
+        {
+            MethodInfo genericMethod = GetType().GetMethod(nameof(TryGetObject));
+            MethodInfo genericMethodFilled = genericMethod.MakeGenericMethod(type);
+            var parameters = new object[] { key, null, collectionKey };
+            var dsr = genericMethodFilled.Invoke(this, parameters);
+            return parameters[1];
+        }
+
+        public DataSourceResult TryGetObject<T>(object key, out T obj, object collectionKey = null)
+        {
+            obj = default(T);
+            DataSourceResult res = TryGetDataEntry(key, out DataEntry de, collectionKey);
+            if (res != DataSourceResult.Ok)
+                return res;
+
+            //is this true? how do I handle null entries? should I disallow them?
+            Trace.Assert(de != null, "DataEntry should not be null if DataResult is ok");
+
+            if (de.ClrObject != null)
+            {
+                if (de.ClrObject is T)
+                {
+                    obj = (T)de.ClrObject;
+                    return DataSourceResult.Ok;
+                }
+                else
+                {
+                    return DataSourceResult.ObjectWrongType;
+                }
+            }
+
+            de.LoadObjectFromData<T>();
+            obj = (T)de.ClrObject;
+
+            return DataSourceResult.Ok;
+        }
+
         public object GetObject(object key, object collectionKey = null)
         {
+            DataEntry de = GetDataEntry(key, collectionKey);
+            if (de == null)
+                return null;
+
+            if (de.ClrObject != null)
+                return de.ClrObject;
+
+            var expando = new ExpandoObject();
+            var dicExpando = (IDictionary<string,object>)expando;
+            foreach (var kvp in expando)
+                dicExpando.Add(kvp.Key, kvp.Value);
+
+            return expando;
+        }
+
+        internal DataEntry GetDataEntry(object key, object collectionKey = null)
+        {
+            DataEntry de;
+            TryGetDataEntry(key, out de, collectionKey);
+            return de;
+        }
+
+        internal DataSourceResult TryGetDataEntry(object key, out DataEntry dataEntry, object collectionKey = null)
+        {
+            dataEntry = null;
             collectionKey = collectionKey ?? _DefaultCollectionKey;
             Collection collection;
             if (_Data.TryGetValue(collectionKey, out collection))
             {
-                DataEntry de;
-                if (collection.TryGetValue(key, out de))
-                {
-                    if (de.OriginalObject != null)
-                        return de.OriginalObject;
-
-                    var expando = new ExpandoObject();
-                    var dicExpando = (IDictionary<string,object>)expando;
-                    foreach (var kvp in expando)
-                        dicExpando.Add(kvp.Key, kvp.Value);
-                    return expando;
-                }
-                return null;
+                if (collection.TryGetValue(key, out dataEntry))
+                    return DataSourceResult.Ok;
+                return DataSourceResult.ObjectNotFound;
             }
 
-            return null;
+            return DataSourceResult.CollectionNotFound;
         }
 
         //public object GetObjects(object collectionKey)
@@ -270,16 +333,17 @@ namespace Blaze.Core
         internal class DataEntry : Dictionary<string, object>
         {
             private const string _NullRepresentation = "{null}";
+            private const string _PrimitiveValuePropertyKey = "$Value";
             private PropertyInfo[] _PropertyInfos;
 
-            internal object OriginalObject { get; }
+            internal object ClrObject { get; set; }
             internal Collection ParentCollection { get; }
             internal object Key { get; }
             internal int PropertyCount { get; }
 
             internal DataEntry(object original, Collection collection, object key = null)
             {
-                OriginalObject = original;
+                ClrObject = original;
                 ParentCollection = collection;
                 Type type = original.GetType();
                 _PropertyInfos = type.GetProperties();
@@ -311,7 +375,7 @@ namespace Blaze.Core
 
             internal void LoadDataFromObject()
             {
-                Type type = OriginalObject.GetType();
+                Type type = ClrObject.GetType();
                 if (_PropertyInfos.Any())
                 {
                     foreach (var prop in _PropertyInfos)
@@ -319,24 +383,19 @@ namespace Blaze.Core
                         if (!prop.CanRead)
                             continue;
 
-                        object value = prop.GetValue(OriginalObject);
+                        object value = prop.GetValue(ClrObject);
                         this[prop.Name] = value;
                     }
                 }
                 else if (type.IsPrimitive)
                 {
-                    this["Value"] = OriginalObject;
+                    this[_PrimitiveValuePropertyKey] = ClrObject;
                 }
                 else
                 {
                     //Missing cases where there's no read-only properties.
                     Debug.Assert(false, "No properties and is not a primitive");
                 }
-            }
-
-            internal void LoadObjectFromData()
-            {
-                
             }
 
             internal void SerializeEntry(List<StringBuilder> serializedCsv, int lineNumber)
@@ -472,6 +531,100 @@ namespace Blaze.Core
                 // could check to see if we know the primitive type, and return that too.:ee:\
                 return val;
             }
+
+            private object DeserializePropertyValue(Type propertyType, object val)
+            {
+                if (val == null)
+                    return null;
+
+                if (propertyType == null)
+                    return val;
+
+                Type savedType = val.GetType();
+                if (savedType.IsArray)
+                    return DeserializeArrayProperty(propertyType, val);
+
+                string strVal = (string)val;
+
+                if (propertyType == typeof(string))
+                    return (string)val;
+                if (propertyType == typeof(char))
+                    return ((string)val)[0];
+
+                if (propertyType.IsPrimitive)
+                {
+                    //assume that all primitive types have a parse method?
+                    MethodInfo methodInfo = propertyType.GetMethod("Parse", new Type[] { typeof(string) });
+                    if (methodInfo == null)
+                        throw new NotSupportedException(
+                            $"Don't know how to parse primitive type '{propertyType.Name}', " 
+                            + $"with value val '{strVal}'");
+                    return methodInfo.Invoke(null, new[] { strVal });
+                }
+
+                //if (propertyType.IsStruct() || propertyType.IsClass)
+                return Newtonsoft.Json.JsonConvert.DeserializeObject(strVal, propertyType);
+            }
+
+            private object DeserializeArrayProperty(Type propertyType, object val)
+            {
+                Array valArray = (Array)val;
+                //lets support IList, it does Array and any list
+                //(Could crash if cast invalid)
+                IList list = (IList)Activator.CreateInstance(propertyType, new object[] { valArray.Length });
+
+                Type genericType;
+                if (propertyType.IsArray)
+                {
+                    genericType = propertyType.GetElementType();
+                }
+                else
+                {
+                    genericType = propertyType
+                    .GetGenericArguments()
+                    .FirstOrDefault();
+                }
+
+                int ix = 0;
+                foreach (var arrVal in valArray)
+                {
+                    object desArrVall = DeserializePropertyValue(genericType, arrVal);
+                    if (propertyType.IsArray)
+                        list[ix++] = desArrVall;
+                    else
+                        list.Add(desArrVall);
+                }
+                return list;
+            }
+
+            internal void LoadObjectFromData<T>()
+            {
+                Type type = typeof(T);
+                T newInstance = ReflectionUtils.CreateInstance<T>();
+
+                if (type.IsPrimitive)
+                {
+                    var val = this[_PrimitiveValuePropertyKey];
+                    newInstance = (T)DeserializePropertyValue(type, val);
+                }
+                else
+                {
+                    _PropertyInfos = type.GetProperties();
+                    foreach (var kvp in this)
+                    {
+                        PropertyInfo pi = _PropertyInfos
+                            .FirstOrDefault(p => p.Name == kvp.Key);
+
+                        if (pi == null)
+                            continue; //Either polymorphic more base class or multi-type collection
+
+                        object trueVal = DeserializePropertyValue(pi.PropertyType, kvp.Value);
+
+                        ReflectionUtils.UnsafeSetProperty(newInstance, kvp.Key, trueVal);
+                    }
+                }
+                ClrObject = newInstance;
+            }
         }
 
         internal class Collection : IDictionary<object, DataEntry>
@@ -592,6 +745,11 @@ namespace Blaze.Core
                 }
             }
 
+            public override string ToString()
+            {
+                return _Key.ToString();
+            }
+
             #region Dictionary Impl
             private IDictionary<object, DataEntry> AsDictionary
             {
@@ -606,8 +764,8 @@ namespace Blaze.Core
             public void Add(object key, DataEntry value)
             {
                 AsDictionary.Add(key, value);
-                if (value.OriginalObject != null)
-                    _ObjectToEntryMap.Add(value.OriginalObject, value);
+                //if (value.ClrObject != null)
+                //    _ObjectToEntryMap.Add(value.ClrObject, value);
             }
 
             public bool Remove(object key)
@@ -615,7 +773,7 @@ namespace Blaze.Core
                 DataEntry de;
                 if (!_InternalCollection.TryGetValue(key, out de))
                     return false;
-                _ObjectToEntryMap.Remove(de.OriginalObject);
+                // _ObjectToEntryMap.Remove(de.ClrObject);
                 return AsDictionary.Remove(key);
             }
 
@@ -627,7 +785,7 @@ namespace Blaze.Core
             public void Clear()
             {
                 AsDictionary.Clear();
-                _ObjectToEntryMap.Clear();
+                //_ObjectToEntryMap.Clear();
             }
 
             public IEnumerator<KeyValuePair<object, DataEntry>> GetEnumerator()

@@ -3,6 +3,7 @@ using System.Text;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Linq;
+using System.Collections;
 
 namespace Blaze.Core.Tests
 {
@@ -35,19 +36,6 @@ namespace Blaze.Core.Tests
         // public void MyTestCleanup() { }
         //
         #endregion
-
-        class Alpha
-        {
-            public int One { get; set; }
-            public List<string> Two {get; set;}
-            public double Three { get; set; }
-        }
-
-        class Bravo
-        {
-            public string First { get; set; }
-            public int[] Second { get; set; }
-        }
 
         Alpha[] alphas =
         {
@@ -84,107 +72,126 @@ namespace Blaze.Core.Tests
             },
         };
 
-        class Alpha2 : Alpha
+        const string testCsvPath = @"E:\test\t.csv";
+
+        class TestCollection<T> : List<T>, ITestCollection
         {
-            public Bravo Four { get; set; }
+            public string ID { get; set; }
+            public Type Type { get; set; }
+            public TestCollection() { Type = typeof(T); }
         }
 
-        const string testCsvPath = @"E:\test\t.csv";
+        interface ITestCollection : IList
+        {
+            string ID { get; set; }
+            Type Type { get; set; }
+        }
+
+        //[TestMethod]
+        private void TestPrintAndReload(params ITestCollection[] collections)
+        {
+            Csv csv = new Csv(testCsvPath);
+            foreach (var col in collections)
+            {
+                foreach (var ele in col)
+                    csv.SaveObject(ele, collectionId: col.ID);
+            }
+            csv.Save();
+            Csv load = new Csv(testCsvPath);
+            load.Load();
+
+            List<string> errors = new List<string>();
+            foreach (ITestCollection col in collections)
+            {
+                var length = col.Count;
+                var loadedList = new List<object>();
+                for (int i = 0; i < length; ++i)
+                {
+                    var originalObj = col[i];
+                    var loadedObj = load.GetObject(col.Type, i, col.ID);
+                    loadedList.Add(loadedObj);
+                    if (!originalObj.Equals(loadedObj))
+                        errors.Add($"Error deserializing element '{i}' with collection '{col.ID}'");
+                }
+            }
+
+            Assert.IsTrue(errors.Count == 0, $"One or more reloads failed: {string.Join(",", errors)}");
+        }
 
         [TestMethod]
         public void TestPrintSingleColumnCsv()
         {
-            Csv csv = new Csv(testCsvPath);
+            var test = new TestCollection<int>();
             for (int i = 0; i < 9; ++i)
             {
-                csv.SaveObject(i * i);
+                test.Add(i);
             }
-            csv.Save();
-
-            Csv loadCsv = new Csv(testCsvPath);
-            csv.Load();
-
+            TestPrintAndReload(test);
         }
 
         [TestMethod]
         public void TestPrintDoubleColumnCsv()
         {
-            Csv csv = new Csv(testCsvPath);
+            var t1 = new TestCollection<int>() { ID = "x" };
+            var t2 = new TestCollection<int>() { ID = "Squared"};
             for (int i = 0; i < 9; ++i)
             {
-                csv.SaveObject(i, collectionId: "x");
-                csv.SaveObject(i * i, collectionId: "Squared");
+                t1.Add(i);
+                t2.Add(i * i);
             }
-            csv.Save();
-        }
-
-        public class XYPoint
-        {
-            public double X { get; set; }
-            public double Y { get; set; }
+            TestPrintAndReload(t1, t2);
         }
 
         [TestMethod]
         public void TestPrintSimpleObjectCsv()
         {
-            Csv csv = new Csv(testCsvPath);
+            var csv = new Csv(testCsvPath);
+            var originalList = new TestCollection<XYPoint>() { ID = "x" };
             for (int i = 0; i < 9; ++i)
             {
-                csv.SaveObject(new XYPoint
-                    {
-                        X = i,
-                        Y = i*i
-                    }, 
-                    collectionId: "x");
+                var xyp = new XYPoint
+                {
+                    X = i,
+                    Y = i * i
+                };
+                originalList.Add(xyp);
             }
-            csv.Save();
-
-            Csv loadCsv = new Csv(testCsvPath);
-            csv.Load();
+            TestPrintAndReload(originalList);
         }
 
         [TestMethod]
         public void TestPrintClassCsv()
         {
-            Csv csv = new Csv(testCsvPath);
-            csv.SaveObject(alphas[0], 0);
-            csv.SaveObject(alphas[1], 1);
-            csv.Save();
-
-            Csv loadCsv = new Csv(testCsvPath);
-            csv.Load();
+            var test = new TestCollection<Alpha>();
+            test.AddRange(alphas);
+            TestPrintAndReload(test);
         }
 
         [TestMethod]
         public void TestPrintTwoCollectionsCsv()
         {
-            Csv csv = new Csv(testCsvPath);
-            csv.SaveObject(alphas[0], 0);
-            csv.SaveObject(alphas[1], 1);
-            foreach (var b in bravos)
-                csv.SaveObject(b, collectionId: "BravoCollection");
-            csv.Save();
-
-            Csv loadCsv = new Csv(testCsvPath);
-            csv.Load();
+            var alphaTest = new TestCollection<Alpha>();
+            alphaTest.AddRange(alphas);
+            var bravoTest = new TestCollection<Bravo>() { ID = "BravoCollection" };
+            bravoTest.AddRange(bravos);
+            TestPrintAndReload(alphaTest, bravoTest);
         }
 
         [TestMethod]
         public void TestPrintPolyCsv()
         {
             Csv csv = new Csv(testCsvPath);
-            var alphas2 = alphas.ToList();
-            alphas2.AddRange(new[] 
+            var alphaTest = new TestCollection<Alpha>() { ID = "Alpha"};
+            alphaTest.AddRange(alphas);
+            alphaTest.AddRange(new[] 
             {
                 new Alpha2(),
                 new Alpha2() { Four = new Bravo() }
             });
 
-            foreach (var a in alphas2)
-                csv.SaveObject(a, collectionId: "Alpha");
-            foreach (var b in bravos)
-                csv.SaveObject(b, collectionId: "BravoCollection");
-            csv.Save();
+            var bravoTest = new TestCollection<Bravo>() { ID = "BravoCollection" };
+            bravoTest.AddRange(bravos);
+            TestPrintAndReload(alphaTest, bravoTest);
         }
 
         [TestMethod]
