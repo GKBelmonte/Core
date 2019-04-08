@@ -57,7 +57,7 @@ namespace Blaze.Core
 
             FieldInfo backingField = type
                 .GetRuntimeFields()
-                .Where(a => Regex.IsMatch(a.Name, $"\\A<{nameof(propertyName)}>k__BackingField\\Z"))
+                .Where(fi => fi.Name == $"<{propertyName}>k__BackingField")
                 .FirstOrDefault();
             if (backingField == null)
                 return false;
